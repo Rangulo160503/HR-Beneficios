@@ -56,5 +56,28 @@
   <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
     <Folder Include="Properties" />
+    <Folder Include="core\" />
+    <Folder Include="core\Tables\" />
+    <Folder Include="core\Stored Procedures\" />
+    <Folder Include="Security\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="core\Tables\Usuario.sql" />
+    <Build Include="core\Tables\SeleccionBeneficio.sql" />
+    <Build Include="core\Tables\Proveedor.sql" />
+    <Build Include="core\Tables\Categoria.sql" />
+    <Build Include="core\Tables\Beneficio.sql" />
+    <Build Include="core\Stored Procedures\AgregarBeneficio.sql" />
+    <Build Include="core\Stored Procedures\AgregarCategoria.sql" />
+    <Build Include="core\Stored Procedures\ContarCategorias.sql" />
+    <Build Include="core\Stored Procedures\EditarBeneficio.sql" />
+    <Build Include="core\Stored Procedures\EditarCategoria.sql" />
+    <Build Include="core\Stored Procedures\EliminarBeneficio.sql" />
+    <Build Include="core\Stored Procedures\EliminarCategoria.sql" />
+    <Build Include="core\Stored Procedures\ObtenerBeneficio.sql" />
+    <Build Include="core\Stored Procedures\ObtenerBeneficios.sql" />
+    <Build Include="core\Stored Procedures\ObtenerCategoria.sql" />
+    <Build Include="core\Stored Procedures\ObtenerCategorias.sql" />
+    <Build Include="Security\core.sql" />
   </ItemGroup>
 </Project>
