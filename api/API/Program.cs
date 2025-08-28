@@ -1,6 +1,8 @@
-﻿using Abstracciones.Interfaces.Flujo;
+﻿using Abstracciones.Interfaces.DA;
+using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Interfaces.Reglas;
 using Abstracciones.Interfaces.Servicios;
+using DA;
 using Flujo;
 using Microsoft.Extensions.Configuration;
 using Reglas;
@@ -14,7 +16,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
             "https://hr-beneficios-web-czb0aef7f5avhtfd.canadacentral-01.azurewebsites.net",
-            "https://localhost:7058" // ← solo mientras probás localmente
+            "http://localhost:5173"
         )
         .AllowAnyHeader()
         .AllowAnyMethod();
@@ -27,14 +29,25 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Wrapper + Repositorio + DA + Flujo de Beneficios
+builder.Services.AddScoped<IDapperWrapper, DA.Wrapper.DapperWrapper>();
+builder.Services.AddScoped<IRepositorioDapper, DA.Repositorios.RepositorioDapper>();
+
+
 // REGISTRO DE FLUJOS
 builder.Services.AddScoped<IBeneficioFlujo, BeneficiosFlujo>();
+
+builder.Services.AddScoped<ICategoriaFlujo, CategoriaFlujo>();
 
 // REGISTRO DE SERVICIOS
 builder.Services.AddScoped<IBeneficiosServicio, BeneficiosServicio>();
 
 // REGISTRO DE CONFIGURACION PERSONALIZADA
 builder.Services.AddScoped<IConfiguracion, Configuracion>();
+
+builder.Services.AddScoped<IBeneficioDA, BeneficioDA>();
+
+builder.Services.AddScoped<ICategoriaDA, CategoriaDA>();
 
 // REGISTRO DE HTTPCLIENT FACTORY
 
@@ -59,6 +72,7 @@ app.UseHttpsRedirection();
 app.UseCors("ProdCorsPolicy");
 
 app.UseAuthorization();
+app.UseStaticFiles();
 
 app.MapControllers();
 

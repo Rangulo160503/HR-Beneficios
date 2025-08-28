@@ -1,33 +1,67 @@
-import { Route, Routes, useLocation } from "react-router-dom"
-import DisplayHome from "./DisplayHome"
-import DisplayAlbum from "./DisplayAlbum"
-import { useEffect, useRef } from "react"
-import { albumsData } from "../assets/assets"
+import { useEffect, useState } from "react";
+import { fetchBeneficios } from "../services/beneficiosService.js";
+import BenefitCard from "./BenefitCard";
 
-const Display = () => {
-  const displayRef = useRef();
-  const location = useLocation();
-  const isAlbum = location.pathname.includes("album");
-  const albumId = isAlbum ? location.pathname.slice(-1) : "";
-  const bgColor = albumsData[Number(albumId)].bgColor;
-
-
-  useEffect(()=>{
-    if(isAlbum) {
-      displayRef.current.style.background = `linear-gradient(${bgColor},#121212)`;
-    }
-    else{
-      displayRef.current.style.background = "#121212";
-    }
-  })
+function SkeletonCard() {
   return (
-    <div ref={displayRef} className="w-[100%] m-2 px-6 pt-4 rounded bg-[#121212] text-white overflow-auto lg:w-[75%] lg:ml-0">
-        <Routes>
-            <Route path="/" element={<DisplayHome/>}/>
-            <Route path="/album/:id" element={<DisplayAlbum/>}/>
-        </Routes>
+    <div className="rounded-2xl bg-white/5 p-2">
+      <div className="aspect-square w-full rounded-xl animate-pulse bg-white/10" />
+      <div className="mt-2 space-y-2">
+        <div className="h-4 w-3/4 rounded bg-white/10 animate-pulse" />
+        <div className="h-3 w-1/2 rounded bg-white/10 animate-pulse" />
+      </div>
     </div>
-  )
+  );
 }
 
-export default Display
+
+export default function Display() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await fetchBeneficios();
+        const map = (x) => ({
+          id: x.beneficioId ?? x.BeneficioId,
+          titulo: x.titulo ?? x.Titulo,
+          proveedor: x.proveedorNombre ?? x.ProveedorNombre,
+          imagen: x.imagenUrl ?? x.ImagenUrl,
+        });
+        setItems(Array.isArray(data) ? data.map(map) : []);
+      } catch {
+        setError("No se pudieron cargar los beneficios.");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  return (
+    <main className="flex-1 bg-neutral-900 text-white">
+      <div className="mx-auto w-full max-w-7xl px-3 sm:px-4 py-4">
+        {error && (
+          <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
+            {error}
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+          {loading
+            ? Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)
+            : items.map((it) => (
+                <BenefitCard key={it.id} item={it} onClick={() => {}} />
+              ))}
+        </div>
+
+        {!loading && !items.length && (
+          <div className="mt-8 text-center text-white/60">
+            No hay beneficios publicados.
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}

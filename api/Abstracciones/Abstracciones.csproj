@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Interfaces\API\" />
-    <Folder Include="Interfaces\DA\" />
   </ItemGroup>
 
   <ItemGroup>
