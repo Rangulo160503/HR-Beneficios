@@ -1,0 +1,7 @@
+C:\Users\rangulo\Documents\HR\HR-Beneficios\web\HR-Beneficios-WEB\obj\Release\net8.0\PubTmp\Out\HR-Beneficios-WEB.exe
+C:\Users\rangulo\Documents\HR\HR-Beneficios\web\HR-Beneficios-WEB\obj\Release\net8.0\PubTmp\Out\appsettings.Development.json
+C:\Users\rangulo\Documents\HR\HR-Beneficios\web\HR-Beneficios-WEB\obj\Release\net8.0\PubTmp\Out\appsettings.json
+C:\Users\rangulo\Documents\HR\HR-Beneficios\web\HR-Beneficios-WEB\obj\Release\net8.0\PubTmp\Out\HR-Beneficios-WEB.dll
+C:\Users\rangulo\Documents\HR\HR-Beneficios\web\HR-Beneficios-WEB\obj\Release\net8.0\PubTmp\Out\HR-Beneficios-WEB.deps.json
+C:\Users\rangulo\Documents\HR\HR-Beneficios\web\HR-Beneficios-WEB\obj\Release\net8.0\PubTmp\Out\HR-Beneficios-WEB.runtimeconfig.json
+C:\Users\rangulo\Documents\HR\HR-Beneficios\web\HR-Beneficios-WEB\obj\Release\net8.0\PubTmp\Out\HR-Beneficios-WEB.pdb

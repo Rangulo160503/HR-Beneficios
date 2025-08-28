@@ -44,7 +44,7 @@ namespace DA
 
         public async Task<int> Eliminar(int id)
         {
-            const string sp = @"core.EliminarCategoriaFisico";
+            const string sp = @"core.EliminarCategoria";
             return await _dapperWrapper.ExecuteScalarAsync<int>(_dbConnection, sp, new { Id = id });
         }
         public async Task<int> Contar() 

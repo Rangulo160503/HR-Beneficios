@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { fetchBeneficios } from "../services/beneficiosService.js";
 import BenefitCard from "./BenefitCard";
+import Modal from "./Modal";
+import BenefitDetailModal from "./modal/BenefitDetailModal";
 
 function SkeletonCard() {
   return (
@@ -14,11 +16,24 @@ function SkeletonCard() {
   );
 }
 
-
 export default function Display() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // estado para el modal de detalle
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+
+  const openDetail = (id) => {
+    setSelectedId(id);
+    setDetailOpen(true);
+  };
+
+  const closeDetail = () => {
+    setDetailOpen(false);
+    setSelectedId(null);
+  };
 
   useEffect(() => {
     (async () => {
@@ -31,7 +46,8 @@ export default function Display() {
           imagen: x.imagenUrl ?? x.ImagenUrl,
         });
         setItems(Array.isArray(data) ? data.map(map) : []);
-      } catch {
+      } catch (e) {
+        console.error(e);
         setError("No se pudieron cargar los beneficios.");
       } finally {
         setLoading(false);
@@ -52,7 +68,11 @@ export default function Display() {
           {loading
             ? Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)
             : items.map((it) => (
-                <BenefitCard key={it.id} item={it} onClick={() => {}} />
+                <BenefitCard
+                  key={it.id}
+                  item={it}
+                  onClick={() => openDetail(it.id)}  // 👈 abre el modal
+                />
               ))}
         </div>
 
@@ -62,6 +82,11 @@ export default function Display() {
           </div>
         )}
       </div>
+
+      {/* Modal de detalle */}
+      <Modal open={detailOpen} title="Detalle del beneficio" onClose={closeDetail}>
+        {selectedId && <BenefitDetailModal beneficioId={selectedId} />}
+      </Modal>
     </main>
   );
 }

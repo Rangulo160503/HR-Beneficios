@@ -28,9 +28,6 @@ export default function BenefitCard({ item, onClick }) {
         <div className="line-clamp-2 text-[0.95rem] font-semibold leading-snug">
           {item?.titulo}
         </div>
-        <div className="line-clamp-1 text-xs text-white/70">
-          {item?.proveedor || "Proveedor"}
-        </div>
       </div>
     </button>
   );

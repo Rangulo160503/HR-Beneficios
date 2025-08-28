@@ -6,6 +6,7 @@ import BeneficiosCrud from "./crud/BeneficiosCrud";
 import CategoriasCrud from "./crud/CategoriasCrud";
 import PublicadosPreview from "./Preview/PublicadosPreview";
 import CountPreview from "./Preview/CountPreview";
+import BenefitDetailModal from "./modal/BenefitDetailModal";
 
 const API_BASE = (import.meta.env.VITE_API_BASE || "https://localhost:7141").replace(/\/$/, "");
 
@@ -20,8 +21,20 @@ export default function Display() {
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState(null);
 
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailId, setDetailId] = useState(null);
+
   const handleOpen = (tile) => { setCurrent(tile); setOpen(true); };
   const handleClose = () => { setOpen(false); setCurrent(null); };
+
+  const openDetail = (id) => {
+    setDetailId(id);
+    setDetailOpen(true);
+  };
+  const closeDetail = () => {
+    setDetailOpen(false);
+    setDetailId(null);
+  };
 
   return (
     <main className="flex-1 bg-neutral-900 text-white">
@@ -41,9 +54,14 @@ export default function Display() {
         {current?.id === "beneficios" && <BeneficiosCrud />}
         {current?.id === "categorias" && <CategoriasCrud />}
 
-        {current?.id === "publicados" && <PublicadosPreview />}
+        {current?.id === "publicados" && (
+          <PublicadosPreview onOpenDetail={openDetail} />
+        )}
 
         {current?.id === "categorias-count" && <CountPreview />}
+      </Modal>
+      <Modal open={detailOpen} title="Detalle del beneficio" onClose={closeDetail}>
+        <BenefitDetailModal beneficioId={detailId} />
       </Modal>
     </main>
   );
