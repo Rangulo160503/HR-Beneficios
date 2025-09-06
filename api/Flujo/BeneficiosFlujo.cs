@@ -1,6 +1,7 @@
 ﻿using Abstracciones.Interfaces.DA;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Flujo
 {
@@ -16,7 +17,6 @@ namespace Flujo
         {
             return await _beneficioDA.Agregar(beneficio);
         }
-
         public async Task<Guid> Editar(Guid id, BeneficioRequest beneficio)
         {
             return await _beneficioDA.Editar(id, beneficio);
@@ -26,14 +26,15 @@ namespace Flujo
         {
             return await _beneficioDA.Eliminar(id);
         }
+
         public async Task<IEnumerable<BeneficioResponse>> Obtener()
         {
             return await _beneficioDA.Obtener();
         }
+
         public async Task<BeneficioDetalle> Obtener(Guid id)
         {
-            var beneficio = await _beneficioDA.Obtener(id);
-            return beneficio;
+            return await _beneficioDA.Obtener(id);
         }
     }
 }
