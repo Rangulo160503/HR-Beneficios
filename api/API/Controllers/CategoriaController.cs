@@ -1,52 +1,72 @@
-﻿using Abstracciones.Modelos;
-using Abstracciones.Interfaces.DA;
-using Microsoft.AspNetCore.Mvc;
+﻿using Abstracciones.Interfaces.API;
 using Abstracciones.Interfaces.Flujo;
+using Abstracciones.Modelos;
+using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class CategoriaController : ControllerBase
+    [ApiController]
+    public class CategoriaController : ControllerBase, ICategoriaController
     {
-        private readonly ICategoriaFlujo _flujo;
-        public CategoriaController(ICategoriaFlujo flujo) => _flujo = flujo;
+        private readonly ICategoriaFlujo _categoriaFlujo;
+        private readonly ILogger<CategoriaController> _logger;
 
-        [HttpGet]
-        public async Task<IActionResult> Get() =>
-            Ok(await _flujo.Obtener());
-
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> Get(int id)
+        public CategoriaController(ICategoriaFlujo categoriaFlujo, ILogger<CategoriaController> logger)
         {
-            var cat = await _flujo.Obtener(id);
-            return cat?.CategoriaId > 0 ? Ok(cat) : NotFound();
+            _categoriaFlujo = categoriaFlujo;
+            _logger = logger;
         }
+        #region Operaciones
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] CategoriaRequest body)
+        public async Task<IActionResult> Agregar([FromBody] CategoriaRequest categoria)
         {
-            var id = await _flujo.Agregar(body);
-            return CreatedAtAction(nameof(Get), new { id }, new { categoriaId = id });
+            var resultado = await _categoriaFlujo.Agregar(categoria);
+            return CreatedAtAction(nameof(Obtener), new { Id = resultado }, null);
+        }
+        [HttpPut("{Id}")]
+        public async Task<IActionResult> Editar([FromRoute] Guid Id, [FromBody] CategoriaRequest categoria)
+        {
+            if (!await VerificarCategoriaExiste(Id))
+                return NotFound("La categoría no existe");
+            var resultado = await _categoriaFlujo.Editar(Id, categoria);
+            return Ok(resultado);
         }
 
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Put(int id, [FromBody] CategoriaRequest body)
+        [HttpDelete("{Id}")]
+        public async Task<IActionResult> Eliminar([FromRoute] Guid Id)
         {
-            var updatedId = await _flujo.Editar(id, body);
-            return Ok(new { categoriaId = updatedId });
+            if (!await VerificarCategoriaExiste(Id))
+                return NotFound("La categoría no existe");
+            var resultado = await _categoriaFlujo.Eliminar(Id);
+            return NoContent();
         }
-
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpGet]
+        public async Task<IActionResult> Obtener()
         {
-            var deletedId = await _flujo.Eliminar(id);
-            return Ok(new { categoriaId = deletedId });
+            var resultado = await _categoriaFlujo.Obtener();
+            if (!resultado.Any())
+                return NoContent();
+            return Ok(resultado);
         }
-        // GET /api/Categoria/count
-        [HttpGet("count")]
-        public async Task<IActionResult> Count() =>
-            Ok(new { total = await _flujo.Contar() });
+        [HttpGet("{Id}")]
+        public async Task<IActionResult> Obtener([FromRoute] Guid Id)
+        {
+            var resultado = await _categoriaFlujo.Obtener(Id);
+            return Ok(resultado);
+        }
+        #endregion Operaciones
 
+        #region Helpers
+        private async Task<bool> VerificarCategoriaExiste(Guid Id)
+        {
+            var resultadoValidacion = false;
+            var resultadoCategoriaExiste = await _categoriaFlujo.Obtener(Id);
+            if (resultadoCategoriaExiste != null)
+                resultadoValidacion = true;
+            return resultadoValidacion;
+        }
+        #endregion
     }
 }
