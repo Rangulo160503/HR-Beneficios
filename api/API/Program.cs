@@ -15,8 +15,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("ProdCorsPolicy", policy =>
     {
         policy.WithOrigins(
-            "https://hr-beneficios-web-czb0aef7f5avhtfd.canadacentral-01.azurewebsites.net",
-            "http://localhost:5173"
+            "https://hr-beneficios-web-client-cfdshdfeeyemfmh3.canadacentral-01.azurewebsites.net", // Cliente
+            "https://hr-beneficios-web-admin-dqbwbedkb2duhqbs.canadacentral-01.azurewebsites.net", // Admin
+            "http://localhost:5173" // Desarrollo local
         )
         .AllowAnyHeader()
         .AllowAnyMethod();
@@ -24,43 +25,28 @@ builder.Services.AddCors(options =>
 });
 
 
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Wrapper + Repositorio + DA + Flujo de Beneficios
+// DI (tal como lo tienes)
 builder.Services.AddScoped<IDapperWrapper, DA.Wrapper.DapperWrapper>();
 builder.Services.AddScoped<IRepositorioDapper, DA.Repositorios.RepositorioDapper>();
-
-
-// REGISTRO DE FLUJOS
-builder.Services.AddScoped<IBeneficioFlujo, BeneficiosFlujo>();
-
-builder.Services.AddScoped<ICategoriaFlujo, CategoriaFlujo>();
-
-// REGISTRO DE SERVICIOS
-builder.Services.AddScoped<IBeneficiosServicio, BeneficiosServicio>();
-
-// REGISTRO DE CONFIGURACION PERSONALIZADA
-builder.Services.AddScoped<IConfiguracion, Configuracion>();
-
 builder.Services.AddScoped<IBeneficioDA, BeneficioDA>();
-
 builder.Services.AddScoped<ICategoriaDA, CategoriaDA>();
-
-// REGISTRO DE HTTPCLIENT FACTORY
-
+builder.Services.AddScoped<IProveedorDA, ProveedorDA>();
+builder.Services.AddScoped<IBeneficioFlujo, BeneficiosFlujo>();
+builder.Services.AddScoped<ICategoriaFlujo, CategoriaFlujo>();
+builder.Services.AddScoped<IProveedorFlujo, ProveedorFlujo>();
+builder.Services.AddScoped<IBeneficiosServicio, BeneficiosServicio>();
+builder.Services.AddScoped<IConfiguracion, Configuracion>();
 builder.Services.AddHttpClient("ServicioBeneficio", client =>
 {
     client.DefaultRequestHeaders.Add("Accept", "application/json");
-    // Puedes agregar BaseAddress o Headers aquí si quieres
 });
 
 var app = builder.Build();
 
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -68,12 +54,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
 
+// CORS global (ya existente)
 app.UseCors("ProdCorsPolicy");
 
 app.UseAuthorization();
-app.UseStaticFiles();
 
-app.MapControllers();
+// ⬅️ fuerza que TODOS los controladores usen la política
+app.MapControllers().RequireCors("ProdCorsPolicy");
 
 app.Run();

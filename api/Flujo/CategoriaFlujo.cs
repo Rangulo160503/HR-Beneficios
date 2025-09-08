@@ -42,11 +42,5 @@ namespace Flujo
             var result = await _categoriaDA.Eliminar(id);
             return result;
         }
-
-        public async Task<int> Contar()
-        {
-            var total = await _categoriaDA.Contar();
-            return total;
-        }
     }
 }

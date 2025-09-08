@@ -1,23 +1,16 @@
-﻿-- CATEGORÍA: crea si no existe; si existe, devuelve el Id existente
-CREATE   PROCEDURE [core].AgregarCategoria
-  @Nombre NVARCHAR(160)
+﻿
+/* Agregar (devuelve el nuevo Id) */
+CREATE   PROCEDURE core.AgregarCategoria
+  @Nombre NVARCHAR(200),
+  @Activa BIT = 1,
+  @NuevaId UNIQUEIDENTIFIER OUTPUT
 AS
 BEGIN
   SET NOCOUNT ON;
 
-  DECLARE @CategoriaId INT;
+  SET @NuevaId = NEWID();
+  INSERT INTO core.Categoria (CategoriaId, Nombre, Activa, CreadoEn)
+  VALUES (@NuevaId, @Nombre, @Activa, SYSDATETIME());
 
-  SELECT @CategoriaId = c.CategoriaId
-  FROM core.Categoria c
-  WHERE c.Nombre = @Nombre;
-
-  IF @CategoriaId IS NULL
-  BEGIN
-    INSERT INTO core.Categoria (Nombre, Activa, CreadoEn)
-    VALUES (@Nombre, 1, SYSUTCDATETIME());
-
-    SET @CategoriaId = CAST(SCOPE_IDENTITY() AS INT);
-  END
-
-  SELECT @CategoriaId AS CategoriaId;
+  SELECT @NuevaId AS CategoriaId;
 END

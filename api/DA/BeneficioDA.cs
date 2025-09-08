@@ -45,10 +45,7 @@ namespace DA
                 beneficio.ImagenUrl,
                 beneficio.Condiciones,
                 beneficio.VigenciaInicio,
-                beneficio.VigenciaFin,
-                beneficio.Estado,
-                beneficio.Disponible,
-                beneficio.Origen
+                beneficio.VigenciaFin
             });
             return result;
         }
@@ -67,10 +64,7 @@ namespace DA
                 beneficio.ImagenUrl,
                 beneficio.Condiciones,
                 beneficio.VigenciaInicio,
-                beneficio.VigenciaFin,
-                beneficio.Estado,
-                beneficio.Disponible,
-                beneficio.Origen
+                beneficio.VigenciaFin
             });
             return result;
         }

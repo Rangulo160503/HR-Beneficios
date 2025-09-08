@@ -1,11 +1,11 @@
-﻿-- ELIMINAR (borrado lógico)
-CREATE PROCEDURE [core].EliminarBeneficio
-  @Id UNIQUEIDENTIFIER
+﻿
+-- Eliminar
+CREATE   PROCEDURE core.EliminarBeneficio
+  @BeneficioId UNIQUEIDENTIFIER
 AS
 BEGIN
   SET NOCOUNT ON;
 
-  UPDATE core.Beneficio
-  SET Estado='Archivado', Disponible=0, ModificadoEn=SYSUTCDATETIME()
-  WHERE BeneficioId = @Id;
+  DELETE FROM core.Beneficio
+  WHERE BeneficioId = @BeneficioId;
 END

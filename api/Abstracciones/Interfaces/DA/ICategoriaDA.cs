@@ -14,7 +14,6 @@ namespace Abstracciones.Interfaces.DA
         Task<Guid> Agregar(CategoriaRequest categoria);
         Task<Guid> Editar(Guid id, CategoriaRequest categoria);
         Task<Guid> Eliminar(Guid id);
-        Task<int> Contar();
     }
 
 }

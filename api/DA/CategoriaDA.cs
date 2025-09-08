@@ -8,8 +8,8 @@ namespace DA
     public class CategoriaDA : ICategoriaDA
     {
         private readonly IRepositorioDapper _repositorioDapper;
-        private readonly IDapperWrapper _dapperWrapper;
         private readonly IDbConnection _dbConnection;
+        private readonly IDapperWrapper _dapperWrapper;
 
         public CategoriaDA(IRepositorioDapper repositorioDapper, IDapperWrapper dapperWrapper)
         {
@@ -18,56 +18,64 @@ namespace DA
             _dbConnection = _repositorioDapper.ObtenerRepositorio();
         }
 
-        public async Task<IEnumerable<CategoriaResponse>> Obtener()
-        {
-            const string sp = @"core.ObtenerCategorias";
-            var rows = await _dapperWrapper.QueryAsync<CategoriaResponse>(_dbConnection, sp);
-            return rows;
-        }
-
-        public async Task<CategoriaDetalle> Obtener(Guid id)
-        {
-            const string sp = @"core.ObtenerCategoria";
-            var rows = await _dapperWrapper.QueryAsync<CategoriaDetalle>(_dbConnection, sp, new { Id = id });
-            return rows.FirstOrDefault() ?? new CategoriaDetalle();
-        }
-
+        #region Operaciones
         public async Task<Guid> Agregar(CategoriaRequest categoria)
         {
-            const string sp = @"core.AgregarCategoria";
-            var result = await _dapperWrapper.ExecuteScalarAsync<Guid>(
-                _dbConnection, sp, new
-                {
-                    categoria.Nombre,
-                    categoria.Activa
-                });
-            return result;
+            string query = @"core.AgregarCategoria";
+            var resultadoConsulta = await _dapperWrapper.ExecuteScalarAsync<Guid>(_dbConnection, query, new
+            {
+                categoria.Nombre,
+                categoria.Activa
+            });
+            return resultadoConsulta;
         }
 
-        public async Task<Guid> Editar(Guid id, CategoriaRequest categoria)
+        public async Task<Guid> Editar(Guid Id, CategoriaRequest categoria)
         {
-            const string sp = @"core.EditarCategoria";
-            var result = await _dapperWrapper.ExecuteScalarAsync<Guid>(
-                _dbConnection, sp, new
-                {
-                    Id = id,
-                    categoria.Nombre,
-                    categoria.Activa
-                });
-            return result;
+            await verificarCategoriaExiste(Id);
+            string query = @"core.EditarCategoria";
+            var resultadoConsulta = await _dapperWrapper.ExecuteScalarAsync<Guid>(_dbConnection, query, new
+            {
+                CategoriaId = Id,
+                categoria.Nombre,
+                categoria.Activa
+            });
+            return resultadoConsulta;
         }
 
-        public async Task<Guid> Eliminar(Guid id)
+        public async Task<Guid> Eliminar(Guid Id)
         {
-            const string sp = @"core.EliminarCategoria";
-            var result = await _dapperWrapper.ExecuteScalarAsync<Guid>(_dbConnection, sp, new { Id = id });
-            return result;
+            await verificarCategoriaExiste(Id);
+            string query = @"core.EliminarCategoria";
+            var resultadoConsulta = await _dapperWrapper.ExecuteScalarAsync<Guid>(
+                _dbConnection, query, new { Id = Id });
+            return resultadoConsulta;
         }
 
-        public async Task<int> Contar()
+        public async Task<IEnumerable<CategoriaResponse>> Obtener()
         {
-            const string sp = @"core.ContarCategorias";
-            return await _dapperWrapper.ExecuteScalarAsync<int>(_dbConnection, sp);
+            string query = @"core.ObtenerCategorias";
+            var resultadoConsulta = await _dapperWrapper.QueryAsync<CategoriaResponse>(_dbConnection, query);
+            return resultadoConsulta;
         }
+
+        public async Task<CategoriaDetalle> Obtener(Guid Id)
+        {
+            string query = @"core.ObtenerCategoria";
+            var resultadoConsulta = await _dapperWrapper.QueryAsync<CategoriaDetalle>(
+                _dbConnection, query, new { Id, CategoriaId = Id });
+            return resultadoConsulta.FirstOrDefault() ?? new CategoriaDetalle();
+        }
+        #endregion
+
+        #region Helpers
+        private async Task verificarCategoriaExiste(Guid Id)
+        {
+            CategoriaDetalle? resultadoConsultaCategoria = await Obtener(Id);
+            if (resultadoConsultaCategoria == null || resultadoConsultaCategoria.CategoriaId == Guid.Empty)
+                throw new Exception("No se encontro la categoria");
+        }
+        #endregion
+
     }
 }

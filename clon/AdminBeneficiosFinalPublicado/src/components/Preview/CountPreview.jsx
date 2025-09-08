@@ -1,6 +1,6 @@
 // CountPreview.jsx
 import { useEffect, useState } from "react";
-import { Categorias } from "../../services/beneficiosService.js";
+import { Categorias } from "../../services/api.js";
 
 export default function CountPreview() {
   const [n, setN] = useState(null);

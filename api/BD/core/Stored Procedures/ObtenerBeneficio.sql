@@ -1,21 +1,30 @@
-﻿CREATE PROCEDURE [core].ObtenerBeneficio
-  @Id UNIQUEIDENTIFIER
+﻿
+-- Obtener por Id (incluye nombres relacionados)
+CREATE   PROCEDURE core.ObtenerBeneficio
+  @BeneficioId UNIQUEIDENTIFIER
 AS
 BEGIN
   SET NOCOUNT ON;
-
   SELECT
     b.BeneficioId,
-    b.Titulo, b.Descripcion, b.PrecioCRC,
-    b.ProveedorId, b.CategoriaId,
-    b.ImagenUrl, b.Condiciones,
-    b.VigenciaInicio, b.VigenciaFin,
-    b.Estado, b.Disponible, b.Origen,
-    b.CreadoEn, b.ModificadoEn,
+    b.Titulo,
+    b.Descripcion,
+    b.PrecioCRC,
+    b.Condiciones,
+    b.VigenciaInicio,
+    b.VigenciaFin,
+    b.ImagenUrl,
+    b.ProveedorId,
     p.Nombre AS ProveedorNombre,
-    c.Nombre AS CategoriaNombre
+    b.CategoriaId,
+    c.Nombre AS CategoriaNombre,
+    b.CreadoEn,
+    b.ModificadoEn,
+    b.VecesSeleccionado,
+    b.VouchersEmitidos,
+    b.VouchersCanjeados
   FROM core.Beneficio b
-  JOIN core.Proveedor p ON p.ProveedorId = b.ProveedorId
-  JOIN core.Categoria c ON c.CategoriaId = b.CategoriaId
-  WHERE b.BeneficioId = @Id;
+  INNER JOIN core.Proveedor p ON p.ProveedorId = b.ProveedorId
+  INNER JOIN core.Categoria c ON c.CategoriaId = b.CategoriaId
+  WHERE b.BeneficioId = @BeneficioId;
 END

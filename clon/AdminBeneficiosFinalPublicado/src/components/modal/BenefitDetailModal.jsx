@@ -1,6 +1,6 @@
 // src/components/modal/BenefitDetailModal.jsx
 import { useEffect, useState, useMemo } from "react";
-import { Beneficios } from "../../services/beneficiosService";
+import { Beneficios } from "../../services/api";
 
 const fmtCRC = (n) =>
   typeof n === "number"

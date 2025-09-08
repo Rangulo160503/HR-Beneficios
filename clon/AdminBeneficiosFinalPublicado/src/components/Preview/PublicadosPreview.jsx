@@ -1,6 +1,6 @@
 // src/components/Preview/PublicadosPreview.jsx
 import { useEffect, useState } from "react";
-import { api, EP } from "../../services/beneficiosService.js";
+import { api, EP } from "../../services/api.js";
 import BenefitCard from "../BenefitCard";
 
 export default function PublicadosPreview({ onOpenDetail }) {  

@@ -1,48 +1,38 @@
 ﻿
--- BENEFICIO: valida y crea; devuelve BeneficioId (GUID)
-CREATE   PROCEDURE [core].AgregarBeneficio
-  @Titulo         NVARCHAR(140),
-  @Descripcion    NVARCHAR(MAX),
-  @PrecioCRC      DECIMAL(12,2),
-  @ProveedorId    INT,
-  @CategoriaId    INT,
-  @ImagenUrl      NVARCHAR(400) = NULL,
-  @Condiciones    NVARCHAR(MAX) = NULL,
-  @VigenciaInicio DATE,
-  @VigenciaFin    DATE,
-  @Estado         NVARCHAR(20) = N'Borrador',
-  @Disponible     BIT = 1,
-  @Origen         NVARCHAR(10) = N'manual'
+-- Agregar (devuelve el nuevo Id)
+CREATE   PROCEDURE core.AgregarBeneficio
+  @Titulo          NVARCHAR(200),
+  @Descripcion     NVARCHAR(MAX),
+  @PrecioCRC       DECIMAL(18,2),
+  @Condiciones     NVARCHAR(MAX) = NULL,
+  @VigenciaInicio  DATE,
+  @VigenciaFin     DATE,
+  @ImagenUrl       VARBINARY(MAX) = NULL,
+  @ProveedorId     UNIQUEIDENTIFIER,
+  @CategoriaId     UNIQUEIDENTIFIER,
+  @VecesSeleccionado INT = NULL,
+  @VouchersEmitidos  INT = NULL,
+  @VouchersCanjeados INT = NULL,
+  @NuevoId UNIQUEIDENTIFIER OUTPUT
 AS
 BEGIN
   SET NOCOUNT ON;
 
-  -- Validaciones
-  IF (@VigenciaFin < @VigenciaInicio)
-    THROW 50001, 'VigenciaFin debe ser >= VigenciaInicio.', 1;
-
-  IF NOT EXISTS (SELECT 1 FROM core.Proveedor WHERE ProveedorId=@ProveedorId AND Activo=1)
-    THROW 50002, 'ProveedorId inválido o inactivo.', 1;
-
-  IF NOT EXISTS (SELECT 1 FROM core.Categoria WHERE CategoriaId=@CategoriaId AND Activa=1)
-    THROW 50003, 'CategoriaId inválido o inactiva.', 1;
-
-  DECLARE @NewId UNIQUEIDENTIFIER = NEWID();
-
+  SET @NuevoId = NEWID();
   INSERT INTO core.Beneficio
   (
-    BeneficioId, Titulo, Descripcion, PrecioCRC,
-    ProveedorId, CategoriaId, ImagenUrl, Condiciones,
-    VigenciaInicio, VigenciaFin, Estado, Disponible, Origen,
-    CreadoEn
+    BeneficioId, Titulo, Descripcion, PrecioCRC, Condiciones,
+    VigenciaInicio, VigenciaFin, ImagenUrl,
+    ProveedorId, CategoriaId,
+    VecesSeleccionado, VouchersEmitidos, VouchersCanjeados, CreadoEn
   )
   VALUES
   (
-    @NewId, @Titulo, @Descripcion, @PrecioCRC,
-    @ProveedorId, @CategoriaId, @ImagenUrl, @Condiciones,
-    @VigenciaInicio, @VigenciaFin, @Estado, @Disponible, @Origen,
-    SYSUTCDATETIME()
+    @NuevoId, @Titulo, @Descripcion, @PrecioCRC, @Condiciones,
+    @VigenciaInicio, @VigenciaFin, @ImagenUrl,
+    @ProveedorId, @CategoriaId,
+    @VecesSeleccionado, @VouchersEmitidos, @VouchersCanjeados, SYSDATETIME()
   );
 
-  SELECT @NewId AS BeneficioId;
+  SELECT @NuevoId AS BeneficioId;
 END
