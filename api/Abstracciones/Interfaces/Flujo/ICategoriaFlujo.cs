@@ -7,10 +7,10 @@ namespace Abstracciones.Interfaces.Flujo
     public interface ICategoriaFlujo
     {
         Task<IEnumerable<CategoriaResponse>> Obtener();
-        Task<CategoriaResponse> Obtener(int id);
-        Task<int> Agregar(CategoriaRequest categoria);
-        Task<int> Editar(int id, CategoriaRequest categoria);
-        Task<int> Eliminar(int id);
+        Task<CategoriaDetalle?> Obtener(Guid id);
+        Task<Guid> Agregar(CategoriaRequest categoria);
+        Task<Guid> Editar(Guid id, CategoriaRequest categoria);
+        Task<Guid> Eliminar(Guid id);
         Task<int> Contar();
     }
 }

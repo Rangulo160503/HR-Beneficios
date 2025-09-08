@@ -15,8 +15,16 @@ namespace Abstracciones.Modelos
 
     public class CategoriaResponse : CategoriaBase
     {
-        public int CategoriaId { get; set; }
+        public Guid CategoriaId { get; set; }            // ← Guid
         public DateTime? CreadoEn { get; set; }
         public DateTime? ModificadoEn { get; set; }
+    }
+
+    // Si más adelante querés campos extra, agrégalos aquí
+    public class CategoriaDetalle : CategoriaResponse
+    {
+        // Ejemplos opcionales:
+        // public int CantidadBeneficiosAsociados { get; set; }
+        // public string? DescripcionLarga { get; set; }
     }
 }

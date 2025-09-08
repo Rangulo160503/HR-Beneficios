@@ -19,7 +19,6 @@
     CHECK ([Origen]='email' OR [Origen]='manual'),
     CHECK ([PrecioCRC]>=(0)),
     CONSTRAINT [CK_Beneficio_Vigencia] CHECK ([VigenciaFin]>=[VigenciaInicio]),
-    FOREIGN KEY ([CategoriaId]) REFERENCES [core].[Categoria] ([CategoriaId]),
     FOREIGN KEY ([ProveedorId]) REFERENCES [core].[Proveedor] ([ProveedorId])
 );
 

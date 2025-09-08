@@ -1,40 +1,46 @@
 ﻿using Abstracciones.Interfaces.DA;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Flujo
 {
     public class BeneficiosFlujo : IBeneficioFlujo
     {
-        private IBeneficioDA _beneficioDA;
+        private readonly IBeneficioDA _beneficioDA;
+
         public BeneficiosFlujo(IBeneficioDA beneficioDA)
         {
-            _beneficioDA = beneficioDA;
+            _beneficioDA = beneficioDA ?? throw new ArgumentNullException(nameof(beneficioDA));
         }
 
         public async Task<Guid> Agregar(BeneficioRequest beneficio)
         {
-            return await _beneficioDA.Agregar(beneficio);
+            var id = await _beneficioDA.Agregar(beneficio);
+            return id;
         }
+
         public async Task<Guid> Editar(Guid id, BeneficioRequest beneficio)
         {
-            return await _beneficioDA.Editar(id, beneficio);
+            var result = await _beneficioDA.Editar(id, beneficio);
+            return result;
         }
 
         public async Task<Guid> Eliminar(Guid id)
         {
-            return await _beneficioDA.Eliminar(id);
+            var result = await _beneficioDA.Eliminar(id);
+            return result;
         }
 
         public async Task<IEnumerable<BeneficioResponse>> Obtener()
         {
-            return await _beneficioDA.Obtener();
+            var items = await _beneficioDA.Obtener();
+            return items;
         }
 
         public async Task<BeneficioDetalle> Obtener(Guid id)
         {
-            return await _beneficioDA.Obtener(id);
+            var beneficio = await _beneficioDA.Obtener(id);
+            return beneficio;
         }
     }
 }
