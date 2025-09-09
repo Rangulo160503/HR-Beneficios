@@ -1,9 +1,4 @@
-﻿-- =============================================
--- Author:      <Tu Nombre>
--- Create date: <Fecha>
--- Description: Lista todos los beneficios con nombres de proveedor y categoría
--- =============================================
-CREATE   PROCEDURE core.ObtenerBeneficios
+﻿CREATE   PROCEDURE core.ObtenerBeneficios
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -16,7 +11,8 @@ BEGIN
         b.Condiciones,
         b.VigenciaInicio,
         b.VigenciaFin,
-        b.ImagenUrl,
+        -- en el listado devolvemos un flag en vez de los bytes:
+        CASE WHEN b.Imagen IS NULL THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END AS TieneImagen,
         b.ProveedorId,
         p.Nombre AS ProveedorNombre,
         b.CategoriaId,
