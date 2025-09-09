@@ -16,8 +16,10 @@
     [VouchersCanjeados] INT              NULL,
     CONSTRAINT [PK_Beneficio] PRIMARY KEY CLUSTERED ([BeneficioId] ASC),
     CONSTRAINT [FK_Beneficio_Categoria] FOREIGN KEY ([CategoriaId]) REFERENCES [core].[Categoria] ([CategoriaId]),
-    CONSTRAINT [FK_Beneficio_Proveedor] FOREIGN KEY ([ProveedorId]) REFERENCES [core].[Proveedor] ([ProveedorId])
+    CONSTRAINT [FK_Beneficio_Proveedor] FOREIGN KEY ([ProveedorId]) REFERENCES [core].[Proveedor] ([ProveedorId]) ON DELETE CASCADE
 );
+
+
 
 
 
@@ -35,4 +37,9 @@ CREATE NONCLUSTERED INDEX [IX_Beneficio_Proveedor]
 GO
 CREATE NONCLUSTERED INDEX [IX_Beneficio_Categoria]
     ON [core].[Beneficio]([CategoriaId] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Beneficio_ProveedorId]
+    ON [core].[Beneficio]([ProveedorId] ASC);
 

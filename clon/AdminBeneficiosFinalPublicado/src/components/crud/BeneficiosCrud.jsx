@@ -8,13 +8,10 @@ const EMPTY = {
   precioCRC: "",
   proveedorId: "", // GUID string
   categoriaId: "", // GUID string
-  imagenUrl: null, // base64 sin data:
+  imagen: null,    // base64 (solo en CREAR)
   condiciones: "",
   vigenciaInicio: "",
   vigenciaFin: "",
-  estado: "Borrador",
-  disponible: true,
-  origen: "manual",
 };
 
 // util: File -> dataURL
@@ -41,7 +38,7 @@ export default function BeneficiosCrud() {
   const [form, setForm] = useState({ ...EMPTY });
 
   const [editGuid, setEditGuid] = useState(null);
-  const [editForm, setEditForm] = useState({ ...EMPTY });
+  const [editForm, setEditForm] = useState({ ...EMPTY, imagen: undefined }); // imagen undefined => no tocar
 
   // ---------- Cargar listas de soporte (categorías, proveedores)
   const loadMeta = async () => {
@@ -76,10 +73,11 @@ export default function BeneficiosCrud() {
       const mapped = (data || []).map((x) => ({
         id: x.beneficioId ?? x.BeneficioId ?? x.id ?? x.Id,
         titulo: x.titulo ?? x.Titulo ?? "",
-        estado: x.estado ?? x.Estado ?? "Borrador",
-        disponible: (x.disponible ?? x.Disponible ?? true) === true,
         categoriaId: x.categoriaId ?? x.CategoriaId ?? "",
         proveedorId: x.proveedorId ?? x.ProveedorId ?? "",
+        vigenciaInicio: (x.vigenciaInicio ?? x.VigenciaInicio ?? "").slice?.(0,10) ?? "",
+        vigenciaFin: (x.vigenciaFin ?? x.VigenciaFin ?? "").slice?.(0,10) ?? "",
+        precioCRC: x.precioCRC ?? x.PrecioCRC ?? 0,
       }));
       setRows(mapped);
     } catch (e) {
@@ -95,18 +93,15 @@ export default function BeneficiosCrud() {
   // ---------- Crear
   const crear = async () => {
     const payload = {
-      titulo: form.titulo,
-      descripcion: form.descripcion,
+      titulo: form.titulo.trim(),
+      descripcion: form.descripcion.trim(),
       precioCRC: form.precioCRC === "" ? 0 : parseFloat(form.precioCRC),
       proveedorId: form.proveedorId || null,
       categoriaId: form.categoriaId || null,
-      imagenUrl: form.imagenUrl || null,
+      imagen: form.imagen || null,               // backend espera "imagen" (byte[]/base64)
       condiciones: form.condiciones || null,
-      vigenciaInicio: form.vigenciaInicio || null,
-      vigenciaFin: form.vigenciaFin || null,
-      estado: form.estado,
-      disponible: !!form.disponible,
-      origen: form.origen,
+      vigenciaInicio: form.vigenciaInicio,       // "YYYY-MM-DD"
+      vigenciaFin: form.vigenciaFin,
     };
     await Api.beneficios.crear(payload);
     setForm({ ...EMPTY });
@@ -120,19 +115,30 @@ export default function BeneficiosCrud() {
     setEditForm({
       ...EMPTY,
       titulo: r.titulo,
-      estado: r.estado,
-      disponible: !!r.disponible,
       categoriaId: r.categoriaId || "",
       proveedorId: r.proveedorId || "",
+      vigenciaInicio: r.vigenciaInicio || "",
+      vigenciaFin: r.vigenciaFin || "",
+      precioCRC: String(r.precioCRC ?? ""),
+      imagen: undefined, // si no cambian imagen, no enviamos el campo
     });
   };
 
   const guardar = async () => {
     const payload = {
-      ...editForm,
+      titulo: editForm.titulo.trim(),
+      descripcion: editForm.descripcion.trim(),
       precioCRC: editForm.precioCRC === "" ? 0 : parseFloat(editForm.precioCRC),
-      disponible: !!editForm.disponible,
+      proveedorId: editForm.proveedorId || null,
+      categoriaId: editForm.categoriaId || null,
+      condiciones: editForm.condiciones || null,
+      vigenciaInicio: editForm.vigenciaInicio,
+      vigenciaFin: editForm.vigenciaFin,
     };
+    // Solo enviar imagen si efectivamente se cambió (string base64)
+    if (typeof editForm.imagen === "string" && editForm.imagen.length > 0) {
+      payload.imagen = editForm.imagen;
+    }
     await Api.beneficios.editar(editGuid, payload);
     setEditGuid(null);
     load();
@@ -147,7 +153,7 @@ export default function BeneficiosCrud() {
   };
 
   // ---------- Imagen
-  const onFileChange = async (e) => {
+  const onFileChange = async (e, setTargetForm = setForm) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) return alert("Selecciona una imagen válida");
@@ -157,7 +163,7 @@ export default function BeneficiosCrud() {
 
     const dataUrl = await fileToDataUrl(file);   // "data:image/png;base64,AAAA..."
     const base64 = dataUrl.split(",")[1] ?? "";  // solo base64
-    setForm(v => ({ ...v, imagenUrl: base64 }));
+    setTargetForm(v => ({ ...v, imagen: base64 }));
   };
 
   // ---------- Validaciones simples
@@ -166,12 +172,22 @@ export default function BeneficiosCrud() {
       form.titulo.trim().length >= 3 &&
       form.descripcion.trim().length >= 3 &&
       !!form.categoriaId &&
-      !!form.proveedorId
+      !!form.proveedorId &&
+      form.vigenciaInicio &&
+      form.vigenciaFin &&
+      String(form.precioCRC).trim() !== ""
     );
   }, [form]);
 
   const canSave = useMemo(() => {
-    return editForm.titulo.trim().length >= 3;
+    return (
+      editForm.titulo.trim().length >= 3 &&
+      !!editForm.categoriaId &&
+      !!editForm.proveedorId &&
+      editForm.vigenciaInicio &&
+      editForm.vigenciaFin &&
+      String(editForm.precioCRC).trim() !== ""
+    );
   }, [editForm]);
 
   return (
@@ -197,31 +213,30 @@ export default function BeneficiosCrud() {
 
         <div className="grid grid-cols-1 sm:grid-cols-6 gap-3">
           <label className="sm:col-span-3 text-sm">
-            <span className="block mb-1 text-white/70">Nombre del beneficio</span>
+            <span className="block mb-1 text-white/70">Título*</span>
             <input
               value={form.titulo}
               onChange={e => setForm(v => ({ ...v, titulo: e.target.value }))}
               className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2"
-              placeholder="Ej. Limpieza dental + Fluor"
+              placeholder="Ej. Limpieza dental + Flúor"
             />
           </label>
 
           <label className="sm:col-span-3 text-sm">
-            <span className="block mb-1 text-white/70">Precio CRC</span>
+            <span className="block mb-1 text-white/70">Precio CRC*</span>
             <input
               type="number"
               value={form.precioCRC}
               onChange={e => setForm(v => ({ ...v, precioCRC: e.target.value }))}
               className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2"
-              placeholder="0"
+              placeholder="0.00"
               min="0"
               step="0.01"
             />
           </label>
 
-          {/* Proveedor (select) */}
           <label className="sm:col-span-3 text-sm">
-            <span className="block mb-1 text-white/70">Proveedor</span>
+            <span className="block mb-1 text-white/70">Proveedor*</span>
             <select
               value={form.proveedorId}
               onChange={e => setForm(v => ({ ...v, proveedorId: e.target.value }))}
@@ -229,15 +244,12 @@ export default function BeneficiosCrud() {
               disabled={metaLoading}
             >
               <option value="">{metaLoading ? "Cargando proveedores…" : "Selecciona proveedor"}</option>
-              {provs.map(p => (
-                <option key={p.id} value={p.id}>{p.nombre}</option>
-              ))}
+              {provs.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
             </select>
           </label>
 
-          {/* Categoría (select) */}
           <label className="sm:col-span-3 text-sm">
-            <span className="block mb-1 text-white/70">Categoría</span>
+            <span className="block mb-1 text-white/70">Categoría*</span>
             <select
               value={form.categoriaId}
               onChange={e => setForm(v => ({ ...v, categoriaId: e.target.value }))}
@@ -245,14 +257,12 @@ export default function BeneficiosCrud() {
               disabled={metaLoading}
             >
               <option value="">{metaLoading ? "Cargando categorías…" : "Selecciona categoría"}</option>
-              {cats.map(c => (
-                <option key={c.id} value={c.id}>{c.nombre}</option>
-              ))}
+              {cats.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
             </select>
           </label>
 
           <label className="sm:col-span-6 text-sm">
-            <span className="block mb-1 text-white/70">Descripción</span>
+            <span className="block mb-1 text-white/70">Descripción*</span>
             <textarea
               value={form.descripcion}
               onChange={e => setForm(v => ({ ...v, descripcion: e.target.value }))}
@@ -261,6 +271,36 @@ export default function BeneficiosCrud() {
             />
           </label>
 
+          <label className="sm:col-span-3 text-sm">
+            <span className="block mb-1 text-white/70">Condiciones</span>
+            <input
+              value={form.condiciones}
+              onChange={e => setForm(v => ({ ...v, condiciones: e.target.value }))}
+              className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2"
+            />
+          </label>
+
+          <label className="text-sm">
+            <span className="block mb-1 text-white/70">Vigencia inicio*</span>
+            <input
+              type="date"
+              value={form.vigenciaInicio}
+              onChange={e => setForm(v => ({ ...v, vigenciaInicio: e.target.value }))}
+              className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2"
+            />
+          </label>
+
+          <label className="text-sm">
+            <span className="block mb-1 text-white/70">Vigencia fin*</span>
+            <input
+              type="date"
+              value={form.vigenciaFin}
+              onChange={e => setForm(v => ({ ...v, vigenciaFin: e.target.value }))}
+              className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2"
+            />
+          </label>
+
+          {/* Imagen + preview */}
           <div className="sm:col-span-3 text-sm">
             <span className="block mb-1 text-white/70">Imagen (archivo)</span>
             <label
@@ -269,7 +309,13 @@ export default function BeneficiosCrud() {
             >
               <span>Elegir imagen</span>
             </label>
-            <input id="imgFile" type="file" accept="image/*" onChange={onFileChange} className="sr-only" />
+            <input
+              id="imgFile"
+              type="file"
+              accept="image/*"
+              onChange={(e)=>onFileChange(e, setForm)}
+              className="sr-only"
+            />
           </div>
 
           <div className="sm:col-span-3">
@@ -282,60 +328,6 @@ export default function BeneficiosCrud() {
               )}
             </div>
           </div>
-
-          <label className="text-sm">
-            <span className="block mb-1 text-white/70">Vigencia inicio</span>
-            <input
-              type="date"
-              value={form.vigenciaInicio}
-              onChange={e => setForm(v => ({ ...v, vigenciaInicio: e.target.value }))}
-              className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2"
-            />
-          </label>
-
-          <label className="text-sm">
-            <span className="block mb-1 text-white/70">Vigencia fin</span>
-            <input
-              type="date"
-              value={form.vigenciaFin}
-              onChange={e => setForm(v => ({ ...v, vigenciaFin: e.target.value }))}
-              className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2"
-            />
-          </label>
-
-          <label className="text-sm">
-            <span className="block mb-1 text-white/70">Estado</span>
-            <select
-              value={form.estado}
-              onChange={e => setForm(v => ({ ...v, estado: e.target.value }))}
-              className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2"
-            >
-              <option>Borrador</option>
-              <option>Publicado</option>
-              <option>Inactivo</option>
-              <option>Archivado</option>
-            </select>
-          </label>
-
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={form.disponible}
-              onChange={e => setForm(v => ({ ...v, disponible: e.target.checked }))}
-            /> Disponible
-          </label>
-
-          <label className="text-sm">
-            <span className="block mb-1 text-white/70">Origen</span>
-            <select
-              value={form.origen}
-              onChange={e => setForm(v => ({ ...v, origen: e.target.value }))}
-              className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2"
-            >
-              <option>manual</option>
-              <option>email</option>
-            </select>
-          </label>
 
           <div className="sm:col-span-6">
             <button
@@ -360,10 +352,10 @@ export default function BeneficiosCrud() {
               <tr>
                 <th className="px-3 py-2 text-left">Id</th>
                 <th className="px-3 py-2 text-left">Título</th>
-                <th className="px-3 py-2 text-left">Estado</th>
-                <th className="px-3 py-2 text-left">Disp.</th>
                 <th className="px-3 py-2 text-left">Proveedor</th>
                 <th className="px-3 py-2 text-left">Categoría</th>
+                <th className="px-3 py-2 text-left">Vigencia</th>
+                <th className="px-3 py-2 text-left">Precio</th>
                 <th className="px-3 py-2 text-right">Acciones</th>
               </tr>
             </thead>
@@ -382,31 +374,8 @@ export default function BeneficiosCrud() {
                       />
                     ) : r.titulo}
                   </td>
-                  <td className="px-3 py-2">
-                    {editGuid === r.id ? (
-                      <select
-                        value={editForm.estado}
-                        onChange={e => setEditForm(v => ({ ...v, estado: e.target.value }))}
-                        className="rounded bg-neutral-800 border border-white/10 px-2 py-1"
-                      >
-                        <option>Borrador</option>
-                        <option>Publicado</option>
-                        <option>Inactivo</option>
-                        <option>Archivado</option>
-                      </select>
-                    ) : r.estado}
-                  </td>
-                  <td className="px-3 py-2">
-                    {editGuid === r.id ? (
-                      <input
-                        type="checkbox"
-                        checked={!!editForm.disponible}
-                        onChange={e => setEditForm(v => ({ ...v, disponible: e.target.checked }))}
-                      />
-                    ) : (r.disponible ? "Sí" : "No")}
-                  </td>
 
-                  {/* Proveedor select en edición */}
+                  {/* Proveedor */}
                   <td className="px-3 py-2">
                     {editGuid === r.id ? (
                       <select
@@ -423,7 +392,7 @@ export default function BeneficiosCrud() {
                     ) : (provs.find(p => p.id === r.proveedorId)?.nombre || "—")}
                   </td>
 
-                  {/* Categoría select en edición */}
+                  {/* Categoría */}
                   <td className="px-3 py-2">
                     {editGuid === r.id ? (
                       <select
@@ -440,9 +409,52 @@ export default function BeneficiosCrud() {
                     ) : (cats.find(c => c.id === r.categoriaId)?.nombre || "—")}
                   </td>
 
+                  <td className="px-3 py-2">
+                    {editGuid === r.id ? (
+                      <div className="flex gap-2">
+                        <input
+                          type="date"
+                          value={editForm.vigenciaInicio}
+                          onChange={e => setEditForm(v => ({ ...v, vigenciaInicio: e.target.value }))}
+                          className="rounded bg-neutral-800 border border-white/10 px-2 py-1"
+                        />
+                        <span>→</span>
+                        <input
+                          type="date"
+                          value={editForm.vigenciaFin}
+                          onChange={e => setEditForm(v => ({ ...v, vigenciaFin: e.target.value }))}
+                          className="rounded bg-neutral-800 border border-white/10 px-2 py-1"
+                        />
+                      </div>
+                    ) : (
+                      `${r.vigenciaInicio} → ${r.vigenciaFin}`
+                    )}
+                  </td>
+
+                  <td className="px-3 py-2">
+                    {editGuid === r.id ? (
+                      <input
+                        type="number"
+                        value={editForm.precioCRC}
+                        onChange={e => setEditForm(v => ({ ...v, precioCRC: e.target.value }))}
+                        className="rounded bg-neutral-800 border border-white/10 px-2 py-1"
+                        min="0" step="0.01"
+                      />
+                    ) : Number(r.precioCRC).toLocaleString()}
+                  </td>
+
                   <td className="px-3 py-2 text-right space-x-2">
                     {editGuid === r.id ? (
                       <>
+                        <label className="rounded-lg bg-white/10 hover:bg-white/15 px-3 py-1.5 cursor-pointer">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={(e)=>onFileChange(e, setEditForm)}
+                          />
+                          Cambiar imagen
+                        </label>
                         <button
                           onClick={guardar}
                           disabled={!canSave}
@@ -460,7 +472,7 @@ export default function BeneficiosCrud() {
                     ) : (
                       <>
                         <button
-                          onClick={() => startEdit(r)}
+                          onClick={() => setEditGuid(r.id) || startEdit(r)}
                           className="rounded-lg bg-white/10 hover:bg-white/15 px-3 py-1.5"
                         >
                           Editar
