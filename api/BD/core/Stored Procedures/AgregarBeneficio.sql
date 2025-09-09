@@ -1,38 +1,31 @@
-﻿
--- Agregar (devuelve el nuevo Id)
+﻿-- Agregar
 CREATE   PROCEDURE core.AgregarBeneficio
-  @Titulo          NVARCHAR(200),
-  @Descripcion     NVARCHAR(MAX),
-  @PrecioCRC       DECIMAL(18,2),
-  @Condiciones     NVARCHAR(MAX) = NULL,
-  @VigenciaInicio  DATE,
-  @VigenciaFin     DATE,
-  @ImagenUrl       VARBINARY(MAX) = NULL,
-  @ProveedorId     UNIQUEIDENTIFIER,
-  @CategoriaId     UNIQUEIDENTIFIER,
-  @VecesSeleccionado INT = NULL,
-  @VouchersEmitidos  INT = NULL,
-  @VouchersCanjeados INT = NULL,
-  @NuevoId UNIQUEIDENTIFIER OUTPUT
+    @Id UNIQUEIDENTIFIER,
+    @Titulo NVARCHAR(200),
+    @Descripcion NVARCHAR(MAX),
+    @PrecioCRC DECIMAL(18,2),
+    @Condiciones NVARCHAR(MAX) = NULL,
+    @VigenciaInicio DATE,
+    @VigenciaFin DATE,
+    @Imagen VARBINARY(MAX) = NULL,     -- ← ahora se llama Imagen
+    @ProveedorId UNIQUEIDENTIFIER,
+    @CategoriaId UNIQUEIDENTIFIER
 AS
 BEGIN
   SET NOCOUNT ON;
-
-  SET @NuevoId = NEWID();
-  INSERT INTO core.Beneficio
-  (
-    BeneficioId, Titulo, Descripcion, PrecioCRC, Condiciones,
-    VigenciaInicio, VigenciaFin, ImagenUrl,
-    ProveedorId, CategoriaId,
-    VecesSeleccionado, VouchersEmitidos, VouchersCanjeados, CreadoEn
-  )
-  VALUES
-  (
-    @NuevoId, @Titulo, @Descripcion, @PrecioCRC, @Condiciones,
-    @VigenciaInicio, @VigenciaFin, @ImagenUrl,
-    @ProveedorId, @CategoriaId,
-    @VecesSeleccionado, @VouchersEmitidos, @VouchersCanjeados, SYSDATETIME()
-  );
-
-  SELECT @NuevoId AS BeneficioId;
+  BEGIN TRANSACTION;
+    INSERT INTO core.Beneficio
+      (BeneficioId, Titulo, Descripcion, PrecioCRC, Condiciones,
+       VigenciaInicio, VigenciaFin, Imagen,     -- ← columna Imagen
+       ProveedorId, CategoriaId,
+       VecesSeleccionado, VouchersEmitidos, VouchersCanjeados,
+       CreadoEn, ModificadoEn)
+    VALUES
+      (@Id, @Titulo, @Descripcion, @PrecioCRC, @Condiciones,
+       @VigenciaInicio, @VigenciaFin, @Imagen,
+       @ProveedorId, @CategoriaId,
+       0, 0, 0,
+       SYSDATETIME(), NULL);
+    SELECT @Id;
+  COMMIT TRANSACTION;
 END

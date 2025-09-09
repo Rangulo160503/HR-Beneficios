@@ -18,6 +18,7 @@ namespace Abstracciones.Modelos
 
         // Imagen del proveedor (logo o foto)
         public byte[]? Imagen { get; set; }
+        public string? Direccion { get; set; }
     }
 
     public class ProveedorRequest : ProveedorBase

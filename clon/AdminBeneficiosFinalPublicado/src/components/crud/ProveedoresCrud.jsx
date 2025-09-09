@@ -2,14 +2,31 @@
 import { useEffect, useState } from "react";
 import { Api } from "../../services/api";
 
+const toNull = (s) => (s?.trim?.() ? s.trim() : null);
+
 export default function ProveedoresCrud() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [form, setForm] = useState({ nombre: "" });
+  // ⬅️ ahora incluimos todos los campos
+  const [form, setForm] = useState({
+    nombre: "",
+    correo: "",
+    telefono: "",
+    direccion: "",
+    activo: true,
+    // imagen: null // si luego subes archivo, aquí irá un ArrayBuffer/Base64
+  });
+
   const [editId, setEditId] = useState(null);
-  const [editForm, setEditForm] = useState({ nombre: "" });
+  const [editForm, setEditForm] = useState({
+    nombre: "",
+    correo: "",
+    telefono: "",
+    direccion: "",
+    activo: true,
+  });
 
   const load = async () => {
     setLoading(true); setError("");
@@ -18,6 +35,10 @@ export default function ProveedoresCrud() {
       const mapped = (data || []).map((x) => ({
         id: x.proveedorId ?? x.ProveedorId ?? x.id ?? x.Id,
         nombre: x.nombre ?? x.Nombre ?? "",
+        correo: x.correo ?? x.Correo ?? "",
+        telefono: x.telefono ?? x.Telefono ?? "",
+        direccion: x.direccion ?? x.Direccion ?? "",
+        activo: (x.activo ?? x.Activo ?? true) === true,
       }));
       setRows(mapped);
     } catch (e) {
@@ -30,20 +51,40 @@ export default function ProveedoresCrud() {
   useEffect(() => { load(); }, []);
 
   const crear = async () => {
-    const payload = { nombre: form.nombre.trim() };
+    const payload = {
+      nombre: form.nombre.trim(),
+      correo: toNull(form.correo),
+      telefono: toNull(form.telefono),
+      direccion: toNull(form.direccion),
+      activo: !!form.activo,
+      imagen: null, // por ahora
+    };
     if (!payload.nombre) return;
     await Api.proveedores.crear(payload);
-    setForm({ nombre: "" });
+    setForm({ nombre: "", correo: "", telefono: "", direccion: "", activo: true });
     load();
   };
 
   const startEdit = (r) => {
     setEditId(r.id);
-    setEditForm({ nombre: r.nombre });
+    setEditForm({
+      nombre: r.nombre || "",
+      correo: r.correo || "",
+      telefono: r.telefono || "",
+      direccion: r.direccion || "",
+      activo: !!r.activo,
+    });
   };
 
   const guardar = async () => {
-    const payload = { nombre: editForm.nombre.trim() };
+    const payload = {
+      nombre: editForm.nombre.trim(),
+      correo: toNull(editForm.correo),
+      telefono: toNull(editForm.telefono),
+      direccion: toNull(editForm.direccion),
+      activo: !!editForm.activo,
+      imagen: null,
+    };
     if (!payload.nombre) return;
     await Api.proveedores.editar(editId, payload);
     setEditId(null);
@@ -68,25 +109,41 @@ export default function ProveedoresCrud() {
         </div>
       )}
 
+      {/* Crear */}
       <section className="rounded-xl border border-white/10 bg-white/5 p-4">
         <h4 className="mb-3 font-semibold">Crear proveedor</h4>
         <div className="grid grid-cols-1 sm:grid-cols-6 gap-3 items-end">
-          <label className="sm:col-span-5 text-sm">
-            <span className="mb-1 block text-white/70">Nombre</span>
-            <input
-              value={form.nombre}
-              onChange={e => setForm(v => ({ ...v, nombre: e.target.value }))}
-              className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="Proveedor S.A."
-            />
+          <label className="sm:col-span-3 text-sm">
+            <span className="mb-1 block text-white/70">Nombre*</span>
+            <input value={form.nombre} onChange={e=>setForm(v=>({...v,nombre:e.target.value}))}
+                   className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2" />
           </label>
-          <button
-            onClick={crear}
-            disabled={!canCreate}
-            className="rounded-lg bg-teal-600 hover:bg-teal-500 disabled:opacity-50 px-3 py-2 text-sm font-medium"
-          >
-            Guardar
-          </button>
+          <label className="sm:col-span-3 text-sm">
+            <span className="mb-1 block text-white/70">Correo</span>
+            <input value={form.correo} onChange={e=>setForm(v=>({...v,correo:e.target.value}))}
+                   className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2" />
+          </label>
+          <label className="sm:col-span-2 text-sm">
+            <span className="mb-1 block text-white/70">Teléfono</span>
+            <input value={form.telefono} onChange={e=>setForm(v=>({...v,telefono:e.target.value}))}
+                   className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2" />
+          </label>
+          <label className="sm:col-span-3 text-sm">
+            <span className="mb-1 block text-white/70">Dirección</span>
+            <input value={form.direccion} onChange={e=>setForm(v=>({...v,direccion:e.target.value}))}
+                   className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2" />
+          </label>
+          <label className="sm:col-span-1 flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={form.activo}
+                   onChange={e=>setForm(v=>({...v,activo:e.target.checked}))}/>
+            Activo
+          </label>
+          <div className="sm:col-span-6">
+            <button onClick={crear} disabled={!canCreate}
+              className="rounded-lg bg-teal-600 hover:bg-teal-500 disabled:opacity-50 px-3 py-2 text-sm font-medium">
+              Guardar
+            </button>
+          </div>
         </div>
       </section>
 

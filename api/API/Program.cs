@@ -12,16 +12,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("ProdCorsPolicy", policy =>
-    {
+    options.AddDefaultPolicy(policy =>
         policy.WithOrigins(
-            "https://hr-beneficios-web-client-cfdshdfeeyemfmh3.canadacentral-01.azurewebsites.net", // Cliente
-            "https://hr-beneficios-web-admin-dqbwbedkb2duhqbs.canadacentral-01.azurewebsites.net", // Admin
-            "http://localhost:5173" // Desarrollo local
-        )
-        .AllowAnyHeader()
-        .AllowAnyMethod();
-    });
+                "https://hr-beneficios-web-client-cfdshdfeeyemfmh3.canadacentral-01.azurewebsites.net",
+                "https://hr-beneficios-web-admin-dqbwbedkb2duhqbs.canadacentral-01.azurewebsites.net",
+                "http://localhost:5173"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+        // .AllowCredentials() // solo si usas cookies/autenticación en el navegador
+        );
 });
 
 
@@ -30,7 +30,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // DI (tal como lo tienes)
-builder.Services.AddScoped<IDapperWrapper, DA.Wrapper.DapperWrapper>();
+builder.Services.AddScoped<IDapperWrapper, DA.Wrappers.DapperWrapper>();
 builder.Services.AddScoped<IRepositorioDapper, DA.Repositorios.RepositorioDapper>();
 builder.Services.AddScoped<IBeneficioDA, BeneficioDA>();
 builder.Services.AddScoped<ICategoriaDA, CategoriaDA>();
@@ -54,15 +54,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 app.UseRouting();
-
-// CORS global (ya existente)
-app.UseCors("ProdCorsPolicy");
-
+app.UseCors();
 app.UseAuthorization();
 
-// ⬅️ fuerza que TODOS los controladores usen la política
-app.MapControllers().RequireCors("ProdCorsPolicy");
+app.MapControllers();
 
 app.Run();

@@ -1,11 +1,18 @@
-﻿
-/* Eliminar */
+﻿-- =============================================
+-- Author:      <Tu Nombre>
+-- Create date: <Fecha>
+-- Description: Elimina una categoría existente
+-- =============================================
 CREATE   PROCEDURE core.EliminarCategoria
-  @CategoriaId UNIQUEIDENTIFIER
+    @Id UNIQUEIDENTIFIER
 AS
 BEGIN
-  SET NOCOUNT ON;
+    SET NOCOUNT ON;
 
-  DELETE FROM core.Categoria
-  WHERE CategoriaId = @CategoriaId;
+    BEGIN TRANSACTION;
+        DELETE FROM core.Categoria
+         WHERE CategoriaId = @Id;
+
+        SELECT @Id;
+    COMMIT TRANSACTION;
 END

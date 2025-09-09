@@ -1,11 +1,18 @@
-﻿
--- Eliminar
+﻿-- =============================================
+-- Author:      <Tu Nombre>
+-- Create date: <Fecha>
+-- Description: Elimina un proveedor existente
+-- =============================================
 CREATE   PROCEDURE core.EliminarProveedor
-  @ProveedorId UNIQUEIDENTIFIER
+    @Id UNIQUEIDENTIFIER
 AS
 BEGIN
-  SET NOCOUNT ON;
+    SET NOCOUNT ON;
 
-  DELETE FROM core.Proveedor
-  WHERE ProveedorId = @ProveedorId;
+    BEGIN TRANSACTION;
+        DELETE FROM core.Proveedor
+         WHERE ProveedorId = @Id;
+
+        SELECT @Id;
+    COMMIT TRANSACTION;
 END

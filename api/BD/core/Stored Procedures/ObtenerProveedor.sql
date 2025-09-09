@@ -1,11 +1,20 @@
-﻿
--- Obtener por Id
-CREATE   PROCEDURE core.ObtenerProveedor
-  @ProveedorId UNIQUEIDENTIFIER
+﻿CREATE   PROCEDURE core.ObtenerProveedor
+    @Id UNIQUEIDENTIFIER
 AS
 BEGIN
-  SET NOCOUNT ON;
-  SELECT ProveedorId, Nombre, Correo, Telefono, Activo, Imagen, Direccion, CreadoEn, ModificadoEn
-  FROM core.Proveedor
-  WHERE ProveedorId = @ProveedorId;
+    SET NOCOUNT ON;
+
+    SELECT
+        p.ProveedorId,
+        p.Nombre,
+        p.Correo,
+        p.Telefono,
+        p.Activo,
+        p.Imagen,
+        p.Direccion,
+        p.CreadoEn,
+        p.ModificadoEn,
+        (SELECT COUNT(*) FROM core.Beneficio b WHERE b.ProveedorId = p.ProveedorId) AS CantidadBeneficios
+    FROM core.Proveedor p
+    WHERE p.ProveedorId = @Id;
 END

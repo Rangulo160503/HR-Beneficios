@@ -1,16 +1,17 @@
-﻿
-/* Agregar (devuelve el nuevo Id) */
-CREATE   PROCEDURE core.AgregarCategoria
-  @Nombre NVARCHAR(200),
-  @Activa BIT = 1,
-  @NuevaId UNIQUEIDENTIFIER OUTPUT
+﻿CREATE   PROCEDURE core.AgregarCategoria
+    @Id     UNIQUEIDENTIFIER,               -- viene de C#
+    @Nombre NVARCHAR(200),
+    @Activa BIT = 1
 AS
 BEGIN
-  SET NOCOUNT ON;
+    SET NOCOUNT ON;
 
-  SET @NuevaId = NEWID();
-  INSERT INTO core.Categoria (CategoriaId, Nombre, Activa, CreadoEn)
-  VALUES (@NuevaId, @Nombre, @Activa, SYSDATETIME());
+    BEGIN TRANSACTION;
+        INSERT INTO core.Categoria
+            (CategoriaId, Nombre, Activa, CreadoEn /*, ModificadoEn*/)
+        VALUES
+            (@Id, @Nombre, @Activa, SYSDATETIME() /*, NULL*/);
 
-  SELECT @NuevaId AS CategoriaId;
+        SELECT @Id;  -- devuelve el mismo Id
+    COMMIT TRANSACTION;
 END

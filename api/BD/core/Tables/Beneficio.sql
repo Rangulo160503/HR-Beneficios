@@ -6,7 +6,7 @@
     [Condiciones]       NVARCHAR (MAX)   NULL,
     [VigenciaInicio]    DATE             NOT NULL,
     [VigenciaFin]       DATE             NOT NULL,
-    [ImagenUrl]         VARBINARY (MAX)  NULL,
+    [Imagen]            VARBINARY (MAX)  NULL,
     [ProveedorId]       UNIQUEIDENTIFIER NOT NULL,
     [CategoriaId]       UNIQUEIDENTIFIER NOT NULL,
     [CreadoEn]          DATETIME2 (7)    CONSTRAINT [DF_Beneficio_CreadoEn] DEFAULT (sysdatetime()) NOT NULL,
@@ -18,6 +18,8 @@
     CONSTRAINT [FK_Beneficio_Categoria] FOREIGN KEY ([CategoriaId]) REFERENCES [core].[Categoria] ([CategoriaId]),
     CONSTRAINT [FK_Beneficio_Proveedor] FOREIGN KEY ([ProveedorId]) REFERENCES [core].[Proveedor] ([ProveedorId])
 );
+
+
 
 
 GO

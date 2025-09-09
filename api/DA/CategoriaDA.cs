@@ -21,61 +21,72 @@ namespace DA
         #region Operaciones
         public async Task<Guid> Agregar(CategoriaRequest categoria)
         {
-            string query = @"core.AgregarCategoria";
-            var resultadoConsulta = await _dapperWrapper.ExecuteScalarAsync<Guid>(_dbConnection, query, new
-            {
-                categoria.Nombre,
-                categoria.Activa
-            });
-            return resultadoConsulta;
+            const string sp = "core.AgregarCategoria";
+            var id = await _dapperWrapper.ExecuteScalarAsync<Guid>(
+                _dbConnection, sp, new
+                {
+                    Id = Guid.NewGuid(),
+                    Nombre = categoria.Nombre,
+                    Activa = categoria.Activa
+                },
+                null, null, CommandType.StoredProcedure
+            );
+            return id;
         }
 
         public async Task<Guid> Editar(Guid Id, CategoriaRequest categoria)
         {
-            await verificarCategoriaExiste(Id);
-            string query = @"core.EditarCategoria";
-            var resultadoConsulta = await _dapperWrapper.ExecuteScalarAsync<Guid>(_dbConnection, query, new
-            {
-                CategoriaId = Id,
-                categoria.Nombre,
-                categoria.Activa
-            });
-            return resultadoConsulta;
+            await verficarCategoriaExiste(Id);
+            const string sp = "core.EditarCategoria";
+            var id = await _dapperWrapper.ExecuteScalarAsync<Guid>(
+                _dbConnection, sp, new
+                {
+                    Id,
+                    Nombre = categoria.Nombre,
+                    Activa = categoria.Activa
+                },
+                null, null, CommandType.StoredProcedure
+            );
+            return id;
         }
 
         public async Task<Guid> Eliminar(Guid Id)
         {
-            await verificarCategoriaExiste(Id);
-            string query = @"core.EliminarCategoria";
-            var resultadoConsulta = await _dapperWrapper.ExecuteScalarAsync<Guid>(
-                _dbConnection, query, new { Id = Id });
-            return resultadoConsulta;
+            await verficarCategoriaExiste(Id);
+            const string sp = "core.EliminarCategoria";
+            var id = await _dapperWrapper.ExecuteScalarAsync<Guid>(
+                _dbConnection, sp, new { Id },
+                null, null, CommandType.StoredProcedure
+            );
+            return id;
         }
 
         public async Task<IEnumerable<CategoriaResponse>> Obtener()
         {
-            string query = @"core.ObtenerCategorias";
-            var resultadoConsulta = await _dapperWrapper.QueryAsync<CategoriaResponse>(_dbConnection, query);
-            return resultadoConsulta;
+            const string sp = "core.ObtenerCategorias";
+            var rows = await _dapperWrapper.QueryAsync<CategoriaResponse>(
+                _dbConnection, sp, null, null, null, CommandType.StoredProcedure
+            );
+            return rows;
         }
 
         public async Task<CategoriaDetalle> Obtener(Guid Id)
         {
-            string query = @"core.ObtenerCategoria";
-            var resultadoConsulta = await _dapperWrapper.QueryAsync<CategoriaDetalle>(
-                _dbConnection, query, new { Id, CategoriaId = Id });
-            return resultadoConsulta.FirstOrDefault() ?? new CategoriaDetalle();
+            const string sp = "core.ObtenerCategoria";
+            var rows = await _dapperWrapper.QueryAsync<CategoriaDetalle>(
+                _dbConnection, sp, new { Id }, null, null, CommandType.StoredProcedure
+            );
+            return rows.FirstOrDefault() ?? new CategoriaDetalle();
         }
         #endregion
 
         #region Helpers
-        private async Task verificarCategoriaExiste(Guid Id)
+        private async Task verficarCategoriaExiste(Guid Id)
         {
-            CategoriaDetalle? resultadoConsultaCategoria = await Obtener(Id);
-            if (resultadoConsultaCategoria == null || resultadoConsultaCategoria.CategoriaId == Guid.Empty)
+            var dto = await Obtener(Id);
+            if (dto == null || dto.CategoriaId == Guid.Empty)
                 throw new Exception("No se encontro la categoria");
         }
         #endregion
-
     }
 }

@@ -1,11 +1,18 @@
-﻿
--- Eliminar
+﻿-- =============================================
+-- Author:      <Tu Nombre>
+-- Create date: <Fecha>
+-- Description: Elimina un beneficio existente
+-- =============================================
 CREATE   PROCEDURE core.EliminarBeneficio
-  @BeneficioId UNIQUEIDENTIFIER
+    @Id UNIQUEIDENTIFIER
 AS
 BEGIN
-  SET NOCOUNT ON;
+    SET NOCOUNT ON;
 
-  DELETE FROM core.Beneficio
-  WHERE BeneficioId = @BeneficioId;
+    BEGIN TRANSACTION;
+        DELETE FROM core.Beneficio
+         WHERE BeneficioId = @Id;
+
+        SELECT @Id;
+    COMMIT TRANSACTION;
 END

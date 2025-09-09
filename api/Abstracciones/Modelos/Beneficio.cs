@@ -22,7 +22,7 @@ namespace Abstracciones.Modelos
         public DateTime VigenciaFin { get; set; }
 
         // Imagen guardada como binario
-        public byte[]? ImagenUrl { get; set; }
+        public byte[]? Imagen { get; set; }
     }
 
     // Mezcla cruda lista para "entrar al horno" → creación/edición

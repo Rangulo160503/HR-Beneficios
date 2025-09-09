@@ -1,15 +1,15 @@
 ﻿using Abstracciones.Interfaces.DA;
 using Abstracciones.Modelos;
-using Abstracciones.Modelos.Servicios.Beneficios;
 using System.Data;
+using System.Linq;
 
 namespace DA
 {
     public class BeneficioDA : IBeneficioDA
     {
         private readonly IRepositorioDapper _repositorioDapper;
-        private readonly IDapperWrapper _dapperWrapper;
         private readonly IDbConnection _dbConnection;
+        private readonly IDapperWrapper _dapperWrapper;
 
         public BeneficioDA(IRepositorioDapper repositorioDapper, IDapperWrapper dapperWrapper)
         {
@@ -18,62 +18,88 @@ namespace DA
             _dbConnection = _repositorioDapper.ObtenerRepositorio();
         }
 
+        #region Operaciones
+        public async Task<Guid> Agregar(BeneficioRequest b)
+        {
+            const string sp = "core.AgregarBeneficio";
+            var id = await _dapperWrapper.ExecuteScalarAsync<Guid>(
+                _dbConnection, sp, new
+                {
+                    Id = Guid.NewGuid(),
+                    b.Titulo,
+                    b.Descripcion,
+                    b.PrecioCRC,
+                    b.Condiciones,
+                    b.VigenciaInicio,
+                    b.VigenciaFin,
+                    Imagen = b.Imagen,
+                    b.ProveedorId,
+                    b.CategoriaId
+                    // ⬅️ sin contadores
+                },
+                null, null, CommandType.StoredProcedure
+            );
+            return id;
+        }
+        public async Task<Guid> Editar(Guid Id, BeneficioRequest b)
+        {
+            const string sp = "core.EditarBeneficio";
+            var rid = await _dapperWrapper.ExecuteScalarAsync<Guid>(
+                _dbConnection, sp, new
+                {
+                    Id,
+                    b.Titulo,
+                    b.Descripcion,
+                    b.PrecioCRC,
+                    b.Condiciones,
+                    b.VigenciaInicio,
+                    b.VigenciaFin,
+                    Imagen = b.Imagen,
+                    b.ProveedorId,
+                    b.CategoriaId
+                    // ⬅️ sin contadores
+                },
+                null, null, CommandType.StoredProcedure
+            );
+            return rid;
+        }
+        public async Task<Guid> Eliminar(Guid Id)
+        {
+            await verficarBeneficioExiste(Id);
+            const string sp = "core.EliminarBeneficio";
+            var id = await _dapperWrapper.ExecuteScalarAsync<Guid>(
+                _dbConnection, sp, new { Id },
+                null, null, CommandType.StoredProcedure
+            );
+            return id;
+        }
+
         public async Task<IEnumerable<BeneficioResponse>> Obtener()
         {
-            const string sp = @"core.ObtenerBeneficios";
-            var rows = await _dapperWrapper.QueryAsync<BeneficioResponse>(_dbConnection, sp);
+            const string sp = "core.ObtenerBeneficios";
+            var rows = await _dapperWrapper.QueryAsync<BeneficioResponse>(
+                _dbConnection, sp, null, null, null, CommandType.StoredProcedure
+            );
             return rows;
         }
 
         public async Task<BeneficioDetalle> Obtener(Guid Id)
         {
-            const string sp = @"core.ObtenerBeneficio";
-            var rows = await _dapperWrapper.QueryAsync<BeneficioDetalle>(_dbConnection, sp, new { Id });
+            const string sp = "core.ObtenerBeneficio";
+            var rows = await _dapperWrapper.QueryAsync<BeneficioDetalle>(
+                _dbConnection, sp, new { Id }, null, null, CommandType.StoredProcedure
+            );
             return rows.FirstOrDefault() ?? new BeneficioDetalle();
         }
+        #endregion
 
-        public async Task<Guid> Agregar(BeneficioRequest beneficio)
+        #region Helpers
+        private async Task verficarBeneficioExiste(Guid Id)
         {
-            const string sp = @"core.AgregarBeneficio";
-            var result = await _dapperWrapper.ExecuteScalarAsync<Guid>(_dbConnection, sp, new
-            {
-                beneficio.Titulo,
-                beneficio.Descripcion,
-                beneficio.PrecioCRC,
-                beneficio.ProveedorId,
-                beneficio.CategoriaId,
-                beneficio.ImagenUrl,
-                beneficio.Condiciones,
-                beneficio.VigenciaInicio,
-                beneficio.VigenciaFin
-            });
-            return result;
+            var dto = await Obtener(Id);
+            if (dto == null || dto.BeneficioId == Guid.Empty)
+                throw new Exception("No se encontro el beneficio");
         }
-
-        public async Task<Guid> Editar(Guid Id, BeneficioRequest beneficio)
-        {
-            const string sp = @"core.EditarBeneficio";
-            var result = await _dapperWrapper.ExecuteScalarAsync<Guid>(_dbConnection, sp, new
-            {
-                Id,
-                beneficio.Titulo,
-                beneficio.Descripcion,
-                beneficio.PrecioCRC,
-                beneficio.ProveedorId,
-                beneficio.CategoriaId,
-                beneficio.ImagenUrl,
-                beneficio.Condiciones,
-                beneficio.VigenciaInicio,
-                beneficio.VigenciaFin
-            });
-            return result;
-        }
-
-        public async Task<Guid> Eliminar(Guid Id)
-        {
-            const string sp = @"core.EliminarBeneficio";
-            var result = await _dapperWrapper.ExecuteScalarAsync<Guid>(_dbConnection, sp, new { Id });
-            return result;
-        }
+        #endregion
     }
 }

@@ -21,68 +21,78 @@ namespace DA
         #region Operaciones
         public async Task<Guid> Agregar(ProveedorRequest proveedor)
         {
-            string query = @"core.AgregarProveedor";
-            var resultadoConsulta = await _dapperWrapper.ExecuteScalarAsync<Guid>(_dbConnection, query, new
-            {
-                proveedor.Nombre,
-                proveedor.Correo,
-                proveedor.Telefono,
-                proveedor.Activo,
-                proveedor.Imagen
-            });
-            return resultadoConsulta;
+            const string sp = "core.AgregarProveedor";
+            var id = await _dapperWrapper.ExecuteScalarAsync<Guid>(
+                _dbConnection, sp, new
+                {
+                    Id = Guid.NewGuid(),
+                    proveedor.Nombre,
+                    proveedor.Correo,
+                    proveedor.Telefono,
+                    proveedor.Activo,
+                    proveedor.Imagen,
+                    proveedor.Direccion
+                },
+                null, null, CommandType.StoredProcedure
+            );
+            return id;
         }
 
         public async Task<Guid> Editar(Guid Id, ProveedorRequest proveedor)
         {
             await verficarProveedorExiste(Id);
-            string query = @"core.EditarProveedor";
-            var resultadoConsulta = await _dapperWrapper.ExecuteScalarAsync<Guid>(_dbConnection, query, new
-            {
-                Id = Id,
-                Nombre = proveedor.Nombre,
-                Correo = proveedor.Correo,
-                Telefono = proveedor.Telefono,
-                Activo = proveedor.Activo,
-                Imagen = proveedor.Imagen
-            });
-            return resultadoConsulta;
+            const string sp = "core.EditarProveedor";
+            var id = await _dapperWrapper.ExecuteScalarAsync<Guid>(
+                _dbConnection, sp, new
+                {
+                    Id,
+                    proveedor.Nombre,
+                    proveedor.Correo,
+                    proveedor.Telefono,
+                    proveedor.Activo,
+                    proveedor.Imagen,
+                    proveedor.Direccion
+                },
+                null, null, CommandType.StoredProcedure
+            );
+            return id;
         }
 
         public async Task<Guid> Eliminar(Guid Id)
         {
             await verficarProveedorExiste(Id);
-            string query = @"core.EliminarProveedor";
-            var resultadoConsulta = await _dapperWrapper.ExecuteScalarAsync<Guid>(_dbConnection, query, new
-            {
-                Id = Id
-            });
-            return resultadoConsulta;
+            const string sp = "core.EliminarProveedor";
+            var id = await _dapperWrapper.ExecuteScalarAsync<Guid>(
+                _dbConnection, sp, new { Id },
+                null, null, CommandType.StoredProcedure
+            );
+            return id;
         }
 
         public async Task<IEnumerable<ProveedorResponse>> Obtener()
         {
-            string query = @"core.ObtenerProveedores";
-            var resultadoConsulta = await _dapperWrapper.QueryAsync<ProveedorResponse>(_dbConnection, query);
-            return resultadoConsulta;
+            const string sp = "core.ObtenerProveedores";
+            var rows = await _dapperWrapper.QueryAsync<ProveedorResponse>(
+                _dbConnection, sp, null, null, null, CommandType.StoredProcedure
+            );
+            return rows;
         }
 
         public async Task<ProveedorDetalle> Obtener(Guid Id)
         {
-            string query = @"core.ObtenerProveedor";
-            var resultadoConsulta = await _dapperWrapper.QueryAsync<ProveedorDetalle>(_dbConnection, query, new
-            {
-                Id = Id
-            });
-            return resultadoConsulta.FirstOrDefault() ?? new ProveedorDetalle();
+            const string sp = "core.ObtenerProveedor";
+            var rows = await _dapperWrapper.QueryAsync<ProveedorDetalle>(
+                _dbConnection, sp, new { Id }, null, null, CommandType.StoredProcedure
+            );
+            return rows.FirstOrDefault() ?? new ProveedorDetalle();
         }
         #endregion
 
         #region Helpers
         private async Task verficarProveedorExiste(Guid Id)
         {
-            ProveedorDetalle? resultadoConsultaProveedor = await Obtener(Id);
-            if (resultadoConsultaProveedor == null || resultadoConsultaProveedor.ProveedorId == Guid.Empty)
+            var dto = await Obtener(Id);
+            if (dto == null || dto.ProveedorId == Guid.Empty)
                 throw new Exception("No se encontro el proveedor");
         }
         #endregion
