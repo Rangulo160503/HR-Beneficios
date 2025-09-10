@@ -33,6 +33,53 @@ function SkeletonCard() {
   );
 }
 
+/** ====== Utils de imagen ====== */
+const PLACEHOLDER =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512'>
+      <defs>
+        <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+          <stop offset='0%' stop-color='#1f2937'/>
+          <stop offset='100%' stop-color='#374151'/>
+        </linearGradient>
+      </defs>
+      <rect width='100%' height='100%' fill='url(#g)'/>
+      <g fill='#9CA3AF' font-size='42' font-family='sans-serif' text-anchor='middle' dominant-baseline='middle'>
+        <text x='50%' y='50%'>Sin imagen</text>
+      </g>
+    </svg>`
+  );
+
+/** Normaliza formatos del API a un src usable */
+function normalizeImage(img) {
+  if (!img) return PLACEHOLDER;
+
+  if (typeof img === "string") {
+    const s = img.trim();
+    if (!s) return PLACEHOLDER;
+    if (s.startsWith("http://") || s.startsWith("https://") || s.startsWith("data:") || s.startsWith("blob:"))
+      return s;
+    const looksLikeB64 = /^[A-Za-z0-9+/=\s]+$/.test(s) && s.replace(/\s/g, "").length > 50;
+    if (looksLikeB64) return `data:image/jpeg;base64,${s.replace(/\s/g, "")}`;
+    if (s.startsWith("/")) return s;
+    return s;
+  }
+
+  if (Array.isArray(img)) {
+    try {
+      const uint = new Uint8Array(img);
+      let binary = "";
+      for (let i = 0; i < uint.length; i++) binary += String.fromCharCode(uint[i]);
+      const b64 = btoa(binary);
+      return `data:image/jpeg;base64,${b64}`;
+    } catch {
+      return PLACEHOLDER;
+    }
+  }
+  return PLACEHOLDER;
+}
+
 export default function Display() {
   const [items, setItems] = useState([]);
   const [categorias, setCategorias] = useState(CACHED_CATS || []);
@@ -46,7 +93,6 @@ export default function Display() {
   const [filtroProveedor, setFiltroProveedor] = useState(null);
   const [letra, setLetra] = useState("");
 
-  // Debounce para no recalcular en cada tecla
   const q = useDebounce(busqueda, 250);
 
   // Modal
@@ -54,14 +100,14 @@ export default function Display() {
   const [selectedId, setSelectedId] = useState(null);
 
   // Infinite scroll (client-side reveal)
-  const PAGE = 18;                           // cards por “página”
+  const PAGE = 18;
   const [visible, setVisible] = useState(PAGE);
   const loadMoreRef = useRef(null);
 
   const openDetail = (id) => { setSelectedId(id); setDetailOpen(true); };
   const closeDetail = () => { setDetailOpen(false); setSelectedId(null); };
 
-  // Bloquea scroll del body cuando hay modal
+  // Bloquea scroll cuando hay modal
   useEffect(() => {
     document.body.style.overflow = detailOpen ? "hidden" : "";
     return () => (document.body.style.overflow = "");
@@ -77,10 +123,25 @@ export default function Display() {
         categorias?.length ? Promise.resolve(categorias) : Api.categorias.listar(),
         proveedores?.length ? Promise.resolve(proveedores) : Api.proveedores.listar(),
       ]);
-      setItems(Array.isArray(b) ? b : []);
-      // cachea si no había
-      if (!CACHED_CATS && Array.isArray(cMaybe)) { CACHED_CATS = cMaybe; }
-      if (!CACHED_PROVS && Array.isArray(pMaybe)) { CACHED_PROVS = pMaybe; }
+
+      // Mapeo + normalización de imagen (acepta imagen|Imagen|imagenUrl|ImagenUrl|imagenThumb)
+      const mapped = (Array.isArray(b) ? b : []).map((it) => {
+        const raw =
+          it.imagenThumb ?? it.ImagenThumb ??
+          it.imagen ?? it.Imagen ??
+          it.imagenUrl ?? it.ImagenUrl ?? null;
+
+        return {
+          ...it,
+          _imgNorm: normalizeImage(raw),
+          _hasRealImg: !!raw, // ← bandera para lazy-load en BenefitCard
+        };
+      });
+
+      setItems(mapped);
+
+      if (!CACHED_CATS && Array.isArray(cMaybe)) CACHED_CATS = cMaybe;
+      if (!CACHED_PROVS && Array.isArray(pMaybe)) CACHED_PROVS = pMaybe;
       setCategorias(CACHED_CATS || []);
       setProveedores(CACHED_PROVS || []);
     } catch (e) {
@@ -89,13 +150,13 @@ export default function Display() {
       setError("No se pudieron cargar los beneficios.");
     } finally {
       setLoading(false);
-      setVisible(PAGE); // reset lote visible
+      setVisible(PAGE);
     }
   };
 
   useEffect(() => { cargar(); /* eslint-disable-next-line */ }, []);
 
-  // Filtrado + búsqueda + A–Z (memoizado)
+  // Filtrado + búsqueda + A–Z
   const filtrados = useMemo(() => {
     const qLower = (q || "").toLowerCase();
     return items.filter((x) => {
@@ -122,10 +183,9 @@ export default function Display() {
     });
   }, [items, q, filtroCategoria, filtroProveedor, letra]);
 
-  // Resetea “visible” cuando cambian filtros/búsqueda
   useEffect(() => { setVisible(PAGE); }, [q, filtroCategoria, filtroProveedor, letra]);
 
-  // IntersectionObserver para cargar más
+  // IntersectionObserver para revelar más
   useEffect(() => {
     if (!loadMoreRef.current) return;
     if (loading) return;
@@ -148,7 +208,6 @@ export default function Display() {
     return () => observer.unobserve(el);
   }, [filtrados.length, loading]);
 
-  // Lista que se muestra (lote)
   const toShow = loading ? [] : filtrados.slice(0, visible);
 
   return (
@@ -190,7 +249,8 @@ export default function Display() {
                     id: it.beneficioId ?? it.BeneficioId ?? it.id ?? it.Id,
                     titulo: it.titulo ?? it.Titulo,
                     proveedor: it.proveedorNombre ?? it.ProveedorNombre,
-                    imagen: it.imagenUrl ?? it.ImagenUrl,
+                    imagen: it._imgNorm,        // puede ser real o placeholder
+                    hasRealImg: it._hasRealImg, // ← para decidir lazy-load
                   }}
                   onClick={() =>
                     openDetail(it.beneficioId ?? it.BeneficioId ?? it.id ?? it.Id)
@@ -199,12 +259,10 @@ export default function Display() {
               ))}
         </div>
 
-        {/* Sentinela para el infinite scroll */}
         {!loading && filtrados.length > visible && (
           <div ref={loadMoreRef} className="h-10 w-full" />
         )}
 
-        {/* Empty state */}
         {!loading && !filtrados.length && !error && (
           <div className="mt-8 text-center text-white/60">
             No hay beneficios para mostrar.

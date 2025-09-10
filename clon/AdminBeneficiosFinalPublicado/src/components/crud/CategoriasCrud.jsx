@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { Api } from "../../services/api";
 
+/* === ESTILOS UNIFICADOS PARA BOTONES (mismo arte que inputs) === */
+const btnBase =
+  "rounded bg-neutral-800 border border-white/10 hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed";
+const btnSm = `${btnBase} px-2 py-1 text-xs font-medium`;
+const btnMd = `${btnBase} px-3 py-2 text-sm font-medium`;
+
 export default function CategoriasCrud() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,11 +21,15 @@ export default function CategoriasCrud() {
     setLoading(true); setError("");
     try {
       const data = await Api.categorias.listar();
-      const mapped = (data || []).map(x => ({
-        id: x.categoriaId ?? x.CategoriaId ?? x.id ?? x.Id,
-        nombre: x.nombre ?? x.Nombre ?? "",
-        activa: (x.activa ?? x.Activa ?? true) === true,
-      }));
+      const mapped = (data || []).map(x => {
+        const id =
+          x.categoriaId ?? x.CategoriaId ?? x.id ?? x.Id ?? null;
+        return {
+          id: id != null ? String(id) : null, // normaliza a string
+          nombre: x.nombre ?? x.Nombre ?? "",
+          activa: (x.activa ?? x.Activa ?? true) === true,
+        };
+      });
       setRows(mapped);
     } catch (e) {
       setError(String(e?.message || e));
@@ -47,16 +57,25 @@ export default function CategoriasCrud() {
     }
   };
 
-  const startEdit = (r) => {
-    setEditId(r.id);
-    setEditForm({ nombre: r.nombre, activa: !!r.activa });
+  // ✅ Robustecido: normaliza id a string y asegura valores del form
+  const startEdit = (row) => {
+    const rowId = row?.id != null ? String(row.id) : null;
+    if (!rowId) return; // si por alguna razón no hay id, no entramos a edición
+    setEditId(rowId);
+    setEditForm({
+      nombre: row?.nombre ?? "",
+      activa: !!row?.activa,
+    });
   };
 
   const guardar = async () => {
     if (!canSave) return;
     setSaving(true); setError("");
     try {
-      await Api.categorias.editar(editId, { nombre: editForm.nombre.trim(), activa: !!editForm.activa });
+      await Api.categorias.editar(editId, {
+        nombre: editForm.nombre.trim(),
+        activa: !!editForm.activa
+      });
       setEditId(null);
       await load();
     } catch (e) {
@@ -97,15 +116,19 @@ export default function CategoriasCrud() {
             />
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={form.activa}
-              onChange={e => setForm(v => ({ ...v, activa: e.target.checked }))} />
+            <input
+              type="checkbox"
+              checked={form.activa}
+              onChange={e => setForm(v => ({ ...v, activa: e.target.checked }))}
+              className="accent-teal-500"
+            />
             Activa
           </label>
           <div className="md:col-span-6">
             <button
               onClick={crear}
               disabled={!canCreate || saving}
-              className="rounded-lg bg-teal-600 hover:bg-teal-500 disabled:opacity-50 px-3 py-2 text-sm font-medium"
+              className={btnMd}
             >
               {saving ? "Guardando…" : "Guardar"}
             </button>
@@ -130,34 +153,57 @@ export default function CategoriasCrud() {
               {loading ? (
                 <tr><td colSpan={3} className="px-3 py-8 text-center text-white/60">Cargando…</td></tr>
               ) : rows.length ? rows.map(r => (
-                <tr key={r.id} className="hover:bg-white/5">
+                <tr key={r.id ?? `row-${Math.random()}`} className="hover:bg-white/5">
                   <td className="px-3 py-2">
-                    {editId === r.id ? (
-                      <input value={editForm.nombre}
+                    {editId === String(r.id) ? (
+                      <input
+                        value={editForm.nombre}
                         onChange={e => setEditForm(v => ({ ...v, nombre: e.target.value }))}
-                        className="w-full rounded bg-neutral-800 border border-white/10 px-2 py-1" />
+                        className="w-full rounded bg-neutral-800 border border-white/10 px-2 py-1"
+                      />
                     ) : r.nombre}
                   </td>
                   <td className="px-3 py-2">
-                    {editId === r.id ? (
-                      <input type="checkbox" checked={editForm.activa}
-                        onChange={e => setEditForm(v => ({ ...v, activa: e.target.checked }))}/>
+                    {editId === String(r.id) ? (
+                      <input
+                        type="checkbox"
+                        checked={editForm.activa}
+                        onChange={e => setEditForm(v => ({ ...v, activa: e.target.checked }))}
+                        className="accent-teal-500"
+                      />
                     ) : (r.activa ? "Sí" : "No")}
                   </td>
                   <td className="px-3 py-2 text-right space-x-2">
-                    {editId === r.id ? (
+                    {editId === String(r.id) ? (
                       <>
-                        <button onClick={guardar} disabled={!canSave || saving}
-                          className="rounded-lg bg-teal-600 hover:bg-teal-500 disabled:opacity-50 px-3 py-1.5">Guardar</button>
-                        <button onClick={() => setEditId(null)}
-                          className="rounded-lg bg-white/10 hover:bg-white/15 px-3 py-1.5">Cancelar</button>
+                        <button
+                          onClick={guardar}
+                          disabled={!canSave || saving}
+                          className={btnSm}
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          onClick={() => setEditId(null)}
+                          className={btnSm}
+                        >
+                          Cancelar
+                        </button>
                       </>
                     ) : (
                       <>
-                        <button onClick={() => setEditId(r)}
-                          className="rounded-lg bg-white/10 hover:bg-white/15 px-3 py-1.5">Editar</button>
-                        <button onClick={() => eliminar(r.id)}
-                          className="rounded-lg bg-red-500/80 hover:bg-red-500 px-3 py-1.5">Eliminar</button>
+                        <button
+                          onClick={() => startEdit(r)}  // ✅ ahora sí entra a edición de forma fiable
+                          className={btnSm}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => eliminar(r.id)}
+                          className={btnSm}
+                        >
+                          Eliminar
+                        </button>
                       </>
                     )}
                   </td>
