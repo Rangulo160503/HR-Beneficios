@@ -1,14 +1,13 @@
-// App.jsx
 import Display from "./components/Display";
 
-const App = () => {
+export default function App() {
   return (
-    <div className="h-screen bg-neutral-900">
-      <div className="h-full flex">
-        <Display />
+    <div className="min-h-screen bg-black text-white">
+      <div className="h-full flex overflow-x-hidden">
+        <main className="flex-1 min-w-0">
+          <Display />
+        </main>
       </div>
     </div>
   );
-};
-
-export default App;
+}

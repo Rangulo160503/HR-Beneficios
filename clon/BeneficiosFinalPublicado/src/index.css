@@ -2,10 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-::-webkit-scrollbar{
-    display: none;
+/* Altura total y sin desbordes horizontales */
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: #0a0a0a;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* src/index.css */
-.no-scrollbar::-webkit-scrollbar{ display:none; }
-.no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+/* Safe areas iOS */
+:root{
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+.safe-bottom { padding-bottom: var(--safe-bottom); }
+.safe-top    { padding-top: var(--safe-top); }
+
+/* Altura usable en móvil (evita “100vh” bug iOS) */
+.fill-screen { min-height: 100dvh; }
+/* Ocultar barras de desplazamiento en contenedores con .no-scrollbar */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE/Edge antiguo */
+  scrollbar-width: none;     /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;               /* ← importante para scroll horizontal */
+  display: none;             /* WebKit/Chromium */
+  background: transparent;
+}
