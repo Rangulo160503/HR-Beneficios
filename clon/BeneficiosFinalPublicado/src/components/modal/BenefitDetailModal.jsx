@@ -1,132 +1,195 @@
-// src/components/modal/BenefitDetailModal.jsx
-import { useEffect, useState } from "react";
-import { Api } from "../../services/api.js";
+import React, { useEffect, useMemo, useState } from "react";
+import { Api } from "../../services/api"; // ajusta extensión si tu bundler lo requiere
+import { extractImage, safeSrc, EMBED_PLACEHOLDER } from "../../utils/images";
 
-function Line({ label, children }) {
-  if (!children && children !== 0) return null;
-  return (
-    <div className="flex items-start justify-between gap-3 py-1.5">
-      <span className="text-sm text-white/60">{label}</span>
-      <span className="text-sm text-white/90 text-right">{children}</span>
-    </div>
+
+export default function BenefitDetailModal({ selected, onClose }) {
+  if (!selected) return null;
+
+  const id = useMemo(
+    () => selected.id ?? selected.beneficioId ?? selected.BeneficioId ?? selected.Id,
+    [selected]
   );
-}
 
-function Section({ title, children, defaultOpen = true }) {
-  return (
-    <details open={defaultOpen} className="rounded-xl bg-white/5 p-3">
-      <summary className="cursor-pointer text-sm font-semibold select-none">
-        {title}
-      </summary>
-      <div className="mt-2 text-sm text-white/90">{children}</div>
-    </details>
-  );
-}
-
-export default function BenefitDetailModal({ beneficioId }) {
-  const [data, setData] = useState(null);
+  const [detail, setDetail] = useState(null);
   const [estado, setEstado] = useState({ loading: true, error: "" });
 
+  // Cierra con tecla Escape
   useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        setEstado({ loading: true, error: "" });
-        const d = await Api.beneficios.obtener(beneficioId);
-        if (!alive) return;
-        setData(d || null);
-        setEstado({ loading: false, error: "" });
-      } catch (e) {
-        if (!alive) return;
-        setEstado({ loading: false, error: "No se pudo cargar el detalle." });
-      }
-    })();
-    return () => { alive = false; };
-  }, [beneficioId]);
+    const onKey = (e) => { if (e.key === "Escape") onClose?.(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
-  if (estado.loading) {
-    return (
-      <div className="space-y-3">
-        <div className="h-5 w-2/3 rounded bg-white/10 animate-pulse" />
-        <div className="aspect-[16/9] w-full rounded-lg bg-white/10 animate-pulse" />
-        <div className="h-4 w-3/4 rounded bg-white/10 animate-pulse" />
-        <div className="h-4 w-1/2 rounded bg-white/10 animate-pulse" />
-      </div>
-    );
+  // Cierra al hacer clic en el overlay (no dentro del modal)
+  const handleBackdropClick = () => onClose?.();
+  const stop = (e) => e.stopPropagation();
+
+  // Fetch detalle al abrir
+useEffect(() => {
+  // resetear cada vez que cambia el id
+  setDetail(null);
+  setEstado({ loading: true, error: "" });
+
+  if (!id) {
+    setEstado({ loading: false, error: "ID de beneficio no válido." });
+    return;
   }
 
-  if (estado.error) {
-    return (
-      <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
-        {estado.error}
-      </div>
-    );
-  }
+  let alive = true;
+  (async () => {
+    try {
+      const d = await Api.beneficios.obtener(id);
+      if (!alive) return;
+      setDetail(d || null);
+      setEstado({ loading: false, error: "" });
+    } catch (e) {
+      if (!alive) return;
+      console.error(e);
+      setDetail(null);
+      setEstado({ loading: false, error: "No se pudo cargar el detalle." });
+    }
+  })();
 
-  if (!data) return null;
+  return () => { alive = false; };
+}, [id]);
 
-  const titulo = data.titulo ?? data.Titulo;
-  const descripcion = data.descripcion ?? data.Descripcion;
-  const proveedorNombre = data.proveedorNombre ?? data.ProveedorNombre;
-  const categoriaNombre = data.categoriaNombre ?? data.CategoriaNombre;
-  const precio = data.precioCRC ?? data.PrecioCRC;
-  const vigIni = (data.vigenciaInicio ?? data.VigenciaInicio)?.slice?.(0, 10);
-  const vigFin = (data.vigenciaFin ?? data.VigenciaFin)?.slice?.(0, 10);
-  const condiciones = data.condiciones ?? data.Condiciones;
-  const imagen = data.imagenUrl ?? data.ImagenUrl;
+
+  // Helpers de campos con fallback al `selected`
+  const titulo = detail?.titulo ?? detail?.Titulo ?? selected.titulo ?? "Beneficio";
+  const proveedorNombre =
+    detail?.proveedorNombre ?? detail?.ProveedorNombre ?? selected.proveedor ?? "Proveedor";
+  const categoriaNombre =
+    detail?.categoriaNombre ?? detail?.CategoriaNombre ?? selected.categoria ?? null;
+  const descripcion = detail?.descripcion ?? detail?.Descripcion ?? null;
+  const condiciones = detail?.condiciones ?? detail?.Condiciones ?? null;
+  const precio = detail?.precioCRC ?? detail?.PrecioCRC ?? null;
+  const vigIni = (detail?.vigenciaInicio ?? detail?.VigenciaInicio)?.slice?.(0, 10) ?? null;
+  const vigFin = (detail?.vigenciaFin ?? detail?.VigenciaFin)?.slice?.(0, 10) ?? null;
+
+  const imgSrc = extractImage(detail) || extractImage(selected);
+  const src = safeSrc(imgSrc);
+
+
 
   return (
-    <div className="space-y-4">
-      {/* Encabezado */}
-      <div className="flex items-start gap-3">
-        <div className="flex-1">
-          <h2 className="text-base font-semibold leading-tight">{titulo}</h2>
+    <div
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl bg-neutral-900 border border-white/10 overflow-hidden"
+        onClick={stop}
+      >
+        {/* Encabezado (sin botón de cerrar arriba) */}
+        <div className="px-4 py-3 border-b border-white/10">
+          <h3 className="text-base font-semibold">{titulo}</h3>
           <div className="mt-1 text-xs text-white/60">
-            {proveedorNombre ? proveedorNombre : "—"} {categoriaNombre ? `• ${categoriaNombre}` : ""}
+            {proveedorNombre ?? "—"} {categoriaNombre ? `• ${categoriaNombre}` : ""}
           </div>
         </div>
-      </div>
 
-      {/* Imagen principal (mobile-friendly) */}
-      {imagen ? (
-        <div className="overflow-hidden rounded-xl bg-white/5">
-          <img
-            src={typeof imagen === "string" ? imagen : `data:image/*;base64,${imagen}`}
-            alt={titulo}
-            loading="lazy"
-            decoding="async"
-            className="w-full h-auto object-cover"
-          />
+        {/* Contenido */}
+        <div className="p-4 space-y-3">
+          {/* Imagen */}
+          <div className="w-full aspect-[16/9] rounded-xl bg-white/10 overflow-hidden">
+            {imgSrc ? (
+  <img
+  key={src}
+  src={src}
+  alt="" aria-hidden="true"
+  className="w-full h-full object-cover block"
+  onError={(e) => { e.currentTarget.src = EMBED_PLACEHOLDER; }}
+/>
+) : (
+  <div className="h-full grid place-items-center text-white/60 text-sm">Sin imagen</div>
+)}
+          </div>
+
+          {/* Estado de carga / error */}
+          {estado.loading && (
+            <div className="space-y-2">
+              <div className="h-4 w-2/3 rounded bg-white/10 animate-pulse" />
+              <div className="h-4 w-1/2 rounded bg-white/10 animate-pulse" />
+              <div className="h-4 w-3/4 rounded bg-white/10 animate-pulse" />
+            </div>
+          )}
+          {estado.error && !estado.loading && (
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
+              {estado.error}
+            </div>
+          )}
+
+          {/* Precio & Vigencia */}
+          {!estado.loading && !estado.error && (
+            <>
+              <div className="rounded-xl bg-white/5 p-3">
+                <div className="flex items-start justify-between gap-3 py-1.5">
+                  <span className="text-sm text-white/60">Precio</span>
+                  <span className="text-sm text-white/90">
+                    {typeof precio === "number"
+                      ? `₡ ${precio.toLocaleString("es-CR")}`
+                      : precio != null && !Number.isNaN(Number(precio))
+                      ? `₡ ${Number(precio).toLocaleString("es-CR")}`
+                      : "—"}
+                  </span>
+                </div>
+                <div className="flex items-start justify-between gap-3 py-1.5">
+  <span className="text-sm text-white/60">Vigencia</span>
+  <span className="text-sm text-white/90">
+    {vigIni || vigFin
+      ? `${vigIni ? new Date(vigIni).toLocaleDateString("es-CR", { month: "long", year: "numeric" }) : "—"} 
+         – 
+         ${vigFin ? new Date(vigFin).toLocaleDateString("es-CR", { month: "long", year: "numeric" }) : "—"}`
+      : "—"}
+  </span>
+</div>
+
+              </div>
+
+              {/* Descuento (si viene desde la lista) */}
+              {selected.descuento && (
+                <span className="inline-block px-2 py-1 rounded bg-emerald-500 text-black text-xs font-semibold">
+                  {selected.descuento}
+                </span>
+              )}
+
+              {/* Descripción */}
+              {descripcion && (
+                <details className="rounded-xl bg-white/5 p-3">
+                  <summary className="cursor-pointer text-sm font-semibold select-none">
+                    Descripción
+                  </summary>
+                  <div className="mt-2 text-sm text-white/90 whitespace-pre-wrap">
+                    {descripcion}
+                  </div>
+                </details>
+              )}
+
+              {/* Condiciones */}
+              {condiciones && (
+                <details className="rounded-xl bg-white/5 p-3">
+                  <summary className="cursor-pointer text-sm font-semibold select-none">
+                    Condiciones
+                  </summary>
+                  <div className="mt-2 text-sm text-white/90 whitespace-pre-wrap">
+                    {condiciones}
+                  </div>
+                </details>
+              )}
+            </>
+          )}
         </div>
-      ) : null}
 
-      {/* Info breve */}
-      <div className="rounded-xl bg-white/5 p-3">
-        <Line label="Precio">
-          {typeof precio === "number"
-            ? `₡ ${precio.toLocaleString("es-CR")}`
-            : precio
-            ? `₡ ${Number(precio).toLocaleString("es-CR")}`
-            : "—"}
-        </Line>
-        <Line label="Vigencia">
-          {vigIni || vigFin ? `${vigIni ?? "—"} – ${vigFin ?? "—"}` : "—"}
-        </Line>
+        {/* Footer: solo “Solicitar” */}
+        <div className="px-4 py-3 border-t border-white/10 flex justify-end">
+          <button className="px-3 py-2 rounded bg-white text-black text-sm font-semibold">
+            Solicitar
+          </button>
+        </div>
       </div>
-
-      {/* Descripción */}
-      {descripcion ? (
-        <Section title="Descripción">
-          <p className="whitespace-pre-wrap">{descripcion}</p>
-        </Section>
-      ) : null}
-
-      {/* Condiciones */}
-      {condiciones ? (
-        <Section title="Condiciones" defaultOpen={false}>
-          <p className="whitespace-pre-wrap">{condiciones}</p>
-        </Section>
-      ) : null}
     </div>
   );
 }

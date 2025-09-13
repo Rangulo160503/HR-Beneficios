@@ -85,12 +85,7 @@ export default function Modal({ open, title, onClose, children }) {
 
         <header className="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-3 sticky top-0 bg-neutral-900/95 backdrop-blur">
           <h3 className="text-base font-semibold">{title}</h3>
-          <button
-            onClick={handleClose}
-            className="rounded-lg bg-white/10 px-3 py-1.5 hover:bg-white/15"
-          >
-            Cerrar
-          </button>
+          
         </header>
 
         <div className="max-h-[80vh] overflow-y-auto p-4">

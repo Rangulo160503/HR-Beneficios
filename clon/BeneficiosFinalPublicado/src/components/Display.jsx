@@ -1,168 +1,12 @@
+// src/components/Display.jsx
 import { useEffect, useRef, useState } from "react";
-import BenefitCard, { BenefitCardSkeleton } from "./BenefitCard";
+import BenefitCard from "./BenefitCard";
+import ChipsRow from "./ChipsRow";
 import { Api } from "../services/api";
+import { mapBenefit, mapCategoria, mapProveedor } from "../utils/mappers";
+import BenefitDetailModal from "./modal/BenefitDetailModal";
+import HScroll from "./HScroll";
 
-/* ========= HScroll (ligero, interno a este archivo) ========= */
-function HScroll({ children, className = "", maskWidth = 32 }) {
-  const ref = useRef(null);
-  const [canLeft, setCanLeft] = useState(false);
-  const [canRight, setCanRight] = useState(false);
-
-  const update = () => {
-    const el = ref.current;
-    if (!el) return;
-    setCanLeft(el.scrollLeft > 1);
-    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
-  };
-
-  useEffect(() => {
-    update();
-    const el = ref.current;
-    if (!el) return;
-
-    const onScroll = () => update();
-    el.addEventListener("scroll", onScroll, { passive: true });
-
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-
-    window.addEventListener("resize", update);
-    return () => {
-      el.removeEventListener("scroll", onScroll);
-      ro.disconnect();
-      window.removeEventListener("resize", update);
-    };
-  }, []);
-
-  // Convierte rueda vertical a horizontal cuando hay overflow
-  const onWheel = (e) => {
-    const el = ref.current;
-    if (!el) return;
-    if (el.scrollWidth <= el.clientWidth) return;
-    if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
-      el.scrollBy({ left: e.deltaY, behavior: "auto" });
-      e.preventDefault();
-    }
-  };
-
-  return (
-    <div className={`relative ${className}`} onWheel={onWheel}>
-      {canLeft && (
-        <div
-          className="pointer-events-none absolute left-0 top-0 h-full"
-          style={{
-            width: maskWidth,
-            background: "linear-gradient(to right, rgba(0,0,0,1), rgba(0,0,0,0))",
-          }}
-        />
-      )}
-
-      <div
-        ref={ref}
-        className="
-    flex gap-2 overflow-x-auto no-scrollbar
-    py-2 whitespace-nowrap px-1
-    cursor-grab select-none
-    overscroll-x-contain
-  "
-        style={{ scrollBehavior: "smooth", WebkitOverflowScrolling: "touch" }}
-      >
-        {children}
-      </div>
-
-      {canRight && (
-        <div
-          className="pointer-events-none absolute right-0 top-0 h-full"
-          style={{
-            width: maskWidth,
-            background: "linear-gradient(to left, rgba(0,0,0,1), rgba(0,0,0,0))",
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
-/* ========= Utils ========= */
-function normalizeImage(img) {
-  if (!img) return "";
-  if (typeof img === "string") {
-    const s = img.trim();
-    if (!s) return "";
-    if (
-      s.startsWith("http://") ||
-      s.startsWith("https://") ||
-      s.startsWith("data:") ||
-      s.startsWith("blob:")
-    )
-      return s;
-    const looksB64 = /^[A-Za-z0-9+/=\s]+$/.test(s) && s.replace(/\s/g, "").length > 50;
-    if (looksB64) return `data:image/jpeg;base64,${s.replace(/\s/g, "")}`;
-    if (s.startsWith("/")) return s;
-    return s;
-  }
-  if (Array.isArray(img)) {
-    try {
-      const u = new Uint8Array(img);
-      let bin = "";
-      for (let i = 0; i < u.length; i++) bin += String.fromCharCode(u[i]);
-      return `data:image/jpeg;base64,${btoa(bin)}`;
-    } catch {
-      return "";
-    }
-  }
-  return "";
-}
-
-function mapBenefit(b) {
-  const id = b.beneficioId ?? b.BeneficioId ?? b.id ?? b.Id;
-  const titulo = b.titulo ?? b.Titulo ?? b.nombre ?? b.Nombre ?? "Beneficio";
-  const proveedor =
-    b.proveedorNombre ?? b.ProveedorNombre ?? b.proveedor ?? b.Proveedor ?? "Proveedor";
-  const categoria = b.categoriaNombre ?? b.CategoriaNombre ?? b.categoria ?? b.Categoria ?? null;
-
-  let descuento = b.descuento ?? b.Descuento ?? b.porcentaje ?? b.Porcentaje ?? null;
-  if (typeof descuento === "number")
-    descuento = `${descuento > 0 ? "-" : ""}${Math.abs(descuento)}%`;
-  if (typeof descuento === "string" && descuento && !descuento.includes("%"))
-    descuento = `${descuento}%`;
-
-  const destacado = !!(b.destacado ?? b.Destacado);
-
-  const rawImg =
-    b.imagenThumb ??
-    b.ImagenThumb ??
-    b.imagenUrl ??
-    b.ImagenUrl ??
-    b.imagen ??
-    b.Imagen ??
-    null;
-
-  return {
-    id,
-    titulo,
-    proveedor,
-    categoria,
-    descuento: descuento || null,
-    destacado,
-    imagen: normalizeImage(rawImg),
-  };
-}
-
-function mapCategoria(c) {
-  return {
-    id: c.categoriaId ?? c.CategoriaId ?? c.id ?? c.Id,
-    nombre: c.nombre ?? c.Nombre ?? c.titulo ?? c.Titulo ?? "Categoría",
-  };
-}
-function mapProveedor(p) {
-  return {
-    id: p.proveedorId ?? p.ProveedorId ?? p.id ?? p.Id,
-    nombre: p.nombre ?? p.Nombre ?? p.titulo ?? p.Titulo ?? "Proveedor",
-  };
-}
-
-/* ========= Componente ========= */
 export default function Display() {
   /* --- UI header --- */
   const [busqueda, setBusqueda] = useState("");
@@ -182,26 +26,40 @@ export default function Display() {
   const [provSel, setProvSel] = useState(null); // id o null
 
   /* --- Fetch beneficios --- */
-  useEffect(() => {
-    const ctrl = new AbortController();
-    (async () => {
-      try {
-        setError("");
-        setLoading(true);
-        const data = await Api.beneficios.listar({ signal: ctrl.signal });
-        setItems(Array.isArray(data) ? data.map(mapBenefit) : []);
-      } catch (e) {
-        if (e?.name !== "AbortError") {
-          console.error(e);
-          setError("No se pudieron cargar los beneficios.");
-          setItems([]);
-        }
-      } finally {
-        setLoading(false);
+useEffect(() => {
+  const ctrl = new AbortController();
+  (async () => {
+    try {
+      setError("");
+      setLoading(true);
+
+      const data = await Api.beneficios.listar({ signal: ctrl.signal });
+
+      // Logs de verificación (seguros)
+      const first = Array.isArray(data) ? data[0] : null;
+      console.log("beneficios sample (0):", first);
+      if (first) {
+        const keys = Object.keys(first);
+        console.log("campos presentes:", keys);
+        const hasImg = ["imagenBase64","ImagenBase64","imagenUrl","ImagenUrl","imagen","Imagen","imagenThumb","ImagenThumb"]
+          .some((k) => first[k] != null && first[k] !== "");
+        console.log("¿La lista trae algún campo de imagen?", hasImg);
       }
-    })();
-    return () => ctrl.abort();
-  }, []);
+
+      setItems(Array.isArray(data) ? data.map(mapBenefit) : []);
+    } catch (e) {
+      if (e?.name !== "AbortError") {
+        console.error(e);
+        setError("No se pudieron cargar los beneficios.");
+        setItems([]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  })();
+  return () => ctrl.abort();
+}, []);
+
 
   /* --- Fetch categorías y proveedores (en paralelo) --- */
   useEffect(() => {
@@ -295,7 +153,8 @@ export default function Display() {
 
     const byCat =
       !catSel ||
-      (x.categoria && String(catSel) === String(x.categoriaId ?? x.categoria?.id ?? x.categoria));
+      (x.categoria &&
+        String(catSel) === String(x.categoriaId ?? x.categoria?.id ?? x.categoria));
     const byCatName =
       !catSel ||
       (x.categoria &&
@@ -317,31 +176,6 @@ export default function Display() {
     return bySearch && matchCategoria && byProv;
   });
 
-  /* --- Chips UI usando HScroll --- */
-  const ChipsRow = ({ items, selected, onSelect, allLabel }) => (
-    <HScroll className="py-1">
-      <button
-        onClick={() => onSelect(null)}
-        className={`px-3 py-1.5 rounded-full text-sm border snap-start
-          ${selected == null ? "bg-white text-black border-white" : "bg-white/10 text-white border-white/10 hover:bg-white/15"}`}
-      >
-        {allLabel}
-      </button>
-      {items.map((it) => (
-        <button
-          key={it.id}
-          onClick={() => onSelect(it.id)}
-          className={`px-3 py-1.5 rounded-full text-sm border snap-start
-            ${String(selected) === String(it.id)
-              ? "bg-white text-black border-white"
-              : "bg-white/10 text-white border-white/10 hover:bg-white/15"}`}
-        >
-          {it.nombre}
-        </button>
-      ))}
-    </HScroll>
-  );
-
   return (
     <div className="min-h-screen bg-black text-white">
       {/* ======= HEADER UNIFICADO ======= */}
@@ -354,7 +188,7 @@ export default function Display() {
       >
         {/* Desktop */}
         <div className="hidden sm:flex mx-auto w-full max-w-7xl h-16 px-4 items-center gap-4">
-          <span className="text-cyan-500 font-bold text-xl">Beneficios</span>
+          <span className="text-cian-500 font-bold text-xl">Beneficios</span>
           <div className="flex-1 flex justify-center">
             <div className="w-full max-w-xl">
               <input
@@ -365,21 +199,14 @@ export default function Display() {
               />
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="h-7 w-7 rounded bg-white/10" />
-            <div className="h-7 w-7 rounded bg-white/10" />
-            <div className="h-7 w-7 rounded bg-white/10" />
-          </div>
         </div>
 
         {/* Móvil */}
         <div className="sm:hidden">
           {!searchOpen ? (
             <div className="h-14 px-4 flex items-center justify-between">
-              <span className="text-cyan-500 font-bold text-xl">Beneficios</span>
+              <span className="text-cian-500 font-bold text-xl">Beneficios</span>
               <div className="flex items-center gap-3">
-                <div className="bg-white/10 h-6 w-6 rounded" />
-                <div className="bg-white/10 h-6 w-6 rounded" />
                 <button
                   onClick={() => setSearchOpen(true)}
                   className="bg-white/10 h-6 w-6 rounded"
@@ -396,7 +223,9 @@ export default function Display() {
                   aria-label="Cerrar búsqueda"
                 />
                 <input
-                  {...(window.innerWidth > 640 ? { autoFocus: true } : {})}
+                  {...(typeof window !== "undefined" && window.innerWidth > 640
+                    ? { autoFocus: true }
+                    : {})}
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
                   placeholder="Buscar beneficios..."
@@ -407,7 +236,7 @@ export default function Display() {
           )}
         </div>
 
-        {/* FILTROS: Categorías y Proveedores */}
+        {/* FILTROS */}
         <div className="border-t border-white/10">
           <div className="mx-auto w-full max-w-7xl px-4">
             {/* Categorías */}
@@ -418,12 +247,14 @@ export default function Display() {
                 ))}
               </div>
             ) : (
-              <ChipsRow
-                items={categorias}
-                selected={catSel}
-                onSelect={setCatSel}
-                allLabel="Todas las categorías"
-              />
+              <HScroll>
+                <ChipsRow
+                  items={categorias}
+                  selected={catSel}
+                  onSelect={setCatSel}
+                  allLabel="Todas las categorías"
+                />
+              </HScroll>
             )}
             {/* Proveedores */}
             {loadingFilters ? (
@@ -433,12 +264,14 @@ export default function Display() {
                 ))}
               </div>
             ) : (
-              <ChipsRow
-                items={proveedores}
-                selected={provSel}
-                onSelect={setProvSel}
-                allLabel="Todos los proveedores"
-              />
+              <HScroll>
+                <ChipsRow
+                  items={proveedores}
+                  selected={provSel}
+                  onSelect={setProvSel}
+                  allLabel="Todos los proveedores"
+                />
+              </HScroll>
             )}
           </div>
         </div>
@@ -460,10 +293,11 @@ export default function Display() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
           {loading
-            ? Array.from({ length: 12 }).map((_, i) => <BenefitCardSkeleton key={i} />)
-            : filtered.map((it) => (
-                <BenefitCard key={it.id} item={it} onClick={() => setSelected(it)} />
-              ))}
+  ? <div className="text-center text-white/60">Cargando...</div>
+  : filtered.map((it) => (
+      <BenefitCard key={it.id} item={it} onClick={() => setSelected(it)} />
+    ))}
+
         </div>
 
         {!loading && !error && filtered.length === 0 && (
@@ -475,51 +309,11 @@ export default function Display() {
 
       {/* ======= MODAL DETALLE (mock) ======= */}
       {selected && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-neutral-900 border border-white/10 overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-              <h3 className="text-base font-semibold">{selected.titulo}</h3>
-              <button
-                onClick={() => setSelected(null)}
-                className="h-8 w-8 rounded bg-white/10 hover:bg-white/15"
-                aria-label="Cerrar"
-              />
-            </div>
-            <div className="p-4 space-y-3">
-              <div className="w-full aspect-[16/9] rounded-xl bg-white/10 overflow-hidden">
-                {selected.imagen ? (
-                  <img src={selected.imagen} alt={selected.titulo} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="h-full grid place-items-center text-white/60 text-sm">Sin imagen</div>
-                )}
-              </div>
-              <div className="text-sm text-white/80">
-                <div className="text-white/60">Proveedor</div>
-                <div className="font-medium">{selected.proveedor}</div>
-              </div>
-              {selected.descuento && (
-                <span className="inline-block px-2 py-1 rounded bg-emerald-500 text-black text-xs font-semibold">
-                  {selected.descuento}
-                </span>
-              )}
-              <p className="text-sm text-white/70">
-                Aquí irá la descripción del beneficio, condiciones, vigencia, etc.
-              </p>
-            </div>
-            <div className="px-4 py-3 border-t border-white/10 flex justify-end gap-2">
-              <button
-                onClick={() => setSelected(null)}
-                className="px-3 py-2 rounded bg-white/10 hover:bg-white/15 text-sm"
-              >
-                Cerrar
-              </button>
-              <button className="px-3 py-2 rounded bg-white text-black text-sm font-semibold">
-                Solicitar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+  <BenefitDetailModal
+    selected={selected}
+    onClose={() => setSelected(null)}
+  />
+)}
     </div>
   );
 }
