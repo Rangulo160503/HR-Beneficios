@@ -53,11 +53,21 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// SOLO forzar HTTPS en no-Development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.RoutePrefix = string.Empty; // sirve en "/"
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "HR-Beneficios API v1");
+    });
+}
+
+
 app.UseRouting();
 app.UseCors();
 app.UseAuthorization();
 
 app.MapControllers();
-
 app.Run();
