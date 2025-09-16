@@ -1,6 +1,6 @@
-// src/services/adminApi.js
 const BASE_URL = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
 
+// ============== core fetch ==============
 async function req(path, { method = "GET", json, headers, signal } = {}) {
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
@@ -24,71 +24,96 @@ async function req(path, { method = "GET", json, headers, signal } = {}) {
 /* ===================== Categoría ===================== */
 export const CategoriaApi = {
   list: () => req("/api/Categoria"),
-  get: (id) => req(`/api/Categoria/${id}`),
-  create: (dto) => req("/api/Categoria", { method: "POST", json: dto }),
-  update: (id, dto) => req(`/api/Categoria/${id}`, { method: "PUT", json: dto }),
+  get:  (id) => req(`/api/Categoria/${id}`),
+  create: (dto) => {
+    // backend usa { nombre }; desde UI llega { titulo }
+    const body = { nombre: dto.titulo ?? dto.nombre ?? "" };
+    return req("/api/Categoria", { method: "POST", json: body });
+  },
+  update: (id, dto) => {
+    const body = { nombre: dto.titulo ?? dto.nombre ?? "" };
+    return req(`/api/Categoria/${id}`, { method: "PUT", json: body });
+  },
   remove: (id) => req(`/api/Categoria/${id}`, { method: "DELETE" }),
 };
 
 /* ===================== Proveedor ===================== */
 export const ProveedorApi = {
   list: () => req("/api/Proveedor"),
-  get: (id) => req(`/api/Proveedor/${id}`),
-  create: (dto) => req("/api/Proveedor", { method: "POST", json: dto }),
-  update: (id, dto) => req(`/api/Proveedor/${id}`, { method: "PUT", json: dto }),
+  get:  (id) => req(`/api/Proveedor/${id}`),
+  create: (dto) => {
+    const body = { nombre: dto.nombre ?? "" };
+    return req("/api/Proveedor", { method: "POST", json: body });
+  },
+  update: (id, dto) => {
+    const body = { nombre: dto.nombre ?? "" };
+    return req(`/api/Proveedor/${id}`, { method: "PUT", json: body });
+  },
   remove: (id) => req(`/api/Proveedor/${id}`, { method: "DELETE" }),
 };
 
 /* ===================== Beneficio ===================== */
-/* Mapea API ↔ UI con tu contrato real:
-   POST/PUT espera:
-   {
-     "titulo","descripcion","precioCRC","condiciones",
-     "vigenciaInicio","vigenciaFin","imagen","proveedorId","categoriaId"
-   }
+/* Contrato del API (Swagger): 
+   POST/PUT: { titulo, descripcion, precioCRC, condiciones,
+               vigenciaInicio, vigenciaFin, imagen, proveedorId, categoriaId }
 */
 
-// ← UI -> API (envío). Extrae base64 limpio si viene dataURL.
+// UI -> API
 function toApiBeneficio(ui) {
-  let imagenBase64;
-  if (ui.imagenUrl?.startsWith("data:")) {
+  // imagenUrl puede ser dataURL; extrae solo la parte base64
+  let imagenBase64 = null;
+  if (ui.imagenUrl && typeof ui.imagenUrl === "string" && ui.imagenUrl.startsWith("data:")) {
     const i = ui.imagenUrl.indexOf("base64,");
     if (i >= 0) imagenBase64 = ui.imagenUrl.slice(i + "base64,".length);
+  } else if (ui.imagen) {
+    // si ya trae base64 “puro”
+    imagenBase64 = ui.imagen;
   }
+
   return {
-    // Para POST no mandes id; para PUT tu endpoint lo toma por ruta (/api/Beneficio/{id})
-    titulo: ui.titulo,
+    titulo: ui.titulo ?? "",
     descripcion: ui.descripcion ?? "",
-    precioCRC: Number(ui.precio ?? 0),
+    precioCRC: Number(ui.precio ?? ui.precioCRC ?? 0),
     condiciones: ui.condiciones ?? "",
     vigenciaInicio: ui.vigenciaInicio || null,
     vigenciaFin: ui.vigenciaFin || null,
-    imagen: imagenBase64 ?? null,   // ← C# byte[] Imagen acepta base64 en JSON
-    proveedorId: ui.proveedorId,
-    categoriaId: ui.categoriaId,
+    imagen: imagenBase64,        // byte[] Imagen en C# mapea desde base64
+    proveedorId: ui.proveedorId || null,
+    categoriaId: ui.categoriaId || null,
   };
 }
 
-// ← API -> UI (lectura). Convierte imagen base64 -> dataURL para mostrarla.
+// services/adminApi.js (o .ts) – REEMPLAZA SOLO ESTA PARTE
+
+// API -> UI
 function fromApiBeneficio(b) {
+  // la API suele devolver: imagen (base64), o imagenUrl
+  const b64 =
+    b.imagenBase64 || b.ImagenBase64 || b.imagen || b.Imagen || null;
+
+  const url =
+    b.imagenUrl || b.ImagenUrl ||
+    (b64 ? `data:image/jpeg;base64,${String(b64).replace(/\s/g, "")}` : "");
+
   return {
-    id: b.beneficioId ?? b.BeneficioId ?? b.id,
+    id: b.beneficioId ?? b.BeneficioId ?? b.id ?? b.Id,
     titulo: b.titulo ?? b.Titulo ?? "",
     descripcion: b.descripcion ?? b.Descripcion ?? "",
-    precio: Number(b.precioCRC ?? b.PrecioCRC ?? 0),
+    precio: Number(b.precioCRC ?? b.PrecioCRC ?? b.precio ?? 0),
+    precioCRC: Number(b.precioCRC ?? b.PrecioCRC ?? b.precio ?? 0),
     moneda: "CRC",
     proveedorId: b.proveedorId ?? b.ProveedorId ?? "",
     proveedorNombre: b.proveedorNombre ?? b.ProveedorNombre ?? b.proveedor?.nombre ?? "",
     categoriaId: b.categoriaId ?? b.CategoriaId ?? "",
     categoriaNombre: b.categoriaNombre ?? b.CategoriaNombre ?? b.categoria?.titulo ?? "",
-    disponible: true, // no existe en BD: fijo true en UI
-    imagenUrl:
-      b.imagenUrl ??
-      b.ImagenUrl ??
-      (b.imagenBase64 ? `data:image/jpeg;base64,${b.imagenBase64}` :
-       b.ImagenBase64 ? `data:image/jpeg;base64,${b.ImagenBase64}` : ""),
+    vigenciaInicio: b.vigenciaInicio ?? b.VigenciaInicio ?? "",
+    vigenciaFin: b.vigenciaFin ?? b.VigenciaFin ?? "",
+    imagenUrl: url,        // ← ahora sí
+    // opcional por si querés reutilizar:
+    imagenBase64: b64 || null,
   };
 }
+
 
 export const BeneficioApi = {
   list: async () => {
@@ -102,7 +127,7 @@ export const BeneficioApi = {
     return fromApiBeneficio(created);
   },
   update: async (id, ui) => {
-    const dto = toApiBeneficio(ui); // el id va en la ruta
+    const dto = toApiBeneficio(ui); // id va en la ruta
     const updated = await req(`/api/Beneficio/${id}`, { method: "PUT", json: dto });
     return fromApiBeneficio(updated);
   },

@@ -17,56 +17,65 @@ namespace API.Controllers
             _beneficioFlujo = beneficioFlujo;
             _logger = logger;
         }
-        #region Operaciones
 
+        // POST api/Beneficio
         [HttpPost]
-        public async Task<IActionResult> Agregar([FromBody] BeneficioRequest beneficio)
+        [RequestSizeLimit(20_000_000)]
+        public async Task<IActionResult> Agregar([FromBody] BeneficioRequest req)
         {
-            var resultado = await _beneficioFlujo.Agregar(beneficio);
-            return CreatedAtAction(nameof(Obtener), new { Id = resultado }, null);
-        }
-        [HttpPut("{Id}")]
-        public async Task<IActionResult> Editar([FromRoute] Guid Id, [FromBody] BeneficioRequest beneficio)
-        {
-            if (!await VerificarBeneficioExiste(Id))
-                return NotFound("El vehículo no existe");
-            var resultado = await _beneficioFlujo.Editar(Id, beneficio);
-            return Ok(resultado);
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            // Validar FKs, etc…
+
+            // req.Imagen ya viene como byte[] si en JSON te mandan base64
+            var id = await _beneficioFlujo.Agregar(req); // tu flujo/DA inserta Imagen = @Imagen
+            var creado = await _beneficioFlujo.Obtener(id);
+            return CreatedAtAction(nameof(Obtener), new { Id = id }, creado);
         }
 
-        [HttpDelete("{Id}")]
+        // PUT api/Beneficio/{Id}
+        [HttpPut("{Id:guid}")]
+        [RequestSizeLimit(20_000_000)]
+        public async Task<IActionResult> Editar(Guid Id, [FromBody] BeneficioRequest req)
+        {
+            if (!await VerificarBeneficioExiste(Id)) return NotFound("El beneficio no existe");
+
+            // Si Imagen viene null, conservar la existente (no sobreescribir con NULL)
+            await _beneficioFlujo.Editar(Id, req); // ver SQL abajo
+
+            var actualizado = await _beneficioFlujo.Obtener(Id);
+            return Ok(actualizado);
+        }
+
+        // DELETE api/Beneficio/{Id}
+        [HttpDelete("{Id:guid}")]
         public async Task<IActionResult> Eliminar([FromRoute] Guid Id)
         {
             if (!await VerificarBeneficioExiste(Id))
                 return NotFound("El beneficio no existe");
-            var resultado = await _beneficioFlujo.Eliminar(Id);
+
+            await _beneficioFlujo.Eliminar(Id);
             return NoContent();
         }
+
+        // GET api/Beneficio
         [HttpGet]
         public async Task<IActionResult> Obtener()
         {
-            var resultado = await _beneficioFlujo.Obtener();
-            if (!resultado.Any())
-                return NoContent();
-            return Ok(resultado);
+            var lista = await _beneficioFlujo.Obtener();
+            return Ok(lista ?? Enumerable.Empty<BeneficioResponse>());
         }
-        [HttpGet("{Id}")]
+
+        // GET api/Beneficio/{Id}
+        [HttpGet("{Id:guid}")]
         public async Task<IActionResult> Obtener([FromRoute] Guid Id)
         {
-            var resultado = await _beneficioFlujo.Obtener(Id);
-            return Ok(resultado);
+            var item = await _beneficioFlujo.Obtener(Id);
+            return item is null ? NotFound() : Ok(item);
         }
-#endregion Operaciones
 
-        #region Helpers
+        // ===== Helpers =====
         private async Task<bool> VerificarBeneficioExiste(Guid Id)
-        {
-            var resultadoValidacion = false;
-            var resultadoBeneficioExiste = await _beneficioFlujo.Obtener(Id);
-            if (resultadoBeneficioExiste != null)
-                resultadoValidacion = true;
-            return resultadoValidacion;
-        }
-        #endregion
+            => await _beneficioFlujo.Obtener(Id) is not null;
     }
 }

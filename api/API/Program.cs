@@ -4,32 +4,35 @@ using Abstracciones.Interfaces.Reglas;
 using Abstracciones.Interfaces.Servicios;
 using DA;
 using Flujo;
-using Microsoft.Extensions.Configuration;
 using Reglas;
 using Servicios;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCors(options =>
+// === CORS ===
+const string WebCors = "WebCors";
+builder.Services.AddCors(o =>
 {
-    options.AddDefaultPolicy(policy =>
-        policy.WithOrigins(
-                "https://hr-beneficios-web-client-cfdshdfeeyemfmh3.canadacentral-01.azurewebsites.net",
-                "https://hr-beneficios-web-admin-dqbwbedkb2duhqbs.canadacentral-01.azurewebsites.net",
-                "http://localhost:5173"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-        // .AllowCredentials() // solo si usas cookies/autenticación en el navegador
-        );
+    o.AddPolicy(WebCors, p =>
+        // permite tus orígenes; si cambian subdominios en Azure, usa SetIsOriginAllowed:
+        p.SetIsOriginAllowed(origin =>
+        {
+            if (string.IsNullOrEmpty(origin)) return false;
+            var host = new Uri(origin).Host.ToLowerInvariant();
+            return host == "localhost" ||
+                   host.StartsWith("localhost:") ||
+                   host.EndsWith(".canadacentral-01.azurewebsites.net");
+        })
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .WithExposedHeaders("Location")
+    );
 });
-
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// DI (tal como lo tienes)
+// === DI ===
 builder.Services.AddScoped<IDapperWrapper, DA.Wrappers.DapperWrapper>();
 builder.Services.AddScoped<IRepositorioDapper, DA.Repositorios.RepositorioDapper>();
 builder.Services.AddScoped<IBeneficioDA, BeneficioDA>();
@@ -40,34 +43,39 @@ builder.Services.AddScoped<ICategoriaFlujo, CategoriaFlujo>();
 builder.Services.AddScoped<IProveedorFlujo, ProveedorFlujo>();
 builder.Services.AddScoped<IBeneficiosServicio, BeneficiosServicio>();
 builder.Services.AddScoped<IConfiguracion, Configuracion>();
-builder.Services.AddHttpClient("ServicioBeneficio", client =>
-{
-    client.DefaultRequestHeaders.Add("Accept", "application/json");
-});
 
 var app = builder.Build();
-
-if (app.Environment.IsDevelopment())
+app.UseExceptionHandler(errorApp =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    errorApp.Run(async context =>
+    {
+        var origin = context.Request.Headers["Origin"].ToString();
+        if (!string.IsNullOrEmpty(origin))
+        {
+            context.Response.Headers["Access-Control-Allow-Origin"] = origin;
+            context.Response.Headers["Vary"] = "Origin";
+        }
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        await context.Response.WriteAsJsonAsync(new { message = "Internal Server Error" });
+    });
+});
 
-// SOLO forzar HTTPS en no-Development
+// Swagger una sola vez:
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.RoutePrefix = string.Empty; // sirve en "/"
+        c.RoutePrefix = string.Empty;
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "HR-Beneficios API v1");
     });
 }
 
-
+app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors();
+app.UseCors(WebCors);               // ← antes de Auth y de MapControllers
+app.UseAuthentication();
 app.UseAuthorization();
-
-app.MapControllers();
+app.MapControllers().RequireCors(WebCors);
 app.Run();

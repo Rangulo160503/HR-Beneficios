@@ -185,9 +185,7 @@ useEffect(() => {
 
         {/* Footer: solo “Solicitar” */}
         <div className="px-4 py-3 border-t border-white/10 flex justify-end">
-          <button className="px-3 py-2 rounded bg-white text-black text-sm font-semibold">
-            Solicitar
-          </button>
+          
         </div>
       </div>
     </div>
