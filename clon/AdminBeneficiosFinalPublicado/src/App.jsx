@@ -318,33 +318,92 @@ export default function AdminShell() {
     return nodo;
   }
 
+  // --- Renombrar categoría (robusto a distintos payloads del API)
   async function renameCategoria(r, nuevoTitulo) {
-    const updated = await CategoriaApi.update(r.id, { ...r, titulo: nuevoTitulo }); // se mapea a { nombre }
-    const nodo = { ...updated, id: normId(updated.id ?? updated.categoriaId ?? r.id), titulo: updated.titulo ?? updated.nombre ?? nuevoTitulo };
-    setCats(s => s.map(x => x.id === r.id ? nodo : x));
+    const id = getCatId(r);
+    if (!id) { alert("Categoría sin ID válido."); return; }
+    // if (!isGuid(id)) { alert("ID de categoría inválido."); return; } // opcional
+
+    const titulo = String(nuevoTitulo ?? "").trim();
+    if (!titulo) { alert("El nombre/título es requerido."); return; }
+
+    const updated = await CategoriaApi.update(id, {
+      titulo,
+      activa: typeof r?.activa === "boolean" ? r.activa : true,
+    });
+
+    // El API puede devolver: "GUID"  ||  objeto con {categoriaId | id | nombre | activa | modificadoEn}
+    const updatedId = typeof updated === "string"
+      ? updated
+      : normId(updated?.categoriaId ?? updated?.id ?? id);
+
+    const canon = (typeof updated === "object" && updated?.nombre)
+      ? String(updated.nombre).trim()
+      : titulo;
+
+    const nodo = {
+      ...r,
+      id: updatedId,
+      categoriaId: updatedId,
+      titulo: canon,
+      nombre: canon,
+      activa: (typeof updated === "object" && typeof updated?.activa === "boolean")
+        ? updated.activa
+        : (r.activa ?? true),
+      modificadoEn: (typeof updated === "object" && updated?.modificadoEn)
+        ? updated.modificadoEn
+        : (r?.modificadoEn ?? new Date().toISOString()),
+    };
+
+    setCats(s => s.map(x => (getCatId(x) === id ? nodo : x)));
   }
+
+  // --- Renombrar proveedor
   async function renameProveedor(r, nuevoNombre) {
-    const updated = await ProveedorApi.update(r.id, { ...r, nombre: nuevoNombre });
-    const nodo = { ...updated, id: normId(updated.id ?? updated.proveedorId ?? r.id), nombre: updated.nombre ?? nuevoNombre };
-    setProvs(s => s.map(x => x.id === r.id ? nodo : x));
+    const id = getProvId(r);
+    if (!id) { alert("Proveedor sin ID válido."); return; }
+    // if (!isGuid(id)) { alert("ID de proveedor inválido."); return; } // opcional
+
+    const nombre = String(nuevoNombre ?? "").trim();
+    if (!nombre) { alert("El nombre es requerido."); return; }
+
+    // Pasa el registro actual como 3er parámetro si tu ProveedorApi.update lo usa para preservar campos
+    const updated = await ProveedorApi.update(id, { nombre }, r);
+
+    // El API puede devolver: "GUID"  ||  { proveedorId | id | nombre | modificadoEn ... }
+    const updatedId = typeof updated === "string"
+      ? updated
+      : normId(updated?.proveedorId ?? updated?.id ?? id);
+
+    const nodo = {
+      ...r,
+      ...((typeof updated === "object") ? updated : null),
+      id: updatedId,
+      proveedorId: updatedId,
+      nombre: (typeof updated === "object" && updated?.nombre) ? updated.nombre : nombre,
+      modificadoEn: (typeof updated === "object" && updated?.modificadoEn)
+        ? updated.modificadoEn
+        : (r?.modificadoEn ?? new Date().toISOString()),
+    };
+
+    setProvs(s => s.map(x => (getProvId(x) === id ? nodo : x)));
   }
 
   async function deleteCategoria(r) {
+    const id = getCatId(r);
+    if (!id) return;
     if (!confirm("¿Eliminar categoría?")) return;
-    await CategoriaApi.remove(r.id);
-    setCats(s => s.filter(x => x.id !== r.id));
-  }
-  async function deleteProveedor(r) {
-    if (!confirm("¿Eliminar proveedor?")) return;
-    await ProveedorApi.remove(r.id);
-    setProvs(s => s.filter(x => x.id !== r.id));
+    await CategoriaApi.remove(id);
+    setCats(s => s.filter(x => getCatId(x) !== id));
   }
 
-  // helper: scroll suave a sub-sección (chips)
-  const scrollInto = (ref) => {
-    if (!ref?.current) return;
-    ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  async function deleteProveedor(r) {
+    const id = getProvId(r);
+    if (!id) return;
+    if (!confirm("¿Eliminar proveedor?")) return;
+    await ProveedorApi.remove(id);
+    setProvs(s => s.filter(x => getProvId(x) !== id));
+  }
 
   return (
     <div
@@ -595,6 +654,12 @@ export default function AdminShell() {
 }
 
 /* ====== UI bits ====== */
+function getCatId(r){
+  return normId(r?.id ?? r?.categoriaId ?? r?.Id ?? r?.CategoriaId);
+}
+
+function getProvId(r){ return normId(r?.id ?? r?.proveedorId ?? r?.Id ?? r?.ProveedorId); }
+
 function NavItem({ label, icon, active, collapsed, onClick }) {
   return (
     <button
@@ -719,7 +784,6 @@ function CardBeneficio({ item, onEdit, onDelete }) {
     </div>
   );
 }
-
 
 function SimpleList({ rows, prop, onRename, onDelete }) {
   return (

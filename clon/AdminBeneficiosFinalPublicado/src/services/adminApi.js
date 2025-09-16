@@ -1,39 +1,69 @@
-const BASE_URL = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
+// src/components/services/adminApi.js
 
-// ============== core fetch ==============
-async function req(path, { method = "GET", json, headers, signal } = {}) {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers: {
-      Accept: "application/json",
-      ...(json ? { "Content-Type": "application/json" } : {}),
-      ...headers,
-    },
-    body: json ? JSON.stringify(json) : undefined,
-    signal,
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`${method} ${path} → ${res.status} ${res.statusText}\n${text}`);
+// Puedes sobreescribir con VITE_API_BASE en el build/deploy
+const DEFAULT_API = "https://hr-beneficios-api-grgmckc5dwdca9dc.canadacentral-01.azurewebsites.net";
+
+const BASE_URL = (import.meta.env?.VITE_API_BASE || DEFAULT_API).replace(/\/+$/, "");
+
+// ================= core fetch =================
+async function req(path, { method = "GET", json, headers, signal, timeoutMs = 15000 } = {}) {
+  // Timeout razonable; si ya te pasan un signal externo, lo respetamos
+  const controller = signal ? null : new AbortController();
+  const usedSignal = signal || controller?.signal;
+  const timer = controller ? setTimeout(() => controller.abort("timeout"), timeoutMs) : null;
+
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method,
+      mode: "cors",
+      credentials: "omit",
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        ...(json ? { "Content-Type": "application/json" } : {}),
+        ...headers,
+      },
+      body: json ? JSON.stringify(json) : undefined,
+      signal: usedSignal,
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`${method} ${path} → ${res.status} ${res.statusText}\n${text}`);
+    }
+
+    if (res.status === 204) return null;
+    const ct = res.headers.get("content-type") || "";
+    return ct.includes("application/json") ? res.json() : res.text();
+  } finally {
+    if (timer) clearTimeout(timer);
   }
-  if (res.status === 204) return null;
-  const ct = res.headers.get("content-type") || "";
-  return ct.includes("application/json") ? res.json() : res.text();
 }
 
 /* ===================== Categoría ===================== */
 export const CategoriaApi = {
   list: () => req("/api/Categoria"),
   get:  (id) => req(`/api/Categoria/${id}`),
+
   create: (dto) => {
-    // backend usa { nombre }; desde UI llega { titulo }
-    const body = { nombre: dto.titulo ?? dto.nombre ?? "" };
+    const body = {
+      nombre: String(dto.titulo ?? dto.nombre ?? "").trim(),
+      activa: typeof dto.activa === "boolean" ? dto.activa : true,
+    };
+    if (!body.nombre) throw new Error("El nombre es requerido.");
     return req("/api/Categoria", { method: "POST", json: body });
   },
-  update: (id, dto) => {
-    const body = { nombre: dto.titulo ?? dto.nombre ?? "" };
-    return req(`/api/Categoria/${id}`, { method: "PUT", json: body });
+
+  update: (id, dto, current) => {
+    const nombre = String(dto.titulo ?? dto.nombre ?? current?.nombre ?? current?.titulo ?? "").trim();
+    const activa = typeof dto.activa === "boolean"
+      ? dto.activa
+      : (typeof current?.activa === "boolean" ? current.activa : true);
+    if (!nombre) throw new Error("El nombre es requerido.");
+
+    return req(`/api/Categoria/${id}`, { method: "PUT", json: { nombre, activa } });
   },
+
   remove: (id) => req(`/api/Categoria/${id}`, { method: "DELETE" }),
 };
 
@@ -42,78 +72,85 @@ export const ProveedorApi = {
   list: () => req("/api/Proveedor"),
   get:  (id) => req(`/api/Proveedor/${id}`),
   create: (dto) => {
-    const body = { nombre: dto.nombre ?? "" };
-    return req("/api/Proveedor", { method: "POST", json: body });
+    const nombre = String(dto.nombre ?? "").trim();
+    if (!nombre) throw new Error("El nombre es requerido.");
+    return req("/api/Proveedor", { method: "POST", json: { nombre } });
   },
   update: (id, dto) => {
-    const body = { nombre: dto.nombre ?? "" };
-    return req(`/api/Proveedor/${id}`, { method: "PUT", json: body });
+    const nombre = String(dto.nombre ?? "").trim();
+    if (!nombre) throw new Error("El nombre es requerido.");
+    return req(`/api/Proveedor/${id}`, { method: "PUT", json: { nombre } });
   },
   remove: (id) => req(`/api/Proveedor/${id}`, { method: "DELETE" }),
 };
 
 /* ===================== Beneficio ===================== */
-/* Contrato del API (Swagger): 
+/* Contrato (Swagger): 
    POST/PUT: { titulo, descripcion, precioCRC, condiciones,
                vigenciaInicio, vigenciaFin, imagen, proveedorId, categoriaId }
 */
 
-// UI -> API
+// UI -> API (sin sobreescribir imagen si no cambió)
 function toApiBeneficio(ui) {
-  // imagenUrl puede ser dataURL; extrae solo la parte base64
+  // precio seguro
+  const precioNum = Number(ui.precio ?? ui.precioCRC);
+  const precioCRC = Number.isFinite(precioNum) && precioNum >= 0 ? precioNum : 0;
+
+  // imagen: solo la incluimos si viene algo
   let imagenBase64 = null;
-  if (ui.imagenUrl && typeof ui.imagenUrl === "string" && ui.imagenUrl.startsWith("data:")) {
+  if (ui.imagen && typeof ui.imagen === "string") {
+    imagenBase64 = ui.imagen; // base64 puro
+  } else if (ui.imagenUrl && typeof ui.imagenUrl === "string" && ui.imagenUrl.startsWith("data:")) {
     const i = ui.imagenUrl.indexOf("base64,");
-    if (i >= 0) imagenBase64 = ui.imagenUrl.slice(i + "base64,".length);
-  } else if (ui.imagen) {
-    // si ya trae base64 “puro”
-    imagenBase64 = ui.imagen;
+    if (i >= 0) imagenBase64 = ui.imagenUrl.slice(i + 7);
   }
 
-  return {
+  const payload = {
     titulo: ui.titulo ?? "",
     descripcion: ui.descripcion ?? "",
-    precioCRC: Number(ui.precio ?? ui.precioCRC ?? 0),
+    precioCRC,
     condiciones: ui.condiciones ?? "",
     vigenciaInicio: ui.vigenciaInicio || null,
     vigenciaFin: ui.vigenciaFin || null,
-    imagen: imagenBase64,        // byte[] Imagen en C# mapea desde base64
     proveedorId: ui.proveedorId || null,
     categoriaId: ui.categoriaId || null,
   };
+  if (imagenBase64) payload.imagen = imagenBase64; // ← solo si hay nueva imagen
+
+  return payload;
 }
 
-// services/adminApi.js (o .ts) – REEMPLAZA SOLO ESTA PARTE
-
-// API -> UI
+// API -> UI (tolerante a camel/pascal y a anidados)
 function fromApiBeneficio(b) {
-  // la API suele devolver: imagen (base64), o imagenUrl
-  const b64 =
-    b.imagenBase64 || b.ImagenBase64 || b.imagen || b.Imagen || null;
-
+  const b64 = b.imagenBase64 ?? b.ImagenBase64 ?? b.imagen ?? b.Imagen ?? null;
   const url =
-    b.imagenUrl || b.ImagenUrl ||
+    b.imagenUrl ?? b.ImagenUrl ??
     (b64 ? `data:image/jpeg;base64,${String(b64).replace(/\s/g, "")}` : "");
 
+  const id = b.beneficioId ?? b.BeneficioId ?? b.id ?? b.Id;
+
+  const proveedorNombre =
+    b.proveedorNombre ?? b.ProveedorNombre ?? b.proveedor?.nombre ?? b.proveedor?.Nombre ?? "";
+  const categoriaNombre =
+    b.categoriaNombre ?? b.CategoriaNombre ?? b.categoria?.nombre ?? b.categoria?.titulo ?? "";
+
   return {
-    id: b.beneficioId ?? b.BeneficioId ?? b.id ?? b.Id,
+    id,
     titulo: b.titulo ?? b.Titulo ?? "",
     descripcion: b.descripcion ?? b.Descripcion ?? "",
-    precio: Number(b.precioCRC ?? b.PrecioCRC ?? b.precio ?? 0),
-    precioCRC: Number(b.precioCRC ?? b.PrecioCRC ?? b.precio ?? 0),
+    precio: Number(b.precioCRC ?? b.PrecioCRC ?? b.precio ?? 0) || 0,
+    precioCRC: Number(b.precioCRC ?? b.PrecioCRC ?? b.precio ?? 0) || 0,
     moneda: "CRC",
     proveedorId: b.proveedorId ?? b.ProveedorId ?? "",
-    proveedorNombre: b.proveedorNombre ?? b.ProveedorNombre ?? b.proveedor?.nombre ?? "",
+    proveedorNombre,
     categoriaId: b.categoriaId ?? b.CategoriaId ?? "",
-    categoriaNombre: b.categoriaNombre ?? b.CategoriaNombre ?? b.categoria?.titulo ?? "",
+    categoriaNombre,
     vigenciaInicio: b.vigenciaInicio ?? b.VigenciaInicio ?? "",
     vigenciaFin: b.vigenciaFin ?? b.VigenciaFin ?? "",
-    imagenUrl: url,        // ← ahora sí
-    // opcional por si querés reutilizar:
+    imagenUrl: url,
     imagenBase64: b64 || null,
   };
 }
-
 
 export const BeneficioApi = {
   list: async () => {
@@ -127,7 +164,7 @@ export const BeneficioApi = {
     return fromApiBeneficio(created);
   },
   update: async (id, ui) => {
-    const dto = toApiBeneficio(ui); // id va en la ruta
+    const dto = toApiBeneficio(ui);
     const updated = await req(`/api/Beneficio/${id}`, { method: "PUT", json: dto });
     return fromApiBeneficio(updated);
   },

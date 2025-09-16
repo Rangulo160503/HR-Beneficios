@@ -8,20 +8,20 @@ using Reglas;
 using Servicios;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddHttpClient();
 
 // === CORS ===
 const string WebCors = "WebCors";
 builder.Services.AddCors(o =>
 {
     o.AddPolicy(WebCors, p =>
-        // permite tus orígenes; si cambian subdominios en Azure, usa SetIsOriginAllowed:
         p.SetIsOriginAllowed(origin =>
         {
-            if (string.IsNullOrEmpty(origin)) return false;
-            var host = new Uri(origin).Host.ToLowerInvariant();
-            return host == "localhost" ||
-                   host.StartsWith("localhost:") ||
-                   host.EndsWith(".canadacentral-01.azurewebsites.net");
+            if (!Uri.TryCreate(origin, UriKind.Absolute, out var u)) return false;
+            if (u.IsLoopback) return true; // localhost con cualquier puerto
+            var host = u.Host.ToLowerInvariant();
+            // Ajusta el sufijo si cambias región o dominio
+            return host.EndsWith(".canadacentral-01.azurewebsites.net");
         })
         .AllowAnyHeader()
         .AllowAnyMethod()
@@ -49,17 +49,23 @@ app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
     {
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
         var origin = context.Request.Headers["Origin"].ToString();
-        if (!string.IsNullOrEmpty(origin))
+        if (Uri.TryCreate(origin, UriKind.Absolute, out _))
         {
             context.Response.Headers["Access-Control-Allow-Origin"] = origin;
             context.Response.Headers["Vary"] = "Origin";
+            // opcional: útiles si el error salta en un preflight que llegó aquí
+            context.Response.Headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization";
+            context.Response.Headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS";
         }
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
         await context.Response.WriteAsJsonAsync(new { message = "Internal Server Error" });
     });
 });
+
 
 // Swagger una sola vez:
 if (app.Environment.IsDevelopment())
