@@ -1,27 +1,26 @@
 // src/components/AdminShell.jsx
-import { useMemo, useState } from "react";
-
-/* ====== Seeds (mock) ====== */
-const CATS_SEED = [
-  { id: "c1", titulo: "Cirugía" },
-  { id: "c2", titulo: "Consulta" },
-  { id: "c3", titulo: "Estética Dental" },
-];
-const PROVS_SEED = [
-  { id: "p1", nombre: "CDACC" },
-  { id: "p2", nombre: "Dra. Adriana Mena" },
-  { id: "p3", nombre: "Clínica Sonrisas" },
-];
-const INIT_BENS = [
-  { id:"b1", titulo:"Extracción Simple", proveedorId:"p2", proveedorNombre:"Dra. Adriana Mena",
-    categoriaId:"c1", categoriaNombre:"Cirugía", precio:35000, moneda:"CRC", disponible:true, imagenUrl:"" },
-  { id:"b2", titulo:"Férula de Bruxismo", proveedorId:"p2", proveedorNombre:"Dra. Adriana Mena",
-    categoriaId:"c3", categoriaNombre:"Estética Dental", precio:90000, moneda:"CRC", disponible:true, imagenUrl:"" },
-];
+import { useEffect, useMemo, useState } from "react";
+import { BeneficioApi, CategoriaApi, ProveedorApi } from "./services/adminApi";
 
 /* ====== Helpers ====== */
-const money = (v) => (v == null ? "" : v.toLocaleString("es-CR"));
+const money = (v) => (v == null ? "" : Number(v).toLocaleString("es-CR"));
 const cls = (...a) => a.filter(Boolean).join(" ");
+const normId = (v) => (v == null ? "" : String(v).trim());
+const lower  = (v) => normId(v).toLowerCase();
+
+// --- Selección resiliente (si no hay id, usamos name:<etiqueta>)
+const mkSel     = (id, label) => normId(id) || `name:${String(label ?? "").trim()}`;
+const isNameSel = (sel) => String(sel).startsWith("name:");
+const nameOfSel = (sel) => String(sel).slice(5);
+
+// --- Keys estables para listas
+const slug = (s) => String(s ?? "").toLowerCase().trim()
+  .replace(/\s+/g, "-").replace(/[^a-z0-9-_]/g, "").slice(0, 40);
+const keyOf = (prefix, id, label, idx) => {
+  const a = normId(id); if (a) return `${prefix}-${a}`;
+  const b = slug(label); if (b) return `${prefix}-${b}`;
+  return `${prefix}-${idx}`;
+};
 
 export default function AdminShell() {
   const [showMobileNav, setShowMobileNav] = useState(false);
@@ -29,38 +28,204 @@ export default function AdminShell() {
   const [nav, setNav] = useState("beneficios");
   const [query, setQuery] = useState("");
 
-  const [cats, setCats] = useState(CATS_SEED);
-  const [provs, setProvs] = useState(PROVS_SEED);
-  const [items, setItems] = useState(INIT_BENS);
+  // datos desde backend
+  const [cats, setCats] = useState([]);
+  const [provs, setProvs] = useState([]);
+  const [items, setItems] = useState([]);
 
+  const [loading, setLoading] = useState(false);
   const [selCat, setSelCat] = useState("");
   const [selProv, setSelProv] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [error, setError] = useState("");
 
-  // NUEVO: sheets de administración desde chips
-  const [showCatsMgr, setShowCatsMgr] = useState(false);
-  const [showProvsMgr, setShowProvsMgr] = useState(false);
+  // ============== CARGA INICIAL ==============
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const [Craw, Praw, Braw] = await Promise.all([
+          CategoriaApi.list(),
+          ProveedorApi.list(),
+          BeneficioApi.list(),
+        ]);
+        if (!alive) return;
 
+        // 🔧 Normalizo IDs y nombres (cubre alias comunes)
+        const C = (Craw ?? []).map(c => ({
+          ...c,
+          id: normId(c.id ?? c.categoriaId ?? c.Id ?? c.CategoriaId ?? c.CategoriaID),
+          titulo: c.titulo ?? c.nombre ?? c.Titulo ?? c.Nombre ?? "",
+        }));
+        const P = (Praw ?? []).map(p => ({
+          ...p,
+          id: normId(p.id ?? p.proveedorId ?? p.Id ?? p.ProveedorId ?? p.ProveedorID),
+          nombre: p.nombre ?? p.Nombre ?? "",
+        }));
+        const B = (Braw ?? []).map(b => {
+          const categoriaId = normId(
+            b.categoriaId ?? b.categoriaID ?? b.CategoriaId ?? b.CategoriaID ??
+            b.categoria?.id ?? b.categoria?.Id ?? b.categoria ?? b.categoryId
+          );
+          const proveedorId = normId(
+            b.proveedorId ?? b.proveedorID ?? b.ProveedorId ?? b.ProveedorID ??
+            b.proveedor?.id ?? b.proveedor?.Id ?? b.proveedor ?? b.providerId
+          );
+          return {
+            ...b,
+            id: normId(b.id ?? b.Id ?? slug(b.titulo ?? "")),
+            categoriaId,
+            proveedorId,
+            categoriaNombre: b.categoriaNombre ?? b.categoria?.titulo ?? b.categoria?.nombre ?? b.categoria ?? "",
+            proveedorNombre: b.proveedorNombre ?? b.proveedor?.nombre ?? b.proveedor ?? "",
+          };
+        });
+
+        setCats(C);
+        setProvs(P);
+        setItems(B);
+      } catch (e) {
+        console.error(e);
+        setError("No se pudieron cargar los datos. Revisa el API_BASE o CORS.");
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  // ============== FILTRO ROBUSTO (id o nombre) ==============
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return items.filter(b => {
-      const byCat = !selCat || b.categoriaId === selCat;
-      const byProv = !selProv || b.proveedorId === selProv;
-      const byQ = !q || [b.titulo, b.proveedorNombre, b.categoriaNombre].join(" ").toLowerCase().includes(q);
+    const q = lower(query);
+
+    return items.filter((b) => {
+      const bCatId    = lower(b.categoriaId);
+      const bProvId   = lower(b.proveedorId);
+      const bCatName  = lower(b.categoriaNombre);
+      const bProvName = lower(b.proveedorNombre);
+
+      // --- Categoría ---
+      let byCat = true;
+      if (selCat) {
+        if (isNameSel(selCat)) {
+          const wanted = lower(nameOfSel(selCat));
+          byCat = !!wanted && bCatName === wanted;
+        } else {
+          const wanted = lower(selCat);
+          byCat = !!wanted && bCatId === wanted;
+        }
+      }
+
+      // --- Proveedor ---
+      let byProv = true;
+      if (selProv) {
+        if (isNameSel(selProv)) {
+          const wanted = lower(nameOfSel(selProv));
+          byProv = !!wanted && bProvName === wanted;
+        } else {
+          const wanted = lower(selProv);
+          byProv = !!wanted && bProvId === wanted;
+        }
+      }
+
+      // --- Texto ---
+      const hayTexto = [b.titulo, b.proveedorNombre, b.categoriaNombre]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      const byQ = !q || hayTexto.includes(q);
       return byCat && byProv && byQ;
     });
   }, [items, selCat, selProv, query]);
 
   function openNew() { setEditing(null); setShowForm(true); }
   function openEdit(it) { setEditing(it); setShowForm(true); }
-  function remove(id) { setItems(s => s.filter(x => x.id !== id)); }
+
+  // ============== CRUD: Beneficio ==============
+  async function saveBeneficio(dto) {
+    try {
+      setError("");
+      if (editing) {
+        const updated = await BeneficioApi.update(editing.id, dto);
+        const norm = {
+          ...updated,
+          id: normId(updated.id ?? updated.Id ?? editing.id),
+          categoriaId: normId(updated.categoriaId),
+          proveedorId: normId(updated.proveedorId),
+        };
+        setItems(list => list.map(x => (x.id === editing.id ? norm : x)));
+      } else {
+        const created = await BeneficioApi.create(dto);
+        const norm = {
+          ...created,
+          id: normId(created.id ?? created.Id),
+          categoriaId: normId(created.categoriaId),
+          proveedorId: normId(created.proveedorId),
+        };
+        setItems(s => [norm, ...s]);
+      }
+      setShowForm(false);
+    } catch (e) {
+      console.error(e);
+      setError("No se pudo guardar el beneficio.");
+    }
+  }
+
+  async function remove(id) {
+    if (!confirm("¿Eliminar este beneficio?")) return;
+    try {
+      setError("");
+      await BeneficioApi.remove(id);
+      setItems(s => s.filter(x => x.id !== id));
+    } catch (e) {
+      console.error(e);
+      setError("No se pudo eliminar el beneficio.");
+    }
+  }
+
+  // ============== CRUD: Categoría / Proveedor ==============
+  async function addCategoria(titulo) {
+    const created = await CategoriaApi.create({ titulo });
+    const nodo = { ...created, id: normId(created.id ?? created.categoriaId ?? created.Id) };
+    setCats(s => [nodo, ...s]);
+    return nodo;
+  }
+  async function addProveedor(nombre) {
+    const created = await ProveedorApi.create({ nombre });
+    const nodo = { ...created, id: normId(created.id ?? created.proveedorId ?? created.Id) };
+    setProvs(s => [nodo, ...s]);
+    return nodo;
+  }
+
+  async function renameCategoria(r, nuevoTitulo) {
+    const updated = await CategoriaApi.update(r.id, { ...r, titulo: nuevoTitulo });
+    const nodo = { ...updated, id: normId(updated.id ?? updated.categoriaId ?? r.id) };
+    setCats(s => s.map(x => x.id === r.id ? nodo : x));
+  }
+  async function renameProveedor(r, nuevoNombre) {
+    const updated = await ProveedorApi.update(r.id, { ...r, nombre: nuevoNombre });
+    const nodo = { ...updated, id: normId(updated.id ?? updated.proveedorId ?? r.id) };
+    setProvs(s => s.map(x => x.id === r.id ? nodo : x));
+  }
+
+  async function deleteCategoria(r) {
+    if (!confirm("¿Eliminar categoría?")) return;
+    await CategoriaApi.remove(r.id);
+    setCats(s => s.filter(x => x.id !== r.id));
+  }
+  async function deleteProveedor(r) {
+    if (!confirm("¿Eliminar proveedor?")) return;
+    await ProveedorApi.remove(r.id);
+    setProvs(s => s.filter(x => x.id !== r.id));
+  }
 
   return (
-    /* === CONTENEDOR: móvil 1 columna, desktop sidebar + main === */
     <div className="min-h-screen bg-neutral-950 text-white md:grid md:grid-cols-[260px_1fr]">
-
-      {/* Sidebar (oculto en móvil) */}
+      {/* Sidebar */}
       <aside className="bg-neutral-950 border-r border-white/10 hidden md:flex flex-col">
         <div className="h-14 md:h-16 flex items-center px-4 border-b border-white/10">
           <div className="font-semibold">{collapsed ? "HR" : "HR Beneficios"}</div>
@@ -73,7 +238,9 @@ export default function AdminShell() {
           </button>
         </div>
         <nav className="p-2 flex-1 space-y-1">
-          <NavItem label="Beneficios" active={nav==="beneficios"} collapsed={collapsed} onClick={()=>setNav("beneficios")} />
+          <NavItem label="Beneficios"  active={nav==="beneficios"}  collapsed={collapsed} onClick={()=>setNav("beneficios")} />
+          <NavItem label="Categorías"  active={nav==="categorias"}  collapsed={collapsed} onClick={()=>setNav("categorias")} />
+          <NavItem label="Proveedores" active={nav==="proveedores"} collapsed={collapsed} onClick={()=>setNav("proveedores")} />
         </nav>
         <div className="p-3 text-xs text-white/50 border-t border-white/10">
           {collapsed ? "v1" : "Versión 1.0.0"}
@@ -82,16 +249,11 @@ export default function AdminShell() {
 
       {/* Main */}
       <main className="min-w-0 flex flex-col">
-        {/* Topbar sticky */}
+        {/* Topbar */}
         <div className="h-14 md:h-16 flex items-center gap-2 md:gap-3 px-3 md:px-6 border-b border-white/10 bg-neutral-950/80 backdrop-blur sticky top-0 z-20">
-          <button
-            className="md:hidden rounded-lg border border-white/20 px-3 py-1.5"
-            onClick={() => setShowMobileNav(true)}
-            aria-label="Abrir menú"
-          >
+          <button className="md:hidden rounded-lg border border-white/20 px-3 py-1.5" onClick={() => setShowMobileNav(true)} aria-label="Abrir menú">
             Menú
           </button>
-
           <h1 className="font-semibold capitalize hidden sm:block">{nav}</h1>
 
           {nav === "beneficios" && (
@@ -116,41 +278,101 @@ export default function AdminShell() {
         {/* Content */}
         <div className="p-3 md:p-6 overflow-auto">
           <div className="max-w-6xl mx-auto w-full space-y-6">
+            {error && <div className="text-red-400 text-sm">{error}</div>}
+            {loading && <div className="text-white/60 text-sm">Cargando…</div>}
 
             {nav === "beneficios" && (
               <section className="space-y-4">
-                {/* Chips: carrusel horizontal táctil en móvil */}
+                {/* Chips */}
                 <div className="flex flex-col gap-3">
                   {/* Categorías */}
                   <div className="flex gap-2 overflow-x-auto pb-1 snap-x -mx-1 px-1">
                     <Chip active={!selCat} onClick={()=>setSelCat("")} label="Todas las categorías" />
-                    {cats.map(c => (
-                      <Chip key={c.id} active={selCat===c.id} onClick={()=>setSelCat(c.id)} label={c.titulo}/>
-                    ))}
-                    {/* Chip CRUD Categorías */}
-                    <ChipAdd label="+ Categoría" onClick={()=>setShowCatsMgr(true)} />
-                  </div>
+                    {cats.map((c, i) => {
+                      const id    = normId(c.id ?? c.categoriaId);
+                      const label = c.titulo ?? c.nombre ?? "—";
+                      const val   = mkSel(id, label);
 
+                      const activeById   = selCat && !isNameSel(selCat) && lower(selCat) === lower(id);
+                      const activeByName = selCat && isNameSel(selCat)   && lower(nameOfSel(selCat)) === lower(label);
+                      const isActive = activeById || activeByName;
+
+                      return (
+                        <Chip
+                          key={keyOf("cat", id || val, label, i)}
+                          active={isActive}
+                          onClick={() => setSelCat(isActive ? "" : val)}
+                          label={label}
+                        />
+                      );
+                    })}
+                  </div>
                   {/* Proveedores */}
                   <div className="flex gap-2 overflow-x-auto pb-1 snap-x -mx-1 px-1">
                     <Chip active={!selProv} onClick={()=>setSelProv("")} label="Todos los proveedores" />
-                    {provs.map(p => (
-                      <Chip key={p.id} active={selProv===p.id} onClick={()=>setSelProv(p.id)} label={p.nombre}/>
-                    ))}
-                    {/* Chip CRUD Proveedores */}
-                    <ChipAdd label="+ Proveedor" onClick={()=>setShowProvsMgr(true)} />
+                    {provs.map((p, i) => {
+                      const id    = normId(p.id ?? p.proveedorId);
+                      const label = p.nombre ?? "—";
+                      const val   = mkSel(id, label);
+
+                      const activeById   = selProv && !isNameSel(selProv) && lower(selProv) === lower(id);
+                      const activeByName = selProv && isNameSel(selProv)   && lower(nameOfSel(selProv)) === lower(label);
+                      const isActive = activeById || activeByName;
+
+                      return (
+                        <Chip
+                          key={keyOf("prov", id || val, label, i)}
+                          active={isActive}
+                          onClick={() => setSelProv(isActive ? "" : val)}
+                          label={label}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* ÚNICO GRID: 1 col en móvil, 2 en sm, 3 en xl */}
+                {/* Grid */}
                 <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                   <CardNew onClick={openNew} />
-                  {filtered.map(b => (
-                    <CardBeneficio key={b.id} item={b} onEdit={()=>openEdit(b)} onDelete={()=>remove(b.id)} />
+                  {filtered.map((b, i) => (
+                    <CardBeneficio
+                      key={keyOf("b", b.id, b.titulo ?? b.proveedorNombre ?? "b", i)}
+                      item={b}
+                      onEdit={()=>openEdit(b)}
+                      onDelete={()=>remove(b.id)}
+                    />
                   ))}
                 </div>
 
                 {filtered.length === 0 && <div className="text-white/60 text-sm">Sin resultados.</div>}
+              </section>
+            )}
+
+            {nav === "proveedores" && (
+              <section className="space-y-4">
+                <HeaderRow title="Proveedores" onAdd={async ()=>{
+                  const v = prompt("Nuevo proveedor"); if (!v) return;
+                  try { await addProveedor(v); } catch(e){ alert("No se pudo crear"); }
+                }} />
+                <SimpleList
+                  rows={provs} prop="nombre"
+                  onRename={async (r)=>{ const v=prompt("Renombrar proveedor", r.nombre); if(!v) return; try { await renameProveedor(r, v); } catch { alert("No se pudo renombrar"); } }}
+                  onDelete={async (r)=>{ try { await deleteProveedor(r); } catch { alert("No se pudo eliminar"); } }}
+                />
+              </section>
+            )}
+
+            {nav === "categorias" && (
+              <section className="space-y-4">
+                <HeaderRow title="Categorías" onAdd={async ()=>{
+                  const v = prompt("Nueva categoría"); if (!v) return;
+                  try { await addCategoria(v); } catch(e){ alert("No se pudo crear"); }
+                }} />
+                <SimpleList
+                  rows={cats} prop="titulo"
+                  onRename={async (r)=>{ const v=prompt("Renombrar categoría", r.titulo); if(!v) return; try { await renameCategoria(r, v); } catch { alert("No se pudo renombrar"); } }}
+                  onDelete={async (r)=>{ try { await deleteCategoria(r); } catch { alert("No se pudo eliminar"); } }}
+                />
               </section>
             )}
           </div>
@@ -165,70 +387,16 @@ export default function AdminShell() {
         onClose={() => setShowMobileNav(false)}
       />
 
-      {/* Sheet del formulario de Beneficios */}
+      {/* Sheet del formulario */}
       {showForm && (
         <FullForm
           initial={editing}
           cats={cats}
           provs={provs}
           onCancel={()=>setShowForm(false)}
-          onCreateCat={(titulo) => {
-            const nodo = { id: "c" + Math.random().toString(36).slice(2,7), titulo };
-            setCats(s => [nodo, ...s]); return nodo;
-          }}
-          onCreateProv={(nombre) => {
-            const nodo = { id: "p" + Math.random().toString(36).slice(2,7), nombre };
-            setProvs(s => [nodo, ...s]); return nodo;
-          }}
-          onSave={(dto) => {
-            if (editing) {
-              setItems(list => list.map(x => x.id===editing.id ? {
-                ...x, ...dto,
-                proveedorNombre: (provs.find(p => p.id === dto.proveedorId)?.nombre) ?? "",
-                categoriaNombre: (cats.find(c => c.id === dto.categoriaId)?.titulo) ?? "",
-              } : x));
-            } else {
-              const nuevo = {
-                ...dto,
-                id: "b" + Math.random().toString(36).slice(2,7),
-                proveedorNombre: (provs.find(p => p.id === dto.proveedorId)?.nombre) ?? "",
-                categoriaNombre: (cats.find(c => c.id === dto.categoriaId)?.titulo) ?? "",
-              };
-              setItems(s => [nuevo, ...s]);
-            }
-            setShowForm(false);
-          }}
-        />
-      )}
-
-      {/* Sheets de administración desde chips */}
-      {showCatsMgr && (
-        <ManageListSheet
-          title="Categorías"
-          rows={cats}
-          prop="titulo"
-          onClose={()=>setShowCatsMgr(false)}
-          onAdd={(v)=> setCats(s => [{ id: "c"+rand5(), titulo: v }, ...s])}
-          onRename={(r,v)=> setCats(s => s.map(x => x.id===r.id ? { ...x, titulo: v } : x))}
-          onDelete={(r)=> {
-            setCats(s => s.filter(x => x.id !== r.id));
-            // además, limpia selección si toca
-            setSelCat(sc => sc === r.id ? "" : sc);
-          }}
-        />
-      )}
-      {showProvsMgr && (
-        <ManageListSheet
-          title="Proveedores"
-          rows={provs}
-          prop="nombre"
-          onClose={()=>setShowProvsMgr(false)}
-          onAdd={(v)=> setProvs(s => [{ id: "p"+rand5(), nombre: v }, ...s])}
-          onRename={(r,v)=> setProvs(s => s.map(x => x.id===r.id ? { ...x, nombre: v } : x))}
-          onDelete={(r)=> {
-            setProvs(s => s.filter(x => x.id !== r.id));
-            setSelProv(sp => sp === r.id ? "" : sp);
-          }}
+          onCreateCat={async (titulo) => await addCategoria(titulo)}
+          onCreateProv={async (nombre) => await addProveedor(nombre)}
+          onSave={saveBeneficio}
         />
       )}
     </div>
@@ -260,20 +428,6 @@ function Chip({ active, label, onClick }) {
         "px-4 py-1.5 rounded-full text-sm whitespace-nowrap snap-start",
         active ? "bg-neutral-700 text-white" : "bg-neutral-900 border border-white/10 hover:bg-neutral-800"
       )}
-    >
-      {label}
-    </button>
-  );
-}
-
-// Chip para abrir CRUD (estilo “añadir”)
-function ChipAdd({ label, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className="px-4 py-1.5 rounded-full text-sm whitespace-nowrap snap-start
-                 bg-neutral-900 border border-dashed border-white/20 hover:bg-neutral-800/70 text-white/90"
-      title={label}
     >
       {label}
     </button>
@@ -312,7 +466,7 @@ function CardBeneficio({ item, onEdit, onDelete }) {
       <div className="p-3">
         <div className="text-sm text-white/70">{item.proveedorNombre}</div>
         <div className="text-lg font-semibold">{item.titulo}</div>
-        <div className="text-sm text-white/60">{item.moneda} {money(item.precio)}</div>
+        <div className="text-sm text-white/60">₡ {money(item.precio)}</div>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button onClick={onEdit}
             className="px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-white/10 text-sm font-medium">
@@ -331,8 +485,8 @@ function CardBeneficio({ item, onEdit, onDelete }) {
 function SimpleList({ rows, prop, onRename, onDelete }) {
   return (
     <div className="rounded-2xl bg-neutral-900 border border-white/10 divide-y divide-white/10">
-      {rows.map(r => (
-        <div key={r.id} className="px-3 py-3 flex items-center gap-3">
+      {rows.map((r, i) => (
+        <div key={keyOf("row", r.id, r[prop], i)} className="px-3 py-3 flex items-center gap-3">
           <div className="flex-1">{r[prop]}</div>
           <button
             onClick={()=>onRename(r)}
@@ -391,23 +545,32 @@ function CardNew({ onClick }) {
   );
 }
 
-/* ====== Form overlay (beneficios) ====== */
+/* ====== Form overlay ====== */
 function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, onSave }) {
-  const [form, setForm] = useState(initial || {
-    titulo:"", precio:"", moneda:"CRC", proveedorId:"", categoriaId:"",
-    descripcion:"", condiciones:"", vigenciaInicio:"", vigenciaFin:"", disponible:true, imagenUrl:""
-  });
-  const [preview, setPreview] = useState(initial?.imagenUrl || "");
+  const [form, setForm] = useState(() => ({
+    titulo: initial?.titulo ?? "",
+    precio: initial?.precio ?? "",
+    proveedorId: initial?.proveedorId ? normId(initial.proveedorId) : "",
+    categoriaId: initial?.categoriaId ? normId(initial.categoriaId) : "",
+    descripcion: initial?.descripcion ?? "",
+    condiciones: initial?.condiciones ?? "",
+    vigenciaInicio: initial?.vigenciaInicio ?? "",
+    vigenciaFin: initial?.vigenciaFin ?? "",
+    imagenUrl: initial?.imagenUrl ?? "",
+  }));
+  const [preview, setPreview] = useState(initial?.imagenUrl ?? "");
 
   function quickAdd(type) {
     const val = prompt(type==='prov' ? 'Nuevo proveedor' : 'Nueva categoría'); if(!val) return;
-    if (type==='prov') { const n=onCreateProv(val); setForm(s=>({...s, proveedorId:n.id})); }
-    else { const n=onCreateCat(val); setForm(s=>({...s, categoriaId:n.id})); }
+    if (type==='prov') { onCreateProv(val).then(n => setForm(s=>({...s, proveedorId:normId(n.id)}))); }
+    else { onCreateCat(val).then(n => setForm(s=>({...s, categoriaId:normId(n.id)}))); }
   }
   function submit(e){ e.preventDefault(); onSave(form); }
   function handleFile(e){
     const f=e.target.files?.[0]; if(!f) return;
-    const url=URL.createObjectURL(f); setPreview(url); setForm(s=>({...s, imagenUrl:url}));
+    const url=URL.createObjectURL(f);
+    setPreview(url);
+    setForm(s=>({...s, imagenUrl:url}));
   }
 
   return (
@@ -439,17 +602,14 @@ function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, o
 
             <div className="grid gap-3 grid-cols-2 max-sm:grid-cols-1">
               <div className="space-y-2">
-                <label className="text-sm">Precio</label>
+                <label className="text-sm">Precio (CRC)</label>
                 <input type="number" inputMode="decimal" min="0" step="1"
                   className="w-full rounded-lg bg-neutral-900 border border-white/10 px-3 py-2"
                   value={form.precio} onChange={e=>setForm(s=>({...s, precio:e.target.value}))} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm">Moneda</label>
-                <select className="w-full rounded-lg bg-neutral-900 border border-white/10 px-3 py-2"
-                  value={form.moneda} onChange={e=>setForm(s=>({...s, moneda:e.target.value}))}>
-                  <option>CRC</option><option>USD</option>
-                </select>
+                <input disabled value="CRC" className="w-full rounded-lg bg-neutral-900 border border-white/10 px-3 py-2 opacity-60" />
               </div>
             </div>
 
@@ -461,7 +621,7 @@ function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, o
                     className="text-xs px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 border border-white/10 text-white">+ nuevo</button>
                 </div>
                 <select className="w-full rounded-lg bg-neutral-900 border border-white/10 px-3 py-2"
-                  value={form.proveedorId} onChange={e=>setForm(s=>({...s, proveedorId:e.target.value}))} required>
+                  value={form.proveedorId} onChange={e=>setForm(s=>({...s, proveedorId:normId(e.target.value)}))} required>
                   <option value="">-- Seleccione --</option>
                   {provs.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
                 </select>
@@ -474,7 +634,7 @@ function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, o
                     className="text-xs px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 border border-white/10 text-white">+ nueva</button>
                 </div>
                 <select className="w-full rounded-lg bg-neutral-900 border border-white/10 px-3 py-2"
-                  value={form.categoriaId} onChange={e=>setForm(s=>({...s, categoriaId:e.target.value}))} required>
+                  value={form.categoriaId} onChange={e=>setForm(s=>({...s, categoriaId:normId(e.target.value)}))} required>
                   <option value="">-- Seleccione --</option>
                   {cats.map(c => <option key={c.id} value={c.id}>{c.titulo}</option>)}
                 </select>
@@ -515,12 +675,6 @@ function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, o
                   value={form.vigenciaFin} onChange={e=>setForm(s=>({...s, vigenciaFin:e.target.value}))} />
               </div>
             </div>
-
-            <label className="flex items-center gap-2 select-none">
-              <input type="checkbox" checked={form.disponible}
-                onChange={e=>setForm(s=>({...s, disponible:e.target.checked}))}/>
-              Disponible
-            </label>
           </section>
         </form>
       </div>
@@ -528,101 +682,6 @@ function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, o
   );
 }
 
-/* ====== Sheet reutilizable para CRUD de listas (categorías / proveedores) ====== */
-function ManageListSheet({ title, rows, prop, onAdd, onRename, onDelete, onClose }) {
-  const [value, setValue] = useState("");
-
-  function submit(e) {
-    e.preventDefault();
-    const v = value.trim();
-    if (!v) return;
-    onAdd(v);
-    setValue("");
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 bg-neutral-950/80 backdrop-blur">
-      <div className="absolute inset-0 md:inset-y-0 md:right-0 md:left-auto w-full md:w-[520px] bg-neutral-950 border-l border-white/10 overflow-auto">
-        <div className="sticky top-0 -mx-4 px-4 py-3 bg-neutral-950/80 backdrop-blur border-b border-white/10 flex items-center gap-3">
-          <button onClick={onClose} className="rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-white/10 px-3 py-1.5">Cerrar</button>
-          <div className="text-lg font-semibold flex-1">{title}</div>
-        </div>
-
-        <div className="p-4 space-y-4">
-          <form onSubmit={submit} className="flex gap-2">
-            <input
-              className="flex-1 rounded-lg bg-neutral-900 border border-white/10 px-3 py-2 text-white placeholder-white/60"
-              placeholder={`Nueva/o ${title.slice(0,-1).toLowerCase()}`}
-              value={value}
-              onChange={e=>setValue(e.target.value)}
-            />
-            <button className="rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-white/10 px-4">Agregar</button>
-          </form>
-
-          <div className="rounded-2xl bg-neutral-900 border border-white/10 divide-y divide-white/10">
-            {rows.map(r => (
-              <RowEditable
-                key={r.id}
-                value={r[prop]}
-                onRename={(v)=>onRename(r,v)}
-                onDelete={()=>onDelete(r)}
-              />
-            ))}
-            {rows.length===0 && <div className="px-3 py-3 text-white/60 text-sm">Sin elementos.</div>}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RowEditable({ value, onRename, onDelete }) {
-  const [edit, setEdit] = useState(false);
-  const [txt, setTxt] = useState(value);
-
-  function save() {
-    const v = txt.trim();
-    if (!v) return;
-    onRename(v);
-    setEdit(false);
-  }
-
-  return (
-    <div className="px-3 py-3 flex items-center gap-3">
-      {!edit ? (
-        <>
-          <div className="flex-1">{value}</div>
-          <button onClick={()=>{ setTxt(value); setEdit(true); }}
-            className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-white/10 text-white text-sm font-medium">
-            Renombrar
-          </button>
-          <button onClick={onDelete}
-            className="px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-white/10 text-sm">
-            Eliminar
-          </button>
-        </>
-      ) : (
-        <>
-          <input
-            className="flex-1 rounded-lg bg-neutral-900 border border-white/10 px-3 py-2 text-white"
-            value={txt}
-            onChange={e=>setTxt(e.target.value)}
-          />
-            <button onClick={save}
-              className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-white/10 text-white text-sm font-medium">
-              Guardar
-            </button>
-            <button onClick={()=>setEdit(false)}
-              className="px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-white/10 text-sm">
-              Cancelar
-            </button>
-        </>
-      )}
-    </div>
-  );
-}
-
-/* ====== Mobile Sidebar ====== */
 function MobileSidebar({ open, current, onSelect, onClose }) {
   if (!open) return null;
   return (
@@ -634,7 +693,11 @@ function MobileSidebar({ open, current, onSelect, onClose }) {
           <button className="ml-auto rounded-lg border border-white/10 px-3 py-1.5" onClick={onClose}>Cerrar</button>
         </div>
         <nav className="space-y-1">
-          {[{ key: "beneficios", label: "Beneficios" }].map((i) => (
+          {[
+            { key: "beneficios", label: "Beneficios" },
+            { key: "categorias", label: "Categorías" },
+            { key: "proveedores", label: "Proveedores" },
+          ].map((i) => (
             <button
               key={i.key}
               onClick={() => onSelect(i.key)}
@@ -652,6 +715,3 @@ function MobileSidebar({ open, current, onSelect, onClose }) {
     </div>
   );
 }
-
-/* ====== Utils ====== */
-function rand5(){ return Math.random().toString(36).slice(2,7); }
