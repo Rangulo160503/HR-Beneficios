@@ -8,6 +8,11 @@ using Reglas;
 using Servicios;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ⬅️ agrega logs a consola
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 builder.Services.AddHttpClient();
 
 // === CORS ===
@@ -20,7 +25,6 @@ builder.Services.AddCors(o =>
             if (!Uri.TryCreate(origin, UriKind.Absolute, out var u)) return false;
             if (u.IsLoopback) return true; // localhost con cualquier puerto
             var host = u.Host.ToLowerInvariant();
-            // Ajusta el sufijo si cambias región o dominio
             return host.EndsWith(".canadacentral-01.azurewebsites.net");
         })
         .AllowAnyHeader()
@@ -28,6 +32,7 @@ builder.Services.AddCors(o =>
         .WithExposedHeaders("Location")
     );
 });
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -45,31 +50,23 @@ builder.Services.AddScoped<IBeneficiosServicio, BeneficiosServicio>();
 builder.Services.AddScoped<IConfiguracion, Configuracion>();
 
 var app = builder.Build();
-app.UseExceptionHandler(errorApp =>
-{
-    errorApp.Run(async context =>
-    {
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
-        var origin = context.Request.Headers["Origin"].ToString();
-        if (Uri.TryCreate(origin, UriKind.Absolute, out _))
-        {
-            context.Response.Headers["Access-Control-Allow-Origin"] = origin;
-            context.Response.Headers["Vary"] = "Origin";
-            // opcional: útiles si el error salta en un preflight que llegó aquí
-            context.Response.Headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization";
-            context.Response.Headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS";
-        }
-
-        await context.Response.WriteAsJsonAsync(new { message = "Internal Server Error" });
-    });
-});
-
-
-// Swagger una sola vez:
+// ✅ Mostrar detalles en DEV; JSON genérico solo en PROD
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
+
+    // middlewarecito para LOG de excepciones no manejadas
+    app.Use(async (ctx, next) =>
+    {
+        try { await next(); }
+        catch (Exception ex)
+        {
+            app.Logger.LogError(ex, "Unhandled exception: {Method} {Path}", ctx.Request.Method, ctx.Request.Path);
+            throw; // deja que DeveloperExceptionPage muestre el detalle
+        }
+    });
+
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
@@ -77,11 +74,36 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "HR-Beneficios API v1");
     });
 }
+else
+{
+    // Solo en PROD devolvemos cuerpo genérico
+    app.UseExceptionHandler(errorApp =>
+    {
+        errorApp.Run(async context =>
+        {
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+            var origin = context.Request.Headers["Origin"].ToString();
+            if (Uri.TryCreate(origin, UriKind.Absolute, out _))
+            {
+                context.Response.Headers["Access-Control-Allow-Origin"] = origin;
+                context.Response.Headers["Vary"] = "Origin";
+                context.Response.Headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization";
+                context.Response.Headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS";
+            }
+
+            await context.Response.WriteAsJsonAsync(new { message = "Internal Server Error" });
+        });
+    });
+}
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors(WebCors);               // ← antes de Auth y de MapControllers
-app.UseAuthentication();
+app.UseCors(WebCors);
+app.UseAuthentication();   // ok si no hay auth: es no-op
 app.UseAuthorization();
+
 app.MapControllers().RequireCors(WebCors);
+
 app.Run();

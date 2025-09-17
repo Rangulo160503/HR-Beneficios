@@ -1,18 +1,18 @@
-﻿-- =============================================
--- Author:      <Tu Nombre>
--- Create date: <Fecha>
--- Description: Elimina una categoría existente
--- =============================================
-CREATE   PROCEDURE core.EliminarCategoria
-    @Id UNIQUEIDENTIFIER
+﻿CREATE PROCEDURE core.EliminarCategoria
+  @Id UNIQUEIDENTIFIER
 AS
 BEGIN
-    SET NOCOUNT ON;
+  SET NOCOUNT ON;
 
-    BEGIN TRANSACTION;
-        DELETE FROM core.Categoria
-         WHERE CategoriaId = @Id;
+  -- Bloquea borrado si hay beneficios que referencian esta categoría
+  IF EXISTS (SELECT 1 FROM core.Beneficio WHERE CategoriaId = @Id)
+    THROW 50011, 'No se puede eliminar: tiene beneficios asociados.', 1;
 
-        SELECT @Id;
-    COMMIT TRANSACTION;
+  DELETE FROM core.Categoria
+  WHERE CategoriaId = @Id;
+
+  IF @@ROWCOUNT = 0
+    THROW 50012, 'Categoria no existe.', 1;
+
+  SELECT @Id AS CategoriaId;   -- para tu ExecuteScalar<Guid>
 END

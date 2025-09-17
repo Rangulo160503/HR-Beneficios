@@ -1,8 +1,4 @@
-﻿
-/* 5) Stored Procedures (CRUD) */
-
-/* Listar */
-CREATE   PROCEDURE core.ObtenerCategorias
+﻿CREATE   PROCEDURE [core].ObtenerCategorias
 AS
 BEGIN
   SET NOCOUNT ON;

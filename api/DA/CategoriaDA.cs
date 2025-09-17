@@ -25,7 +25,6 @@ namespace DA
             var id = await _dapperWrapper.ExecuteScalarAsync<Guid>(
                 _dbConnection, sp, new
                 {
-                    Id = Guid.NewGuid(),
                     Nombre = categoria.Nombre,
                     Activa = categoria.Activa
                 },

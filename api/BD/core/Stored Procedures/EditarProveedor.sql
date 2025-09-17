@@ -1,31 +1,31 @@
-﻿-- =============================================
--- Author:      <Tu Nombre>
--- Create date: <Fecha>
--- Description: Edita un proveedor existente
--- =============================================
-CREATE   PROCEDURE core.EditarProveedor
-    @Id         UNIQUEIDENTIFIER,
-    @Nombre     NVARCHAR(200),
-    @Correo     NVARCHAR(200) = NULL,
-    @Telefono   NVARCHAR(50)  = NULL,
-    @Activo     BIT           = 1,
-    @Imagen     VARBINARY(MAX)= NULL,
-    @Direccion  NVARCHAR(500) = NULL
+﻿CREATE   PROCEDURE core.EditarProveedor
+  @Id        UNIQUEIDENTIFIER,
+  @Nombre    NVARCHAR(120),
+  @Correo    NVARCHAR(120) = NULL,
+  @Telefono  NVARCHAR(50)  = NULL,
+  @Activo    BIT,
+  @Direccion NVARCHAR(250) = NULL,
+  @Imagen    VARBINARY(MAX)= NULL
 AS
 BEGIN
-    SET NOCOUNT ON;
+  SET NOCOUNT ON;
 
-    BEGIN TRANSACTION;
-        UPDATE core.Proveedor
-           SET Nombre       = @Nombre,
-               Correo       = @Correo,
-               Telefono     = @Telefono,
-               Activo       = @Activo,
-               Imagen       = @Imagen,
-               Direccion    = @Direccion,
-               ModificadoEn = SYSDATETIME()
-         WHERE ProveedorId  = @Id;
+  IF EXISTS (SELECT 1 FROM core.Proveedor WHERE Nombre=@Nombre AND ProveedorId<>@Id)
+    THROW 50010, 'Nombre de proveedor ya existe.', 1;
 
-        SELECT @Id;
-    COMMIT TRANSACTION;
+  UPDATE p
+     SET p.Nombre       = @Nombre,
+         p.Correo       = @Correo,
+         p.Telefono     = @Telefono,
+         p.Activo       = @Activo,
+         p.Direccion    = @Direccion,
+         p.Imagen       = COALESCE(@Imagen, p.Imagen),
+         p.ModificadoEn = SYSUTCDATETIME()
+  FROM core.Proveedor p
+  WHERE p.ProveedorId = @Id;
+
+  IF @@ROWCOUNT = 0
+    THROW 50011, 'Proveedor no existe.', 1;
+
+  SELECT @Id AS ProveedorId;
 END

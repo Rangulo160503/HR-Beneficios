@@ -1,21 +1,19 @@
 ﻿CREATE   PROCEDURE core.AgregarProveedor
-    @Id         UNIQUEIDENTIFIER,           -- viene de C#
-    @Nombre     NVARCHAR(200),
-    @Correo     NVARCHAR(200) = NULL,
-    @Telefono   NVARCHAR(50)  = NULL,
-    @Activo     BIT           = 1,
-    @Imagen     VARBINARY(MAX)= NULL,
-    @Direccion  NVARCHAR(500) = NULL
+  @Nombre NVARCHAR(120),
+  @Correo NVARCHAR(120)=NULL,
+  @Telefono NVARCHAR(50)=NULL,
+  @Activo BIT=1,
+  @Direccion NVARCHAR(250)=NULL,
+  @Imagen VARBINARY(MAX)=NULL
 AS
 BEGIN
-    SET NOCOUNT ON;
-
-    BEGIN TRANSACTION;
-        INSERT INTO core.Proveedor
-            (ProveedorId, Nombre, Correo, Telefono, Activo, Imagen, Direccion, CreadoEn, ModificadoEn)
-        VALUES
-            (@Id, @Nombre, @Correo, @Telefono, @Activo, @Imagen, @Direccion, SYSDATETIME(), NULL);
-
-        SELECT @Id;  -- devuelve el mismo Id
-    COMMIT TRANSACTION;
+  SET NOCOUNT ON;
+  DECLARE @Id UNIQUEIDENTIFIER = (SELECT ProveedorId FROM core.Proveedor WHERE Nombre=@Nombre);
+  IF @Id IS NULL
+  BEGIN
+    SET @Id = NEWID();
+    INSERT core.Proveedor(ProveedorId,Nombre,Correo,Telefono,Activo,Direccion,Imagen,CreadoEn)
+    VALUES(@Id,@Nombre,@Correo,@Telefono,@Activo,@Direccion,@Imagen,SYSUTCDATETIME());
+  END
+  SELECT @Id AS ProveedorId;
 END

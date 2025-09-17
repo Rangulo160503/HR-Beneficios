@@ -25,7 +25,6 @@ namespace DA
             var id = await _dapperWrapper.ExecuteScalarAsync<Guid>(
                 _dbConnection, sp, new
                 {
-                    Id = Guid.NewGuid(),
                     b.Titulo,
                     b.Descripcion,
                     b.PrecioCRC,
@@ -45,10 +44,6 @@ namespace DA
         {
             const string sp = "core.EditarBeneficio";
 
-            // si no hay bytes, no actualizamos imagen
-            var hasNewImage = b.Imagen != null && b.Imagen.Length > 0;
-            byte[]? img = hasNewImage ? b.Imagen : null;
-
             var rid = await _dapperWrapper.ExecuteScalarAsync<Guid>(
                 _dbConnection, sp, new
                 {
@@ -56,14 +51,12 @@ namespace DA
                     b.Titulo,
                     b.Descripcion,
                     b.PrecioCRC,
+                    b.ProveedorId,     // Guid
+                    b.CategoriaId,     // Guid
+                    Imagen = b.Imagen, // byte[]? (null => se conserva por COALESCE)
                     b.Condiciones,
-                    b.VigenciaInicio,  // si pueden ser vacías, usa DateTime?
-                    b.VigenciaFin,
-                    Imagen = (object?)img ?? DBNull.Value,
-                    // SOLO si tu SP tiene este flag; si no, quítalo:
-                    ActualizarImagen = hasNewImage ? 1 : 0,
-                    b.ProveedorId,
-                    b.CategoriaId
+                    b.VigenciaInicio,
+                    b.VigenciaFin
                 },
                 commandType: CommandType.StoredProcedure
             );

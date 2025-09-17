@@ -3,10 +3,11 @@
 AS
 BEGIN
   SET NOCOUNT ON;
-  BEGIN TRAN;
-    DELETE FROM core.Proveedor WHERE ProveedorId = @Id;
-    IF @@ROWCOUNT = 0
-    BEGIN ROLLBACK; THROW 51001, 'Proveedor no existe', 1; END
-  COMMIT TRAN;
-  SELECT @Id;
+  IF EXISTS(SELECT 1 FROM core.Beneficio WHERE ProveedorId=@Id)
+    THROW 50012,'No se puede eliminar: tiene beneficios asociados.',1;
+
+  DELETE FROM core.Proveedor WHERE ProveedorId=@Id;
+  IF @@ROWCOUNT=0 THROW 50011,'Proveedor no existe.',1;
+
+  SELECT @Id AS ProveedorId;
 END

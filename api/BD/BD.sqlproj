@@ -81,5 +81,9 @@
     <Build Include="core\Stored Procedures\EliminarProveedor.sql" />
     <Build Include="core\Stored Procedures\EditarProveedor.sql" />
     <Build Include="core\Stored Procedures\AgregarProveedor.sql" />
+    <Build Include="core\Tables\Usuario.sql" />
+    <Build Include="core\Tables\SeleccionBeneficio.sql" />
+    <Build Include="core\Tables\CategoriaIdMap.sql" />
+    <Build Include="core\Stored Procedures\ContarCategorias.sql" />
   </ItemGroup>
 </Project>

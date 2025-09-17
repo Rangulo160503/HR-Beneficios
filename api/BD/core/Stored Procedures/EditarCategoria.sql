@@ -1,23 +1,27 @@
-﻿-- =============================================
--- Author:      <Tu Nombre>
--- Create date: <Fecha>
--- Description: Edita una categoría existente
--- =============================================
-CREATE   PROCEDURE core.EditarCategoria
-    @Id     UNIQUEIDENTIFIER,
-    @Nombre NVARCHAR(200),
-    @Activa BIT = 1
+﻿CREATE PROCEDURE core.EditarCategoria
+  @Id      UNIQUEIDENTIFIER,   -- ← antes era INT
+  @Nombre  NVARCHAR(160),
+  @Activa  BIT = 1
 AS
 BEGIN
-    SET NOCOUNT ON;
+  SET NOCOUNT ON;
 
-    BEGIN TRANSACTION;
-        UPDATE core.Categoria
-           SET Nombre      = @Nombre,
-               Activa      = @Activa,
-               ModificadoEn= SYSDATETIME()
-         WHERE CategoriaId = @Id;
+  -- Evita duplicados por nombre (excluye el propio Id)
+  IF EXISTS (
+      SELECT 1
+      FROM core.Categoria
+      WHERE Nombre = @Nombre AND CategoriaId <> @Id
+  )
+    THROW 50010, 'Nombre de categoría ya existe.', 1;
 
-        SELECT @Id;
-    COMMIT TRANSACTION;
+  UPDATE core.Categoria
+  SET Nombre = @Nombre,
+      Activa = @Activa,
+      ModificadoEn = SYSUTCDATETIME()
+  WHERE CategoriaId = @Id;
+
+  IF @@ROWCOUNT = 0
+    THROW 50011, 'Categoria no existe.', 1;
+
+  SELECT @Id AS CategoriaId;
 END
