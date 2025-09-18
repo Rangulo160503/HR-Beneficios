@@ -30,6 +30,8 @@ const keyOf = (prefix, id, label, idx) => {
 /* ====== Persistencia sidebar ====== */
 const LS_SIDEBAR = "admin.sidebar.collapsed";
 
+const HR_PORTAL_IP = "http://10.30.100.94/";
+
 /* ====== Imagen helper ====== */
 const normalizeImage = (img) => {
   if (!img || typeof img !== "string") return "";
@@ -564,13 +566,19 @@ async function openEdit(it) {
           )}
 
           {/* Nuevo módulo HR Portal */}
-         <NavItem
-  label="HR Portal"
-  icon={<IconUsers className="w-5 h-5" />}
-  active={nav==="hrportal"}
-  collapsed={collapsed}
-  onClick={() => window.open("/hrportal/", "_blank", "noopener,noreferrer")}
-/>
+         <a
+  href="http://hrportal"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="contents"
+>
+  <NavItem
+    label="HR Portal"
+    icon={<IconUsers className="w-5 h-5" />}
+    active={nav === "hrportal"}
+    collapsed={collapsed}
+  />
+</a>
 
         </nav>
 
@@ -624,7 +632,6 @@ async function openEdit(it) {
     </button>
   </>
 )}
-
         </div>
 
         {/* Overlay buscador móvil */}
