@@ -134,70 +134,102 @@ export default function AdminShell() {
   };
 
   // ============== CARGA INICIAL ==============
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const [Craw, Praw, Braw] = await Promise.all([
-          CategoriaApi.list(),
-          ProveedorApi.list(),
-          BeneficioApi.list(),
-        ]);
-        if (!alive) return;
+useEffect(() => {
+  const ac = new AbortController();
+  let alive = true;
 
-        // Categorías: API devuelve { categoriaId, nombre }
-        const C = (Craw ?? []).map(c => ({
-          ...c,
-          id: normId(c.id ?? c.categoriaId ?? c.Id ?? c.CategoriaId),
-          titulo: c.titulo ?? c.nombre ?? c.Nombre ?? "", // la UI usa 'titulo'
-        }));
+  (async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-        // Proveedores: { proveedorId, nombre }
-        const P = (Praw ?? []).map(p => ({
-          ...p,
-          id: normId(p.id ?? p.proveedorId ?? p.Id ?? p.ProveedorId),
-          nombre: p.nombre ?? p.Nombre ?? "",
-        }));
+      const [Craw, Praw, Braw] = await Promise.all([
+        CategoriaApi.list({ signal: ac.signal }),
+        ProveedorApi.list({ signal: ac.signal }),
+        BeneficioApi.list({ signal: ac.signal }),
+      ]);
 
-        // Beneficios
-        const B = (Braw ?? []).map(b => {
-          const categoriaId = normId(
-            b.categoriaId ?? b.CategoriaId ?? b.categoria?.id ?? b.categoria
-          );
-          const proveedorId = normId(
-            b.proveedorId ?? b.ProveedorId ?? b.proveedor?.id ?? b.proveedor
-          );
-          const imagen = normalizeImage(b.imagen ?? b.imagenUrl ?? b.ImagenUrl ?? "");
-          return {
-            ...b,
-            id: normId(b.id ?? b.Id ?? b.beneficioId ?? slug(b.titulo ?? "")),
-            categoriaId,
-            proveedorId,
-            categoriaNombre: b.categoriaNombre ?? b.categoria?.nombre ?? b.categoria ?? "",
-            proveedorNombre: b.proveedorNombre ?? b.proveedor?.nombre ?? b.proveedor ?? "",
-            imagen,
-            imagenUrl: imagen,
-            precio: b.precio ?? b.precioCRC ?? null,
-            precioCRC: b.precioCRC ?? b.precio ?? null,
-            vigenciaInicio: b.vigenciaInicio ? String(b.vigenciaInicio).slice(0,10) : "",
-            vigenciaFin: b.vigenciaFin ? String(b.vigenciaFin).slice(0,10) : "",
-          };
-        });
+      if (!alive) return;
 
-        setCats(C);
-        setProvs(P);
-        setItems(B);
-      } catch (e) {
-        console.error(e);
-        setError("No se pudieron cargar los datos. Revisa el API_BASE o CORS.");
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => { alive = false; };
-  }, []);
+      // Helpers locales
+      const byId = (arr, key = "id") => {
+        const m = new Map();
+        for (const x of arr) {
+          const k = normId(x?.[key]);
+          if (k && !m.has(k)) m.set(k, x);
+        }
+        return Array.from(m.values());
+      };
+      const str = (v) => (v == null ? "" : String(v).trim());
+
+      // ----- Categorías -----
+      const C_raw = (Array.isArray(Craw) ? Craw : []);
+      const C_norm = C_raw.map(c => {
+        const id = normId(c.id ?? c.categoriaId ?? c.Id ?? c.CategoriaId);
+        const titulo = str(c.titulo ?? c.Titulo ?? c.nombre ?? c.Nombre);
+        return id && titulo ? { ...c, id, titulo } : null;
+      }).filter(Boolean);
+      const C = byId(C_norm, "id")
+        .sort((a,b) => a.titulo.localeCompare(b.titulo, "es", { sensitivity:"base" }));
+
+      // ----- Proveedores -----
+      const P_raw = (Array.isArray(Praw) ? Praw : []);
+      const P_norm = P_raw.map(p => {
+        const id = normId(p.id ?? p.proveedorId ?? p.Id ?? p.ProveedorId);
+        const nombre = str(p.nombre ?? p.Nombre ?? p.titulo ?? p.Titulo);
+        return id && nombre ? { ...p, id, nombre } : null;
+      }).filter(Boolean);
+      const P = byId(P_norm, "id")
+        .sort((a,b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity:"base" }));
+
+      // ----- Beneficios -----
+      const B_raw = (Array.isArray(Braw) ? Braw : []);
+      const B = B_raw.map(b => {
+        const id = normId(b.id ?? b.Id ?? b.beneficioId ?? slug(str(b.titulo ?? b.Titulo)));
+        const categoriaId = normId(b.categoriaId ?? b.CategoriaId ?? b.categoria?.id ?? b.categoria);
+        const proveedorId = normId(b.proveedorId ?? b.ProveedorId ?? b.proveedor?.id ?? b.proveedor);
+        const categoriaNombre = str(b.categoriaNombre ?? b.categoria?.nombre ?? b.categoria ?? "");
+        const proveedorNombre = str(b.proveedorNombre ?? b.proveedor?.nombre ?? b.proveedor ?? "");
+        const imagen = normalizeImage(b.imagen ?? b.imagenUrl ?? b.ImagenUrl ?? "");
+        const precio = b.precio ?? b.precioCRC ?? null;
+        const precioCRC = b.precioCRC ?? b.precio ?? null;
+
+        if (!id) return null;
+        return {
+          ...b,
+          id,
+          categoriaId,
+          proveedorId,
+          categoriaNombre,
+          proveedorNombre,
+          imagen,
+          imagenUrl: imagen,
+          precio: typeof precio === "number" ? precio : (precio != null ? Number(precio) : null),
+          precioCRC: typeof precioCRC === "number" ? precioCRC : (precioCRC != null ? Number(precioCRC) : null),
+          vigenciaInicio: b.vigenciaInicio ? String(b.vigenciaInicio).slice(0,10) : "",
+          vigenciaFin: b.vigenciaFin ? String(b.vigenciaFin).slice(0,10) : "",
+          titulo: str(b.titulo ?? b.Titulo ?? ""),
+          descripcion: str(b.descripcion ?? b.Descripcion ?? ""),
+          moneda: str(b.moneda ?? b.Moneda ?? b.divisa ?? ""),
+          disponible: b.disponible ?? b.Disponible ?? true,
+        };
+      }).filter(Boolean);
+
+      setCats(C);
+      setProvs(P);
+      setItems(B);
+    } catch (e) {
+      if (e?.name === "AbortError") return;
+      console.error(e);
+      setError("No se pudieron cargar los datos. Verifica API_BASE, CORS y que el API esté arriba.");
+    } finally {
+      if (alive) setLoading(false);
+    }
+  })();
+
+  return () => { alive = false; ac.abort(); };
+}, []);
+
 
   // ============== FILTRO ROBUSTO ==============
   // --- helpers de matching para chips (respetan id ó nombre seleccionado)
@@ -532,13 +564,14 @@ async function openEdit(it) {
           )}
 
           {/* Nuevo módulo HR Portal */}
-          <NavItem
-            label="HR Portal"
-            icon={<IconUsers className="w-5 h-5" />}  /* ícono de lucide-react */
-            active={nav==="hrportal"}
-            collapsed={collapsed}
-            onClick={()=>window.location.assign("/hrportal/")}
-          />
+         <NavItem
+  label="HR Portal"
+  icon={<IconUsers className="w-5 h-5" />}
+  active={nav==="hrportal"}
+  collapsed={collapsed}
+  onClick={() => window.open("/hrportal/", "_blank", "noopener,noreferrer")}
+/>
+
         </nav>
 
         <div className="p-3 text-xs text-white/50 border-t border-white/10">
