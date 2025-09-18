@@ -70,7 +70,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.RoutePrefix = string.Empty;
+        c.RoutePrefix = "swagger";
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "HR-Beneficios API v1");
     });
 }

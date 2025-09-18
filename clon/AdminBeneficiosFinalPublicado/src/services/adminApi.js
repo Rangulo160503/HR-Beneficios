@@ -2,12 +2,10 @@
 
 // Puedes sobreescribir con VITE_API_BASE en el build/deploy
 const DEFAULT_API = "https://hr-beneficios-api-grgmckc5dwdca9dc.canadacentral-01.azurewebsites.net";
-
 const BASE_URL = (import.meta.env?.VITE_API_BASE || DEFAULT_API).replace(/\/+$/, "");
 
 // ================= core fetch =================
 async function req(path, { method = "GET", json, headers, signal, timeoutMs = 15000 } = {}) {
-  // Timeout razonable; si ya te pasan un signal externo, lo respetamos
   const controller = signal ? null : new AbortController();
   const usedSignal = signal || controller?.signal;
   const timer = controller ? setTimeout(() => controller.abort("timeout"), timeoutMs) : null;
@@ -45,23 +43,27 @@ export const CategoriaApi = {
   list: () => req("/api/Categoria"),
   get:  (id) => req(`/api/Categoria/${id}`),
 
-  create: (dto) => {
+  // async porque usamos await
+  create: async (dto) => {
     const body = {
       nombre: String(dto.titulo ?? dto.nombre ?? "").trim(),
       activa: typeof dto.activa === "boolean" ? dto.activa : true,
     };
     if (!body.nombre) throw new Error("El nombre es requerido.");
-    return req("/api/Categoria", { method: "POST", json: body });
+    const data = await req("/api/Categoria", { method: "POST", json: body });
+    return data?.categoriaId ?? data?.id ?? String(data);
   },
 
-  update: (id, dto, current) => {
+  // async porque usamos await
+  update: async (id, dto, current) => {
     const nombre = String(dto.titulo ?? dto.nombre ?? current?.nombre ?? current?.titulo ?? "").trim();
     const activa = typeof dto.activa === "boolean"
       ? dto.activa
       : (typeof current?.activa === "boolean" ? current.activa : true);
     if (!nombre) throw new Error("El nombre es requerido.");
 
-    return req(`/api/Categoria/${id}`, { method: "PUT", json: { nombre, activa } });
+    await req(`/api/Categoria/${id}`, { method: "PUT", json: { nombre, activa } });
+    // sin return: la UI hace GET si necesita el canónico
   },
 
   remove: (id) => req(`/api/Categoria/${id}`, { method: "DELETE" }),
@@ -71,16 +73,23 @@ export const CategoriaApi = {
 export const ProveedorApi = {
   list: () => req("/api/Proveedor"),
   get:  (id) => req(`/api/Proveedor/${id}`),
-  create: (dto) => {
+
+  // async porque usamos await
+  create: async (dto) => {
     const nombre = String(dto.nombre ?? "").trim();
     if (!nombre) throw new Error("El nombre es requerido.");
-    return req("/api/Proveedor", { method: "POST", json: { nombre } });
+    const data = await req("/api/Proveedor", { method: "POST", json: { nombre } });
+    return data?.proveedorId ?? data?.id ?? String(data);
   },
-  update: (id, dto) => {
+
+  // async porque usamos await
+  update: async (id, dto) => {
     const nombre = String(dto.nombre ?? "").trim();
     if (!nombre) throw new Error("El nombre es requerido.");
-    return req(`/api/Proveedor/${id}`, { method: "PUT", json: { nombre } });
+    await req(`/api/Proveedor/${id}`, { method: "PUT", json: { nombre } });
+    // sin return
   },
+
   remove: (id) => req(`/api/Proveedor/${id}`, { method: "DELETE" }),
 };
 
@@ -92,11 +101,9 @@ export const ProveedorApi = {
 
 // UI -> API (sin sobreescribir imagen si no cambió)
 function toApiBeneficio(ui) {
-  // precio seguro
   const precioNum = Number(ui.precio ?? ui.precioCRC);
   const precioCRC = Number.isFinite(precioNum) && precioNum >= 0 ? precioNum : 0;
 
-  // imagen: solo la incluimos si viene algo
   let imagenBase64 = null;
   if (ui.imagen && typeof ui.imagen === "string") {
     imagenBase64 = ui.imagen; // base64 puro
@@ -116,7 +123,6 @@ function toApiBeneficio(ui) {
     categoriaId: ui.categoriaId || null,
   };
   if (imagenBase64) payload.imagen = imagenBase64; // ← solo si hay nueva imagen
-
   return payload;
 }
 
@@ -160,13 +166,14 @@ export const BeneficioApi = {
   get: async (id) => fromApiBeneficio(await req(`/api/Beneficio/${id}`)),
   create: async (ui) => {
     const dto = toApiBeneficio(ui);
-    const created = await req("/api/Beneficio", { method: "POST", json: dto });
-    return fromApiBeneficio(created);
+    const data = await req("/api/Beneficio", { method: "POST", json: dto });
+    // el backend suele devolver { beneficioId: "<guid>" } o el guid plano
+    return data?.beneficioId ?? data?.id ?? String(data);
   },
   update: async (id, ui) => {
     const dto = toApiBeneficio(ui);
-    const updated = await req(`/api/Beneficio/${id}`, { method: "PUT", json: dto });
-    return fromApiBeneficio(updated);
+    await req(`/api/Beneficio/${id}`, { method: "PUT", json: dto });
+    // sin return
   },
   remove: (id) => req(`/api/Beneficio/${id}`, { method: "DELETE" }),
 };

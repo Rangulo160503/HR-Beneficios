@@ -1,6 +1,7 @@
 // src/components/AdminShell.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BeneficioApi, CategoriaApi, ProveedorApi } from "./services/adminApi";
+import { Users } from "lucide-react";
 
 /* ====== Helpers ====== */
 const money = (v) => (v == null ? "" : Number(v).toLocaleString("es-CR"));
@@ -74,7 +75,7 @@ const IconSearch = (props) => (
 );
 const IconX = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
-    <path d="M6 6l12 12M18 6L6 18" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M6 6l12 12M16 6L6 18" strokeWidth="2" strokeLinecap="round"/>
   </svg>
 );
 const IconInfo = (props) => (
@@ -89,6 +90,8 @@ const IconError = (props) => (
     <path d="M8 8l8 8M16 8l-8 8" strokeWidth="1.8" strokeLinecap="round"/>
   </svg>
 );
+// Wrapper para Users de lucide-react
+const IconUsers = (p) => <Users {...p} />;
 
 export default function AdminShell() {
   const [showMobileNav, setShowMobileNav] = useState(false);
@@ -158,7 +161,7 @@ export default function AdminShell() {
           nombre: p.nombre ?? p.Nombre ?? "",
         }));
 
-        // Beneficios: { beneficioId, titulo, precioCRC, imagen, proveedorNombre, categoriaNombre, ... }
+        // Beneficios
         const B = (Braw ?? []).map(b => {
           const categoriaId = normId(
             b.categoriaId ?? b.CategoriaId ?? b.categoria?.id ?? b.categoria
@@ -175,9 +178,9 @@ export default function AdminShell() {
             categoriaNombre: b.categoriaNombre ?? b.categoria?.nombre ?? b.categoria ?? "",
             proveedorNombre: b.proveedorNombre ?? b.proveedor?.nombre ?? b.proveedor ?? "",
             imagen,
-            imagenUrl: imagen, // compat con la Card
-            precio: b.precio ?? b.precioCRC ?? null, // para money()
-            precioCRC: b.precioCRC ?? b.precio ?? null, // por si lo necesitás directo
+            imagenUrl: imagen,
+            precio: b.precio ?? b.precioCRC ?? null,
+            precioCRC: b.precioCRC ?? b.precio ?? null,
             vigenciaInicio: b.vigenciaInicio ? String(b.vigenciaInicio).slice(0,10) : "",
             vigenciaFin: b.vigenciaFin ? String(b.vigenciaFin).slice(0,10) : "",
           };
@@ -197,94 +200,178 @@ export default function AdminShell() {
   }, []);
 
   // ============== FILTRO ROBUSTO ==============
-  const filtered = useMemo(() => {
+  // --- helpers de matching para chips (respetan id ó nombre seleccionado)
+function matchCatSel(b, sel) {
+  if (!sel) return true;
+  const bCatId   = lower(b.categoriaId);
+  const bCatName = lower(b.categoriaNombre);
+  if (isNameSel(sel)) {
+    const wanted = lower(nameOfSel(sel));
+    return !!wanted && bCatName === wanted;
+  }
+  const wanted = lower(sel);
+  return !!wanted && bCatId === wanted;
+}
+function matchProvSel(b, sel) {
+  if (!sel) return true;
+  const bProvId   = lower(b.proveedorId);
+  const bProvName = lower(b.proveedorNombre);
+  if (isNameSel(sel)) {
+    const wanted = lower(nameOfSel(sel));
+    return !!wanted && bProvName === wanted;
+  }
+  const wanted = lower(sel);
+  return !!wanted && bProvId === wanted;
+}
+
+// 1) Filtrar SOLO por texto (base para armar chips visibles)
+const itemsByText = useMemo(() => {
+  const q = lower(query);
+  if (!q) return items;
+  return items.filter((b) => {
+    const hayTexto = [b.titulo, b.proveedorNombre, b.categoriaNombre]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return hayTexto.includes(q);
+  });
+}, [items, query]);
+
+const isMeaningfulLabel = (v) => {
+  const s = String(v ?? "").trim();
+  if (!s) return false;
+  if (/^[-–—]+$/.test(s)) return false; // solo guiones
+  if (s.length < 2) return false;
+  return true;
+};
+
+
+// 2) Con el resultado por texto, calcular universo para cada chip:
+//    - visibleCats: respeta texto + proveedor seleccionado
+//    - visibleProvs: respeta texto + categoría seleccionada
+const itemsForCats  = useMemo(() => itemsByText.filter(b => matchProvSel(b, selProv)), [itemsByText, selProv]);
+const itemsForProvs = useMemo(() => itemsByText.filter(b => matchCatSel(b, selCat)),  [itemsByText, selCat]);
+
+// 3) Construir conjuntos de ids -> nombres (incluye los que NO estén en las listas cargadas)
+const visibleCats = useMemo(() => {
+  const hit = new Map(); // sel -> label
+  for (const b of itemsForCats) {
+    const rawId = normId(b.categoriaId);
+    const label =
+      String(
+        b.categoriaNombre ??
+        cats.find(c => normId(c.id ?? c.categoriaId) === rawId)?.titulo ??
+        ""
+      ).trim();
+
+    // Si no hay GUID, solo agregamos si el label es “bueno”
+    if (!rawId) {
+      if (!isMeaningfulLabel(label)) continue;
+      const sel = `name:${label}`;
+      if (!hit.has(sel)) hit.set(sel, label);
+      continue;
+    }
+
+    // Hay GUID: intenta poner un label útil; si no hay, intenta del catálogo
+    const finalLabel = isMeaningfulLabel(label)
+      ? label
+      : String(cats.find(c => normId(c.id ?? c.categoriaId) === rawId)?.titulo ?? "").trim();
+
+    // Si sigue sin label, no generes chip “mudo”
+    if (!isMeaningfulLabel(finalLabel)) continue;
+
+    if (!hit.has(rawId)) hit.set(rawId, finalLabel);
+  }
+  const arr = Array.from(hit, ([sel, label]) => ({ sel, label }));
+  arr.sort((a,b) => a.label.localeCompare(b.label, "es", { sensitivity:"base" }));
+  return arr;
+}, [itemsForCats, cats]);
+
+const visibleProvs = useMemo(() => {
+  const hit = new Map(); // sel -> label
+  for (const b of itemsForProvs) {
+    const rawId = normId(b.proveedorId);
+    const label =
+      String(
+        b.proveedorNombre ??
+        provs.find(p => normId(p.id ?? p.proveedorId) === rawId)?.nombre ??
+        ""
+      ).trim();
+
+    if (!rawId) {
+      if (!isMeaningfulLabel(label)) continue;
+      const sel = `name:${label}`;
+      if (!hit.has(sel)) hit.set(sel, label);
+      continue;
+    }
+
+    const finalLabel = isMeaningfulLabel(label)
+      ? label
+      : String(provs.find(p => normId(p.id ?? p.proveedorId) === rawId)?.nombre ?? "").trim();
+
+    if (!isMeaningfulLabel(finalLabel)) continue;
+
+    if (!hit.has(rawId)) hit.set(rawId, finalLabel);
+  }
+  const arr = Array.from(hit, ([sel, label]) => ({ sel, label }));
+  arr.sort((a,b) => a.label.localeCompare(b.label, "es", { sensitivity:"base" }));
+  return arr;
+}, [itemsForProvs, provs]);
+
+
+
+// 4) Filtrado final de la grilla (texto + categoría + proveedor)
+const filtered = useMemo(() => {
+  return items.filter((b) => matchCatSel(b, selCat) && matchProvSel(b, selProv)).filter((b) => {
     const q = lower(query);
-    return items.filter((b) => {
-      const bCatId    = lower(b.categoriaId);
-      const bProvId   = lower(b.proveedorId);
-      const bCatName  = lower(b.categoriaNombre);
-      const bProvName = lower(b.proveedorNombre);
+    if (!q) return true;
+    const hayTexto = [b.titulo, b.proveedorNombre, b.categoriaNombre]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return hayTexto.includes(q);
+  });
+}, [items, selCat, selProv, query]);
 
-      // Categoría
-      let byCat = true;
-      if (selCat) {
-        if (isNameSel(selCat)) {
-          const wanted = lower(nameOfSel(selCat));
-          byCat = !!wanted && bCatName === wanted;
-        } else {
-          const wanted = lower(selCat);
-          byCat = !!wanted && bCatId === wanted;
-        }
-      }
 
-      // Proveedor
-      let byProv = true;
-      if (selProv) {
-        if (isNameSel(selProv)) {
-          const wanted = lower(nameOfSel(selProv));
-          byProv = !!wanted && bProvName === wanted;
-        } else {
-          const wanted = lower(selProv);
-          byProv = !!wanted && bProvId === wanted;
-        }
-      }
-
-      // Texto
-      const hayTexto = [b.titulo, b.proveedorNombre, b.categoriaNombre]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      const byQ = !q || hayTexto.includes(q);
-      return byCat && byProv && byQ;
-    });
-  }, [items, selCat, selProv, query]);
 
   function openNew() { setEditing(null); setShowForm(true); }
-  function openEdit(it) { setEditing(it); setShowForm(true); }
+async function openEdit(it) {
+  try {
+    const full = await BeneficioApi.get(it.id); // ← trae proveedorId y categoriaId
+    setEditing({ ...it, ...full });
+  } catch {
+    setEditing(it); // fallback si falla el GET
+  }
+  setShowForm(true);
+}
+
 
   // ============== CRUD: Beneficio ==============
   async function saveBeneficio(dto) {
     try {
       setError("");
+
       if (editing) {
-        const updated = await BeneficioApi.update(editing.id, dto);
-        const imagen = normalizeImage(updated.imagen ?? updated.imagenUrl ?? editing.imagen ?? editing.imagenUrl ?? "");
-        const norm = {
-          ...editing,
-          ...updated,
-          id: normId(updated.id ?? updated.Id ?? updated.beneficioId ?? editing.id),
-          categoriaId: normId(updated.categoriaId ?? editing.categoriaId),
-          proveedorId: normId(updated.proveedorId ?? editing.proveedorId),
-          categoriaNombre: updated.categoriaNombre ?? editing.categoriaNombre ?? "",
-          proveedorNombre: updated.proveedorNombre ?? editing.proveedorNombre ?? "",
-          imagen,
-          imagenUrl: imagen,
-          precio: updated.precio ?? updated.precioCRC ?? editing.precio ?? editing.precioCRC ?? null,
-          precioCRC: updated.precioCRC ?? updated.precio ?? editing.precioCRC ?? editing.precio ?? null,
-          vigenciaInicio: updated.vigenciaInicio ? String(updated.vigenciaInicio).slice(0,10) : (editing.vigenciaInicio ?? ""),
-          vigenciaFin: updated.vigenciaFin ? String(updated.vigenciaFin).slice(0,10) : (editing.vigenciaFin ?? ""),
-        };
-        setItems(list => list.map(x => (x.id === editing.id ? norm : x)));
+        // PUT ya no devuelve objeto
+        await BeneficioApi.update(editing.id, dto);
+
+        // Trae el canónico desde el backend
+        const fresh = await BeneficioApi.get(editing.id);
+
+        // Reemplaza en memoria
+        setItems(list => list.map(x => (x.id === editing.id ? fresh : x)));
       } else {
-        const created = await BeneficioApi.create(dto);
-        const imagen = normalizeImage(created.imagen ?? created.imagenUrl ?? dto.imagenUrl ?? "");
-        const norm = {
-          ...created,
-          id: normId(created.id ?? created.Id ?? created.beneficioId),
-          categoriaId: normId(created.categoriaId),
-          proveedorId: normId(created.proveedorId),
-          categoriaNombre: created.categoriaNombre ?? "",
-          proveedorNombre: created.proveedorNombre ?? "",
-          imagen,
-          imagenUrl: imagen,
-          precio: created.precio ?? created.precioCRC ?? null,
-          precioCRC: created.precioCRC ?? created.precio ?? null,
-          vigenciaInicio: created.vigenciaInicio ? String(created.vigenciaInicio).slice(0,10) : "",
-          vigenciaFin: created.vigenciaFin ? String(created.vigenciaFin).slice(0,10) : "",
-        };
-        setItems(s => [norm, ...s]);
+        // POST retorna GUID
+        const newId = await BeneficioApi.create(dto);
+
+        // Trae el canónico
+        const fresh = await BeneficioApi.get(newId);
+
+        // Agrega al inicio
+        setItems(s => [fresh, ...s]);
       }
+
       setShowForm(false);
     } catch (e) {
       console.error(e);
@@ -306,14 +393,25 @@ export default function AdminShell() {
 
   // ============== CRUD: Categoría / Proveedor ==============
   async function addCategoria(titulo) {
-    const created = await CategoriaApi.create({ titulo }); // adminApi mapea a { nombre }
-    const nodo = { ...created, id: normId(created.id ?? created.categoriaId ?? created.Id), titulo: created.titulo ?? created.nombre ?? titulo };
+    const id = await CategoriaApi.create({ titulo });   // ← ahora devuelve GUID
+    const created = await CategoriaApi.get(id);         // ← trae objeto
+    const nodo = {
+      ...created,
+      id: normId(created.id ?? created.categoriaId ?? created.Id),
+      titulo: created.titulo ?? created.nombre ?? titulo
+    };
     setCats(s => [nodo, ...s]);
     return nodo;
   }
+
   async function addProveedor(nombre) {
-    const created = await ProveedorApi.create({ nombre });
-    const nodo = { ...created, id: normId(created.id ?? created.proveedorId ?? created.Id), nombre: created.nombre ?? nombre };
+    const id = await ProveedorApi.create({ nombre });   // ← GUID
+    const created = await ProveedorApi.get(id);         // ← objeto
+    const nodo = {
+      ...created,
+      id: normId(created.id ?? created.proveedorId ?? created.Id),
+      nombre: created.nombre ?? nombre
+    };
     setProvs(s => [nodo, ...s]);
     return nodo;
   }
@@ -322,37 +420,24 @@ export default function AdminShell() {
   async function renameCategoria(r, nuevoTitulo) {
     const id = getCatId(r);
     if (!id) { alert("Categoría sin ID válido."); return; }
-    // if (!isGuid(id)) { alert("ID de categoría inválido."); return; } // opcional
-
     const titulo = String(nuevoTitulo ?? "").trim();
     if (!titulo) { alert("El nombre/título es requerido."); return; }
 
-    const updated = await CategoriaApi.update(id, {
-      titulo,
-      activa: typeof r?.activa === "boolean" ? r.activa : true,
-    });
+    await CategoriaApi.update(id, { titulo, activa: r?.activa ?? true }); // PUT sin body
+    const updated = await CategoriaApi.get(id);                            // objeto canónico
 
-    // El API puede devolver: "GUID"  ||  objeto con {categoriaId | id | nombre | activa | modificadoEn}
-    const updatedId = typeof updated === "string"
-      ? updated
-      : normId(updated?.categoriaId ?? updated?.id ?? id);
-
-    const canon = (typeof updated === "object" && updated?.nombre)
-      ? String(updated.nombre).trim()
-      : titulo;
+    const updatedId = normId(updated?.categoriaId ?? updated?.id ?? id);
+    const canon = updated?.nombre ?? updated?.titulo ?? titulo;
 
     const nodo = {
       ...r,
+      ...updated,
       id: updatedId,
       categoriaId: updatedId,
       titulo: canon,
       nombre: canon,
-      activa: (typeof updated === "object" && typeof updated?.activa === "boolean")
-        ? updated.activa
-        : (r.activa ?? true),
-      modificadoEn: (typeof updated === "object" && updated?.modificadoEn)
-        ? updated.modificadoEn
-        : (r?.modificadoEn ?? new Date().toISOString()),
+      activa: typeof updated?.activa === "boolean" ? updated.activa : (r.activa ?? true),
+      modificadoEn: updated?.modificadoEn ?? new Date().toISOString(),
     };
 
     setCats(s => s.map(x => (getCatId(x) === id ? nodo : x)));
@@ -362,28 +447,21 @@ export default function AdminShell() {
   async function renameProveedor(r, nuevoNombre) {
     const id = getProvId(r);
     if (!id) { alert("Proveedor sin ID válido."); return; }
-    // if (!isGuid(id)) { alert("ID de proveedor inválido."); return; } // opcional
-
     const nombre = String(nuevoNombre ?? "").trim();
     if (!nombre) { alert("El nombre es requerido."); return; }
 
-    // Pasa el registro actual como 3er parámetro si tu ProveedorApi.update lo usa para preservar campos
-    const updated = await ProveedorApi.update(id, { nombre }, r);
+    await ProveedorApi.update(id, { nombre });  // PUT sin body
+    const updated = await ProveedorApi.get(id); // objeto canónico
 
-    // El API puede devolver: "GUID"  ||  { proveedorId | id | nombre | modificadoEn ... }
-    const updatedId = typeof updated === "string"
-      ? updated
-      : normId(updated?.proveedorId ?? updated?.id ?? id);
+    const updatedId = normId(updated?.proveedorId ?? updated?.id ?? id);
 
     const nodo = {
       ...r,
-      ...((typeof updated === "object") ? updated : null),
+      ...updated,
       id: updatedId,
       proveedorId: updatedId,
-      nombre: (typeof updated === "object" && updated?.nombre) ? updated.nombre : nombre,
-      modificadoEn: (typeof updated === "object" && updated?.modificadoEn)
-        ? updated.modificadoEn
-        : (r?.modificadoEn ?? new Date().toISOString()),
+      nombre: updated?.nombre ?? nombre,
+      modificadoEn: updated?.modificadoEn ?? new Date().toISOString(),
     };
 
     setProvs(s => s.map(x => (getProvId(x) === id ? nodo : x)));
@@ -452,6 +530,15 @@ export default function AdminShell() {
               />
             </div>
           )}
+
+          {/* Nuevo módulo HR Portal */}
+          <NavItem
+            label="HR Portal"
+            icon={<IconUsers className="w-5 h-5" />}  /* ícono de lucide-react */
+            active={nav==="hrportal"}
+            collapsed={collapsed}
+            onClick={()=>window.location.assign("/hrportal/")}
+          />
         </nav>
 
         <div className="p-3 text-xs text-white/50 border-t border-white/10">
@@ -475,25 +562,36 @@ export default function AdminShell() {
           <h1 className="font-semibold capitalize hidden sm:block">{nav}</h1>
 
           {nav === "beneficios" && (
-            <>
-              <input
-                placeholder="Buscar beneficios"
-                className="ml-auto w-[55%] sm:w-64 md:w-80 rounded-lg bg-neutral-900 border border-white/10 px-3 py-1.5 md:py-2
-                           text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/10 focus:border-white/20
-                           hidden md:block"
-                value={query}
-                onChange={(e)=>setQuery(e.target.value)}
-              />
-              {/* móvil: lupa */}
-              <button
-                className="md:hidden p-2 rounded-lg hover:bg-white/5 ml-auto"
-                onClick={()=>setMobileSearchOpen(v=>!v)}
-                aria-label={mobileSearchOpen ? "Cerrar búsqueda" : "Abrir búsqueda"}
-              >
-                <IconSearch className="w-6 h-6 text-white/90" />
-              </button>
-            </>
-          )}
+  <>
+    {/* Desktop: buscador ghost, sin caja */}
+    <div className="ml-auto hidden md:flex items-center">
+      <div className="relative">
+        <IconSearch
+          className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50"
+          aria-hidden="true"
+        />
+        <input
+          placeholder="Buscar beneficios"
+          className="pl-6 pr-2 py-1.5 bg-transparent border-0 border-b border-white/10 
+                     text-white placeholder-white/50 outline-none
+                     focus:border-white/30 transition-colors duration-200"
+          value={query}
+          onChange={(e)=>setQuery(e.target.value)}
+        />
+      </div>
+    </div>
+
+    {/* Móvil: botón fantasma (ya abre el overlay existente) */}
+    <button
+      className="md:hidden p-2 -ml-1 rounded-lg hover:bg-white/5"
+      onClick={()=>setMobileSearchOpen(v=>!v)}
+      aria-label={mobileSearchOpen ? "Cerrar búsqueda" : "Abrir búsqueda"}
+    >
+      <IconSearch className="w-6 h-6 text-white/90" />
+    </button>
+  </>
+)}
+
         </div>
 
         {/* Overlay buscador móvil */}
@@ -535,50 +633,58 @@ export default function AdminShell() {
               <section className="space-y-4">
                 {/* Chips */}
                 <div className="flex flex-col gap-3">
-                  {/* Categorías */}
-                  <div ref={catsRowRef} className="flex gap-2 overflow-x-auto pb-1 snap-x -mx-1 px-1">
-                    <Chip active={!selCat} onClick={()=>setSelCat("")} label="Todas las categorías" />
-                    {cats.map((c, i) => {
-                      const id    = normId(c.id ?? c.categoriaId);
-                      const label = c.titulo ?? c.nombre ?? "—";
-                      const val   = mkSel(id, label);
+                 {/* Categorías */}
+<div
+  ref={catsRowRef}
+  className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar snap-x"
+  style={{
+    WebkitMaskImage:
+      "linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)",
+    maskImage:
+      "linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)",
+  }}
+>
+  <Chip active={!selCat} onClick={()=>setSelCat("")} label="Todas las categorías" />
+  {visibleCats.map((c, i) => {
+    const val = c.sel, label = c.label;
+    const isActive = !!selCat && lower(selCat) === lower(val);
+    return (
+      <Chip
+        key={keyOf("cat", val, label, i)}
+        active={isActive}
+        onClick={() => setSelCat(isActive ? "" : val)}
+        label={label}
+      />
+    );
+  })}
+</div>
 
-                      const activeById   = selCat && !isNameSel(selCat) && lower(selCat) === lower(id);
-                      const activeByName = selCat && isNameSel(selCat)   && lower(nameOfSel(selCat)) === lower(label);
-                      const isActive = activeById || activeByName;
+{/* Proveedores */}
+<div
+  ref={provsRowRef}
+  className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar snap-x"
+  style={{
+    WebkitMaskImage:
+      "linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)",
+    maskImage:
+      "linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)",
+  }}
+>
+  <Chip active={!selProv} onClick={()=>setSelProv("")} label="Todos los proveedores" />
+  {visibleProvs.map((p, i) => {
+    const val = p.sel, label = p.label;
+    const isActive = !!selProv && lower(selProv) === lower(val);
+    return (
+      <Chip
+        key={keyOf("prov", val, label, i)}
+        active={isActive}
+        onClick={() => setSelProv(isActive ? "" : val)}
+        label={label}
+      />
+    );
+  })}
+</div>
 
-                      return (
-                        <Chip
-                          key={keyOf("cat", id || val, label, i)}
-                          active={isActive}
-                          onClick={() => setSelCat(isActive ? "" : val)}
-                          label={label}
-                        />
-                      );
-                    })}
-                  </div>
-                  {/* Proveedores */}
-                  <div ref={provsRowRef} className="flex gap-2 overflow-x-auto pb-1 snap-x -mx-1 px-1">
-                    <Chip active={!selProv} onClick={()=>setSelProv("")} label="Todos los proveedores" />
-                    {provs.map((p, i) => {
-                      const id    = normId(p.id ?? p.proveedorId);
-                      const label = p.nombre ?? "—";
-                      const val   = mkSel(id, label);
-
-                      const activeById   = selProv && !isNameSel(selProv) && lower(selProv) === lower(id);
-                      const activeByName = selProv && isNameSel(selProv)   && lower(nameOfSel(selProv)) === lower(label);
-                      const isActive = activeById || activeByName;
-
-                      return (
-                        <Chip
-                          key={keyOf("prov", id || val, label, i)}
-                          active={isActive}
-                          onClick={() => setSelProv(isActive ? "" : val)}
-                          label={label}
-                        />
-                      );
-                    })}
-                  </div>
                 </div>
 
                 {/* Grid */}
@@ -633,7 +739,11 @@ export default function AdminShell() {
       <MobileSidebar
         open={showMobileNav}
         current={nav}
-        onSelect={(key) => { setNav(key); setShowMobileNav(false); }}
+        onSelect={(key) => {
+          if (key === "hrportal") { window.location.assign("/hrportal/"); return; }
+          setNav(key);
+          setShowMobileNav(false);
+        }}
         onClose={() => setShowMobileNav(false)}
       />
 
@@ -652,6 +762,7 @@ export default function AdminShell() {
     </div>
   );
 }
+
 
 /* ====== UI bits ====== */
 function getCatId(r){
@@ -693,16 +804,27 @@ function SubNavItem({ label, icon, active, onClick }) {
   );
 }
 
-function Chip({ active, label, onClick }) {
+function Chip({ label, active, onClick }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       className={cls(
-        "px-4 py-1.5 rounded-full text-sm whitespace-nowrap snap-start",
-        active ? "bg-neutral-700 text-white" : "bg-neutral-900 border border-white/10 hover:bg-neutral-800"
+        "inline-flex items-center gap-2 rounded-full",
+        "px-3 py-1 text-sm md:text-[13px] font-medium tracking-tight",
+        "border transition-colors duration-150",
+        active
+          ? "bg-white/10 border-white/30 text-white"
+          : "bg-white/5 border-white/10 text-white/80 hover:text-white hover:bg-white/8 hover:border-white/20"
       )}
     >
-      {label}
+      <span
+        className={cls(
+          "h-1.5 w-1.5 rounded-full",
+          active ? "bg-white" : "bg-white/40"
+        )}
+      />
+      <span className="whitespace-nowrap">{label}</span>
     </button>
   );
 }
@@ -868,39 +990,38 @@ function Alert({ tone = "info", message }) {
 /* ====== Form overlay ====== */
 function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, onSave }) {
   const [form, setForm] = useState(() => ({
-    titulo:        initial?.titulo ?? "",
-    // el API usa precioCRC; el form trabaja en 'precio' y el mapeo a API lo hace adminApi
-    precio:        initial?.precio ?? initial?.precioCRC ?? "",
-    proveedorId:   initial?.proveedorId ? normId(initial.proveedorId) : "",
-    categoriaId:   initial?.categoriaId ? normId(initial.categoriaId) : "",
-    descripcion:   initial?.descripcion ?? "",
-    condiciones:   initial?.condiciones ?? "",
+    titulo:         initial?.titulo ?? "",
+    precio:         initial?.precio ?? initial?.precioCRC ?? "",
+    proveedorId:    initial?.proveedorId ? normId(initial.proveedorId)
+                    : initial?.ProveedorId ? normId(initial.ProveedorId) : "",
+    categoriaId:    initial?.categoriaId ? normId(initial.categoriaId)
+                    : initial?.CategoriaId ? normId(initial.CategoriaId) : "",
+    descripcion:    initial?.descripcion ?? "",
+    condiciones:    initial?.condiciones ?? "",
     vigenciaInicio: initial?.vigenciaInicio ? String(initial.vigenciaInicio).slice(0,10) : "",
-    vigenciaFin:    initial?.vigenciaFin ? String(initial.vigenciaFin).slice(0,10) : "",
-    imagenUrl:     initial?.imagen ?? initial?.imagenUrl ?? "",
-    // campo que usaremos para enviar base64 puro al back SOLO si cambió
-    nuevaImagenBase64: null,
-    imagen: null, // compat con BeneficioApi (envía 'imagen' si existe)
+    vigenciaFin:    initial?.vigenciaFin    ? String(initial.vigenciaFin).slice(0,10)    : "",
+    imagenUrl:      initial?.imagen ?? initial?.imagenUrl ?? "",
+    nuevaImagenBase64: null,   // solo si el usuario sube nueva imagen
+    imagen: null,              // base64 puro para payload
   }));
   const [preview, setPreview] = useState(() => form.imagenUrl);
 
-  // mini-prompt estilado para “+ nuevo/+ nueva”
-  const [promptOpen, setPromptOpen] = useState(false);
-  const [promptType, setPromptType] = useState(null); // 'prov' | 'cat'
+  // mini-prompt crear proveedor/categoría
+  const [promptOpen, setPromptOpen]   = useState(false);
+  const [promptType, setPromptType]   = useState(null); // 'prov' | 'cat'
   const [promptValue, setPromptValue] = useState("");
 
-  // === Scroll helper: evita que los selects/dates queden tapados por el header
+  // === Scroll helper
   const scrollerRef = useRef(null);
   function revealBeforeOpen(el) {
     const sc = scrollerRef.current;
     if (!sc || !el) return;
-    const GUARD = 72; // margen con el header
+    const GUARD = 72;
     const sRect = sc.getBoundingClientRect();
     const eRect = el.getBoundingClientRect();
     const topInScroller = eRect.top - sRect.top;
     if (topInScroller >= GUARD) return;
-    const delta = topInScroller - GUARD;
-    sc.scrollTop += delta;
+    sc.scrollTop += (topInScroller - GUARD);
   }
 
   function openPrompt(type){
@@ -920,7 +1041,7 @@ function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, o
     setPromptOpen(false);
   }
 
-  // === Manejo de archivo: convertimos a base64 puro y lo guardamos en form
+  // === Manejo de archivo
   async function handleFile(file){
     if(!file){
       setPreview("");
@@ -928,46 +1049,96 @@ function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, o
       return;
     }
     try {
-      const base64 = await fileToBase64Pure(file); // ← base64 sin data:
+      const base64 = await fileToBase64Pure(file);
       const dataUrl = `data:${file.type || "image/jpeg"};base64,${base64}`;
       setPreview(dataUrl);
-      // Guardamos para el payload (ambos por compatibilidad con tu adminApi actual)
-      setForm(s=>({
-        ...s,
-        imagenUrl: dataUrl,
-        nuevaImagenBase64: base64,
-        imagen: base64,
-      }));
+      setForm(s=>({ ...s, imagenUrl:dataUrl, nuevaImagenBase64:base64, imagen:base64 }));
     } catch(err){
       console.error(err);
     }
   }
 
-  // Al guardar, garantizamos GUIDs válidos. Si están vacíos, usamos los del "initial" (edición)
+  // ---------- IDs/labels actuales (aunque no estén en listas) ----------
+  const currentProvId   = normId(initial?.proveedorId ?? initial?.ProveedorId);
+  const currentProvName =
+    initial?.proveedorNombre ??
+    provs.find(p => normId(p.id) === currentProvId)?.nombre ??
+    "(Proveedor actual)";
+  const provValue  = form.proveedorId || currentProvId;
+  const provInList = provs.some(p => normId(p.id) === provValue);
+
+  const currentCatId   = normId(initial?.categoriaId ?? initial?.CategoriaId);
+  const currentCatName =
+    initial?.categoriaNombre ??
+    cats.find(c => normId(c.id) === currentCatId)?.titulo ??
+    "(Categoría actual)";
+  const catValue  = form.categoriaId || currentCatId;
+  const catInList = cats.some(c => normId(c.id) === catValue);
+
+  // ---------- Autocompletar IDs si llegan vacíos usando el nombre ----------
+  useEffect(() => {
+    const toKey = (x) => (x ? String(x).trim().toLowerCase() : "");
+    // proveedor
+    if (!toKey(form.proveedorId) && toKey(initial?.proveedorNombre)) {
+      const hit = provs.find(p => toKey(p?.nombre) === toKey(initial?.proveedorNombre));
+      if (hit?.id) setForm(s => ({ ...s, proveedorId: normId(hit.id) }));
+    }
+    // categoría
+    if (!toKey(form.categoriaId) && toKey(initial?.categoriaNombre)) {
+      const hit = cats.find(c => toKey(c?.titulo || c?.nombre) === toKey(initial?.categoriaNombre));
+      if (hit?.id) setForm(s => ({ ...s, categoriaId: normId(hit.id) }));
+    }
+  }, [provs, cats, initial, form.proveedorId, form.categoriaId]);
+
+  // ---------- Submit ----------
   function submit(e){
     e.preventDefault();
-    const provId = isGuid(form.proveedorId) ? form.proveedorId : (initial?.proveedorId || "");
-    const catId  = isGuid(form.categoriaId) ? form.categoriaId : (initial?.categoriaId || "");
 
+    // IDs: si no se cambian o están vacíos, usa los del registro actual
+    const provId = isGuid(form.proveedorId) ? form.proveedorId : currentProvId;
+    const catId  = isGuid(form.categoriaId) ? form.categoriaId : currentCatId;
+
+    // Precio: si el input quedó vacío, reusa el actual
+    const precioCRC =
+      form.precio !== "" && form.precio != null
+        ? Number(form.precio)
+        : (Number(initial?.precioCRC ?? initial?.precio ?? 0) || 0);
+
+    // Fechas: conserva las actuales si no se editaron
+    const vIni = form.vigenciaInicio || (initial?.vigenciaInicio ? String(initial.vigenciaInicio).slice(0,10) : null);
+    const vFin = form.vigenciaFin    || (initial?.vigenciaFin    ? String(initial.vigenciaFin).slice(0,10)    : null);
+
+    // DTO limpio (imagen solo si hay nueva)
     const dto = {
-      ...form,
-      proveedorId: provId,
-      categoriaId: catId,
-      // si no se cambió la imagen, enviamos null para conservarla en back
-      imagen: form.nuevaImagenBase64 ? form.nuevaImagenBase64 : null,
+      titulo:         (form.titulo || initial?.titulo || "").trim(),
+      descripcion:    form.descripcion ?? initial?.descripcion ?? "",
+      condiciones:    form.condiciones ?? initial?.condiciones ?? "",
+      precioCRC,
+      proveedorId:    provId || null,
+      categoriaId:    catId  || null,
+      vigenciaInicio: vIni,
+      vigenciaFin:    vFin,
+      ...(form.nuevaImagenBase64 ? { imagen: form.nuevaImagenBase64 } : {}),
     };
+
+    // Validación mínima para evitar 400 por GUID inválidos
+    if (!isGuid(dto.proveedorId) || !isGuid(dto.categoriaId)) {
+      alert("Debe seleccionar Proveedor y Categoría.");
+      return;
+    }
 
     onSave(dto);
   }
 
-  const baseInput = "w-full rounded-lg bg-neutral-900 border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-white/10 focus:border-white/20";
+  const baseInput =
+    "w-full rounded-lg bg-neutral-900 border border-white/10 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-white/10 focus:border-white/20";
 
   return (
     <div className="fixed inset-0 z-50 bg-neutral-950/80 backdrop-blur">
       <div className="absolute inset-0 flex md:items-center md:justify-center">
-        {/* Wrapper: recorta y deja el scroll en el área inferior */}
+        {/* Wrapper */}
         <div className="relative w-full md:w-[920px] max-h-full md:max-h-[92vh] bg-neutral-950 border-l md:border border-white/10 md:rounded-2xl overflow-hidden md:my-6 md:shadow-2xl">
-          {/* Header fijo */}
+          {/* Header */}
           <div className="h-14 px-4 flex items-center gap-3 bg-neutral-950/80 backdrop-blur border-b border-white/10">
             <button type="button" onClick={onCancel}
               className="rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-white/10 px-3 py-1.5">
@@ -995,10 +1166,12 @@ function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, o
 
                 <div className="space-y-2">
                   <label className="text-sm">Título</label>
-                  <input className={baseInput}
+                  <input
+                    className={baseInput}
                     value={form.titulo}
                     onChange={e=>setForm(s=>({...s, titulo:e.target.value}))}
-                    required />
+                    required
+                  />
                 </div>
 
                 <div className="grid gap-3 grid-cols-2 max-sm:grid-cols-1">
@@ -1039,13 +1212,18 @@ function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, o
                     <div className="relative">
                       <select
                         className={cls(baseInput, "appearance-none pr-10")}
-                        value={form.proveedorId}
+                        value={provValue}
                         onMouseDown={(e)=>revealBeforeOpen(e.currentTarget)}
                         onFocus={(e)=>revealBeforeOpen(e.currentTarget)}
                         onChange={e=>setForm(s=>({...s, proveedorId:normId(e.target.value)}))}
                       >
+                        {!provInList && provValue && (
+                          <option value={provValue}>{currentProvName}</option>
+                        )}
                         <option value="">-- Seleccione --</option>
-                        {provs.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                        {provs.map(p => (
+                          <option key={p.id} value={normId(p.id)}>{p.nombre}</option>
+                        ))}
                       </select>
                       <ChevronDown />
                     </div>
@@ -1064,13 +1242,18 @@ function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, o
                     <div className="relative">
                       <select
                         className={cls(baseInput, "appearance-none pr-10")}
-                        value={form.categoriaId}
+                        value={catValue}
                         onMouseDown={(e)=>revealBeforeOpen(e.currentTarget)}
                         onFocus={(e)=>revealBeforeOpen(e.currentTarget)}
                         onChange={e=>setForm(s=>({...s, categoriaId:normId(e.target.value)}))}
                       >
+                        {!catInList && catValue && (
+                          <option value={catValue}>{currentCatName}</option>
+                        )}
                         <option value="">-- Seleccione --</option>
-                        {cats.map(c => <option key={c.id} value={c.id}>{c.titulo}</option>)}
+                        {cats.map(c => (
+                          <option key={c.id} value={normId(c.id)}>{c.titulo}</option>
+                        ))}
                       </select>
                       <ChevronDown />
                     </div>
@@ -1099,7 +1282,8 @@ function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, o
 
                 <div className="space-y-2">
                   <label className="text-sm">Descripción</label>
-                  <textarea className={baseInput}
+                  <textarea
+                    className={baseInput}
                     rows={4}
                     value={form.descripcion}
                     onChange={e=>setForm(s=>({...s, descripcion:e.target.value}))}
@@ -1108,7 +1292,8 @@ function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, o
 
                 <div className="space-y-2">
                   <label className="text-sm">Condiciones</label>
-                  <textarea className={baseInput}
+                  <textarea
+                    className={baseInput}
                     rows={3}
                     value={form.condiciones}
                     onChange={e=>setForm(s=>({...s, condiciones:e.target.value}))}
@@ -1143,7 +1328,7 @@ function FullForm({ initial, cats, provs, onCreateCat, onCreateProv, onCancel, o
             </form>
           </div>
 
-          {/* Mini prompt estilado */}
+          {/* Mini prompt */}
           {promptOpen && (
             <div className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center p-4">
               <div className="w-full max-w-md rounded-2xl bg-neutral-900 border border-white/10 p-4 shadow-xl">
@@ -1241,6 +1426,7 @@ function MobileSidebar({ open, current, onSelect, onClose }) {
     { key: "beneficios",  label: "Beneficios",  icon: <IconGift className="w-5 h-5" />, level: 0 },
     { key: "categorias",  label: "Categorías",  icon: <IconTag className="w-5 h-5"  />, level: 1 },
     { key: "proveedores", label: "Proveedores", icon: <IconBuilding className="w-5 h-5" />, level: 1 },
+    { key: "hrportal",    label: "HR Portal",   icon: <IconUsers className="w-5 h-5" />, level: 0 },
   ];
 
   return (
