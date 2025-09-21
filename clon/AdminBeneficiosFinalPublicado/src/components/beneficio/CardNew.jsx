@@ -1,9 +1,13 @@
 import React from "react";
 
 export default function CardNew({ onClick }) {
+  console.log("CardNew mounted", !!onClick);
   return (
-    <button
-      onClick={onClick}
+    <div role="button" tabIndex={0}
+onClick={(e)=>{ e.stopPropagation(); 
+    console.log("CardNew click"); 
+  onClick?.(); }}
+onKeyDown={(e)=>{ if (e.key==='Enter' || e.key===' ') { e.preventDefault(); onClick?.(); }}}
       className="rounded-2xl bg-neutral-900 border border-white/10 overflow-hidden text-left group focus:outline-none focus:ring-2 focus:ring-white/20"
     >
       <div className="relative">
@@ -36,6 +40,6 @@ export default function CardNew({ onClick }) {
           </span>
         </div>
       </div>
-    </button>
+      </div>
   );
 }

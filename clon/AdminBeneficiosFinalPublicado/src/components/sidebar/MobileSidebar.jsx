@@ -14,16 +14,27 @@ export default function MobileSidebar({ open, current, items, onSelect, onClose 
         </div>
         <nav className="p-2 space-y-1">
           {items.map(i => {
-            const active = current === i.key;
-            return (
-              <button key={i.key} onClick={() => onSelect(i.key)}
-                className={`w-full flex items-center gap-3 py-2 rounded-2xl text-left px-3 ${
-                  active ? "bg-neutral-800 text-white" : "bg-neutral-900 border border-white/10 hover:bg-neutral-800/70 text-white/90"
-                } ${i.level === 1 ? "pl-8" : ""}`}>
-                <span className="w-5 h-5 grid place-items-center">{i.icon}</span>
-                <span className="font-medium">{i.label}</span>
-              </button>
-            );
+  const active = current === i.key;
+  if (i.key === "hrportal") {
+    return (
+      <a
+        key={i.key}
+        href="http://hrportal"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block"
+      >
+        <button
+          className={`w-full flex items-center gap-3 py-2 rounded-2xl px-3 ${
+            active ? "bg-neutral-800 text-white" : "bg-neutral-900 border border-white/10 hover:bg-neutral-800/70 text-white/90"
+          }`}
+        >
+          <span className="w-5 h-5 grid place-items-center">{i.icon}</span>
+          <span className="font-medium">{i.label}</span>
+        </button>
+      </a>
+    );
+  }
           })}
         </nav>
       </div>

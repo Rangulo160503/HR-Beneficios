@@ -22,13 +22,15 @@ export const BeneficioApi = {
   remove:(id,o={}) => req(`/api/Beneficio/${id}`, { method:"DELETE", ...o }),
 };
 
+// src/services/adminApi.js
 export const CategoriaApi = {
   list:  (o={}) => req("/api/Categoria", o),
   get:   (id,o={}) => req(`/api/Categoria/${id}`, o),
-  create:(dto,o={}) => req("/api/Categoria", { method:"POST", json:dto, ...o }),   // usa { titulo }
+  create:(dto,o={}) => req("/api/Categoria", { method: "POST", json: dto, ...o }), // usa { nombre } (y opcionalmente { activa })
   update:(id,dto,o={}) => req(`/api/Categoria/${id}`, { method:"PUT", json:dto, ...o }),
   remove:(id,o={}) => req(`/api/Categoria/${id}`, { method:"DELETE", ...o }),
 };
+
 
 export const ProveedorApi = {
   list:  (o={}) => req("/api/Proveedor", o),
