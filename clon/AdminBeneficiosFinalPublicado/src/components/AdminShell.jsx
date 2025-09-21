@@ -108,10 +108,10 @@ setEditing(null); setShowForm(true); }} />
       <FullForm
         initial={editing}
         provs={provs}
+        onCancel={() => { setShowForm(false); setEditing(null); }}
         onCreateCat={addCategoria}
         onCreateProv={addProveedor}
-        onCancel={() => setShowForm(false)}
-        onSave={async (dto) => { await actions.save(dto); setShowForm(false); }}
+        onSave={async (dto) => { await actions.save(dto, editing); setShowForm(false); setEditing(null); }}
       />
     </div>
   </div>
