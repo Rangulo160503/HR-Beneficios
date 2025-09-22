@@ -1,23 +1,62 @@
 // src/components/beneficio/CardBeneficio.jsx
 import React, { useEffect, useState } from "react";
+import { BeneficioApi } from "../../services/adminApi"; // ⟵ desde /components/beneficio a /components/services
 
-// mini helper local (luego lo moveremos a utils/images)
-const normalizeImage = (raw) => {
-  if (!raw) return "";
-  const s = String(raw).trim();
+// Normaliza cualquier forma de imagen hacia algo válido para <img src="...">
+function toDisplaySrc(raw) {
+  const s = String(raw ?? "").trim();
   if (!s) return "";
-  if (/^(https?:|data:|blob:)/i.test(s)) return s;
-  return `data:image/jpeg;base64,${s.replace(/\s/g, "")}`;
-};
+  // ya es URL absoluta, data URL o blob
+  if (/^(data:|https?:|blob:)/i.test(s)) return s;
+  // ¿parece base64 crudo?
+  const looksB64 = /^[A-Za-z0-9+/=\s]+$/.test(s) && s.replace(/\s/g, "").length > 50;
+  if (looksB64) return `data:image/jpeg;base64,${s.replace(/\s/g, "")}`;
+  // algún path relativo u otro esquema
+  return s;
+}
 
 export default function CardBeneficio({ item, onEdit, onDelete }) {
-  const [src, setSrc] = useState(item?.imagenUrl ?? item?.imagen ?? "");
+  // intenta con lo que venga en la card (url, base64, etc.)
+  const [src, setSrc] = useState(() =>
+    toDisplaySrc(
+      item?.imagenUrl ?? item?.ImagenUrl ??
+      item?.imagenBase64 ?? item?.ImagenBase64 ??
+      item?.imagen ?? item?.Imagen ?? ""
+    )
+  );
 
+  // Si no hay imagen en la card, hidrata desde el detalle del beneficio
   useEffect(() => {
-    if (!src && (item?.imagen || item?.imagenUrl)) {
-      setSrc(normalizeImage(item.imagenUrl ?? item.imagen));
+    let cancel = false;
+
+    // si el item se actualiza y ahora trae algo inline, úsalo
+    const inlineRaw =
+      item?.imagenUrl ?? item?.ImagenUrl ??
+      item?.imagenBase64 ?? item?.ImagenBase64 ??
+      item?.imagen ?? item?.Imagen ?? "";
+    if (!src && inlineRaw) {
+      setSrc(toDisplaySrc(inlineRaw));
+      return;
     }
-  }, [item, src]);
+
+    // si seguimos sin src y hay id, pide el detalle para intentar obtener imagen
+    (async () => {
+      if (src || !item?.id) return;
+      try {
+        const full = await BeneficioApi.get(item.id);
+        if (cancel) return;
+        const raw =
+          full?.imagenUrl ?? full?.ImagenUrl ??
+          full?.imagenBase64 ?? full?.ImagenBase64 ??
+          full?.imagen ?? full?.Imagen ?? "";
+        if (raw) setSrc(toDisplaySrc(raw));
+      } catch {
+        // silencioso: si falla, dejamos "Sin imagen"
+      }
+    })();
+
+    return () => { cancel = true; };
+  }, [item?.id, item?.imagen, item?.imagenUrl, src]);
 
   const precio = item?.precioCRC ?? item?.precio ?? null;
 

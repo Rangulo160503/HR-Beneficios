@@ -1,3 +1,4 @@
+// src/components/AdminShell.jsx
 import { useEffect, useMemo, useState } from "react";
 import HeaderBar from "./header/HeaderBar";
 import MobileSidebar from "./sidebar/MobileSidebar";
@@ -10,12 +11,7 @@ import SimpleList from "./common/SimpleList";
 import FiltersBar from "./beneficio/FiltersBar";
 import { useBeneficios } from "../hooks/useBeneficios";
 import { useCatalogos } from "../hooks/useCatalogos";
-import { CategoriasProvider } from "../context/CategoriasContext";
 
-
-
-
-// Iconos inline básicos
 const IconMenu=(p)=>(<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...p}><path d="M4 6h16M4 12h16M4 18h16" strokeWidth="2" strokeLinecap="round"/></svg>);
 const IconSearch=(p)=>(<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...p}><circle cx="11" cy="11" r="7" strokeWidth="2"/><path d="M20 20l-4.2-4.2" strokeWidth="2" strokeLinecap="round"/></svg>);
 const IconGift=(p)=>(<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...p}><rect x="3" y="8" width="18" height="13" rx="2" strokeWidth="1.8"/><path d="M12 8v13M3 12h18" strokeWidth="1.8"/></svg>);
@@ -26,17 +22,29 @@ const LS_SIDEBAR = "admin.sidebar.collapsed";
 
 export default function AdminShell() {
   const { state, actions } = useBeneficios();
-  const { cats, provs, loading: loadingCatsProvs, err: errCatsProvs,
-          addCategoria, renameCategoria, deleteCategoria,
-          addProveedor, renameProveedor, deleteProveedor } = useCatalogos();
+  const {
+    cats, provs, loading: loadingCatsProvs, err: errCatsProvs,
+    addCategoria, renameCategoria, deleteCategoria,
+    addProveedor, renameProveedor, deleteProveedor
+  } = useCatalogos();
 
   const [nav, setNav] = useState("beneficios");
   const [showMobileNav, setShowMobileNav] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+
+  // Modal
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
 
-  useEffect(() => { try { setCollapsed(localStorage.getItem(LS_SIDEBAR) === "1"); } catch{} }, []);
+  useEffect(() => {
+    try { setCollapsed(localStorage.getItem(LS_SIDEBAR) === "1"); } catch {}
+  }, []);
+
+  // Bloquear scroll cuando el modal está abierto
+  useEffect(() => {
+    document.documentElement.style.overflow = showForm ? "hidden" : "";
+    return () => { document.documentElement.style.overflow = ""; };
+  }, [showForm]);
 
   const mobileItems = [
     { key:"beneficios",  label:"Beneficios",  icon:<IconGift className="w-5 h-5"/>,     level:0 },
@@ -44,10 +52,12 @@ export default function AdminShell() {
     { key:"proveedores", label:"Proveedores", icon:<IconBuilding className="w-5 h-5"/>, level:1 },
     { key:"hrportal",    label:"HR Portal",   icon:<IconBuilding className="w-5 h-5"/>, level:0 },
   ];
-console.log('showForm:', showForm);
+
+  // Handlers modal
+  function openNew() { setEditing(null); setShowForm(true); }
+  async function openEdit(it) { setEditing(it); setShowForm(true); }
 
   return (
-        <CategoriasProvider>
     <div className={`min-h-screen bg-neutral-950 text-white md:grid ${collapsed ? "md:grid-cols-[64px_1fr]" : "md:grid-cols-[260px_1fr]"}`}>
       {/* Sidebar */}
       <Sidebar
@@ -87,36 +97,20 @@ console.log('showForm:', showForm);
               />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <CardNew onClick={() => {   console.log("Parent handler: abrir modal"); 
-setEditing(null); setShowForm(true); }} />
-                {state.filtered.map(it => (
+                <CardNew onClick={openNew} />
+                {state.filtered.map((it, i) => (
                   <CardBeneficio
-                    key={it.id}
+                    key={it.id || `b-${i}`}   // ← key robusta
                     item={it}
-                    onEdit={() => { setEditing(it); setShowForm(true); }}
+                    onEdit={() => openEdit(it)}
                     onDelete={async () => {
                       if (!confirm("¿Eliminar?")) return;
                       try { await actions.remove(it.id); }
-                      catch { /* errores ya manejados arriba */ }
+                      catch {}
                     }}
                   />
                 ))}
               </div>
-              {showForm && (
-  <div className="fixed inset-0 z-[9999] bg-black/60 grid place-items-center">
-  <div className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl bg-neutral-900 p-4 border border-white/10">
-      <FullForm
-        initial={editing}
-        provs={provs}
-        onCancel={() => { setShowForm(false); setEditing(null); }}
-        onCreateCat={addCategoria}
-        onCreateProv={addProveedor}
-        onSave={async (dto) => { await actions.save(dto, editing); setShowForm(false); setEditing(null); }}
-      />
-    </div>
-  </div>
-)}
-
 
               {state.filtered.length === 0 && (
                 <div className="text-white/60 text-sm mt-2">Sin resultados.</div>
@@ -135,11 +129,11 @@ setEditing(null); setShowForm(true); }} />
                 </button>
               </div>
               <SimpleList
-  rows={cats.map(c => ({ ...c, titulo: c.titulo ?? c.nombre ?? c.Nombre }))}
-  prop="titulo"
-  onRename={renameCategoria}
-  onDelete={deleteCategoria}
-/>
+                rows={cats.map(c => ({ ...c, titulo: c.titulo ?? c.nombre ?? c.Nombre }))}
+                prop="titulo"
+                onRename={renameCategoria}
+                onDelete={deleteCategoria}
+              />
             </section>
           )}
 
@@ -167,9 +161,38 @@ setEditing(null); setShowForm(true); }} />
           onClose={()=>setShowMobileNav(false)}
         />
 
-       
+        {/* Modal del form */}
+        {showForm && (
+          <div
+            className="fixed inset-0 z-[9999] grid"
+            aria-modal="true"
+            role="dialog"
+            onKeyDown={(e)=>{ if(e.key==='Escape') setShowForm(false); }}
+          >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/60" onClick={()=>setShowForm(false)} />
+
+            {/* Panel */}
+            <div className="relative z-10 m-4 sm:m-8 lg:m-16 place-self-center w-full max-w-2xl">
+              <div className="max-h-[85vh] overflow-auto rounded-2xl border border-white/10 bg-neutral-900 p-4">
+                <FullForm
+                  initial={editing}
+                  provs={provs || []}
+                  cats={cats || []}
+                  onCancel={()=>{ setShowForm(false); setEditing(null); }}
+                  onCreateCat={async () => await addCategoria()}
+                  onCreateProv={async () => await addProveedor()}
+                  onSave={async (dto) => {
+                    await actions.save(dto, editing);
+                    setShowForm(false);
+                    setEditing(null);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
-        </CategoriasProvider>
   );
 }
