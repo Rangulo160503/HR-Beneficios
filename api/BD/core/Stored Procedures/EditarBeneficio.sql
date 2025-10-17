@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE core.EditarBeneficio
+﻿CREATE PROCEDURE [core].[EditarBeneficio]
   @Id             UNIQUEIDENTIFIER,
   @Titulo         NVARCHAR(140),
   @Descripcion    NVARCHAR(MAX),
@@ -18,7 +18,7 @@ BEGIN
       PrecioCRC=@PrecioCRC,
       ProveedorId=@ProveedorId,
       CategoriaId=@CategoriaId,
-      Imagen = COALESCE(@Imagen, b.Imagen),
+      Imagen = @Imagen,
       Condiciones=@Condiciones,
       VigenciaInicio=@VigenciaInicio,
       VigenciaFin=@VigenciaFin,
