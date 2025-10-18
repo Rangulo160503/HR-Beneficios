@@ -27,7 +27,9 @@ namespace API.Controllers
                 return BadRequest("El nombre es requerido.");
 
             var id = await _proveedorFlujo.Agregar(proveedor);
-            return CreatedAtAction(nameof(Obtener), new { Id = id }, new { proveedorId = id });
+            var creado = await _proveedorFlujo.Obtener(id);
+            return CreatedAtAction(nameof(Obtener), new { Id = id }, creado);
+
         }
 
         [HttpPut("{Id:guid}")]

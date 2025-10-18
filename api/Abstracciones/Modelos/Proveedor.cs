@@ -6,16 +6,10 @@ namespace Abstracciones.Modelos
     {
         [Required, StringLength(200, MinimumLength = 2)]
         public string Nombre { get; set; } = null!;
-
         [EmailAddress]
         public string? Correo { get; set; }
-
         [Phone, StringLength(50)]
         public string? Telefono { get; set; }
-
-        [Required]
-        public bool Activo { get; set; } = true;
-
         // Imagen del proveedor (logo o foto)
         public byte[]? Imagen { get; set; }
         public string? Direccion { get; set; }
@@ -29,8 +23,6 @@ namespace Abstracciones.Modelos
     public class ProveedorResponse : ProveedorBase
     {
         public Guid ProveedorId { get; set; }
-        public DateTime? CreadoEn { get; set; }
-        public DateTime? ModificadoEn { get; set; }
     }
 
     public class ProveedorDetalle : ProveedorResponse

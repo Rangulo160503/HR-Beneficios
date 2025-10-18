@@ -46,7 +46,11 @@ export function useBeneficios() {
 
         setCats(C);
         setProvs(P);
+
+        
+        console.log("🧩 Braw example:", B[0]);
         setItems(B);
+
       } catch {
         setErr("No se pudieron cargar los datos.");
       } finally {
@@ -187,12 +191,12 @@ export function useBeneficios() {
 
  // ---- CRUD
 async function save(dto, editing) {
-  const id = editing?.id || editing?.Id || "";
+  const id = editing?.beneficioId || editing?.BeneficioId || editing?.id || editing?.Id;
   if (id) {
     // UPDATE
     await BeneficioApi.update(id, dto);
     const fresh = await BeneficioApi.get(id);
-    setItems(s => s.map(x => (x.id === id ? fresh : x)));
+    setItems(s => s.map(x => ((x.beneficioId || x.id) === id ? fresh : x)));
   } else {
     // CREATE
     const newIdOrObj = await BeneficioApi.create(dto);
@@ -204,7 +208,7 @@ async function save(dto, editing) {
 
   async function remove(id) {
     await BeneficioApi.remove(id);
-    setItems(s => s.filter(x => x.id !== id));
+    setItems(s => s.filter(x => (x.beneficioId || x.id) !== id));
   }
 
   return {

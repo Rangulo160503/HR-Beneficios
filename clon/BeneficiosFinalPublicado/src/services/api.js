@@ -1,7 +1,15 @@
 // src/services/api.js
-const API_BASE = (import.meta.env.VITE_API_BASE
-  || "https://hr-beneficios-api-grgmckc5dwdca9dc.canadacentral-01.azurewebsites.net").replace(/\/$/, "");
 
+// 🧭 Selección dinámica del entorno
+const target = import.meta.env.VITE_API_TARGET?.trim().toLowerCase() || "local";
+
+const API_BASE = (
+  target === "cloud"
+    ? import.meta.env.VITE_API_BASE_CLOUD
+    : import.meta.env.VITE_API_BASE
+).replace(/\/$/, "");
+
+// 📡 Función GET genérica
 async function httpGet(path) {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "GET",
@@ -14,6 +22,7 @@ async function httpGet(path) {
   return ct.includes("application/json") ? res.json() : res.text();
 }
 
+// 🧱 Endpoints centralizados
 export const EP = {
   beneficios: () => `/api/Beneficio`,
   beneficioId: (id) => `/api/Beneficio/${id}`,
@@ -23,6 +32,7 @@ export const EP = {
   proveedorId: (id) => `/api/Proveedor/${id}`,
 };
 
+// 🚀 API agrupada por recurso
 export const Api = {
   beneficios: {
     listar: () => httpGet(EP.beneficios()),
@@ -37,3 +47,6 @@ export const Api = {
     obtener: (id) => httpGet(EP.proveedorId(id)),
   },
 };
+
+// 🧾 (Opcional) Log de entorno activo
+console.log(`🌍 API activa: ${target.toUpperCase()} → ${API_BASE}`);

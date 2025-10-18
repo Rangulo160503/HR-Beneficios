@@ -22,8 +22,9 @@ namespace API.Controllers
         [HttpPost]
         public async Task<IActionResult> Agregar([FromBody] CategoriaRequest categoria)
         {
-            var resultado = await _categoriaFlujo.Agregar(categoria);
-            return CreatedAtAction(nameof(Obtener), new { Id = resultado }, null);
+            var id = await _categoriaFlujo.Agregar(categoria);
+            var creada = await _categoriaFlujo.Obtener(id);
+            return CreatedAtAction(nameof(Obtener), new { Id = id }, creada);
         }
 
         [HttpPut("{Id:guid}")]

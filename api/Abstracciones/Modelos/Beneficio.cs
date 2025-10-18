@@ -36,11 +36,10 @@ namespace Abstracciones.Modelos
     public class BeneficioResponse : BeneficioBase
     {
         public Guid BeneficioId { get; set; }
-        public DateTime? CreadoEn { get; set; }
-        public DateTime? ModificadoEn { get; set; }
-
         public string? ProveedorNombre { get; set; }
         public string? CategoriaNombre { get; set; }
+        public Guid ProveedorId { get; set; }
+        public Guid CategoriaId { get; set; }
     }
 
     // Queque servido en la mesa → con métricas adicionales

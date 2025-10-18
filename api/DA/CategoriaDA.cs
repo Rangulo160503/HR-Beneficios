@@ -26,7 +26,6 @@ namespace DA
                 _dbConnection, sp, new
                 {
                     Nombre = categoria.Nombre,
-                    Activa = categoria.Activa
                 },
                 null, null, CommandType.StoredProcedure
             );
@@ -42,7 +41,6 @@ namespace DA
                 {
                     Id,
                     Nombre = categoria.Nombre,
-                    Activa = categoria.Activa
                 },
                 null, null, CommandType.StoredProcedure
             );

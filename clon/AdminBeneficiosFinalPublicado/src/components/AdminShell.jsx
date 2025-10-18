@@ -27,6 +27,14 @@ export default function AdminShell() {
     addCategoria, renameCategoria, deleteCategoria,
     addProveedor, renameProveedor, deleteProveedor
   } = useCatalogos();
+  // 🔍 Diagnóstico de filtros y datos
+console.log({
+  items: state.items.length,
+  selCat: state.selCat,
+  selProv: state.selProv,
+  filtered: state.filtered.length,
+  query: state.query
+});
 
   const [nav, setNav] = useState("beneficios");
   const [showMobileNav, setShowMobileNav] = useState(false);
@@ -103,11 +111,7 @@ export default function AdminShell() {
                     key={it.id || `b-${i}`}   // ← key robusta
                     item={it}
                     onEdit={() => openEdit(it)}
-                    onDelete={async () => {
-                      if (!confirm("¿Eliminar?")) return;
-                      try { await actions.remove(it.id); }
-                      catch {}
-                    }}
+                    onDelete={async () => { await actions.remove(it.beneficioId || it.id); }}
                   />
                 ))}
               </div>

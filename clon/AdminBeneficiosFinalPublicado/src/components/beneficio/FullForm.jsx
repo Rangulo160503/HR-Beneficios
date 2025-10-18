@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import FileUpload from "./FileUpload";
 
 const norm   = (v) => (v == null ? "" : String(v).trim());
@@ -27,6 +27,11 @@ export default function FullForm({
   onCancel,
   onSave,
 }) {
+
+    console.log("🧩 initial IDs:", {
+    proveedorId: initial?.proveedorId,
+    categoriaId: initial?.categoriaId,
+  });
 
   const [form, setForm] = useState(() => ({
     titulo:         initial?.titulo ?? "",
@@ -134,6 +139,14 @@ export default function FullForm({
     cats.find(c => getCatId(c) === catValue)?.titulo ??
     "Categoría nueva";
 
+console.log("🧩 select expects:", {
+  provValue: String(form.proveedorId),
+  catValue: String(form.categoriaId),
+  provsIds: provs.map(p => String(p?.id ?? p?.proveedorId)),
+  catsIds:  cats.map(c => String(c?.id ?? c?.categoriaId)),
+});
+
+    
   return (
     <div className="fixed inset-0 z-50 bg-neutral-950/80 backdrop-blur">
       <div className="absolute inset-0 flex md:items-center md:justify-center">
@@ -358,6 +371,7 @@ export default function FullForm({
       </div>
     </div>
   );
+  
 }
 
 function ChevronDown() {

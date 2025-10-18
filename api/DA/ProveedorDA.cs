@@ -28,7 +28,6 @@ namespace DA
                     proveedor.Nombre,
                     proveedor.Correo,
                     proveedor.Telefono,
-                    proveedor.Activo,
                     proveedor.Imagen,
                     proveedor.Direccion
                 },
@@ -48,7 +47,6 @@ namespace DA
                     proveedor.Nombre,
                     proveedor.Correo,
                     proveedor.Telefono,
-                    proveedor.Activo,
                     proveedor.Imagen,
                     proveedor.Direccion
                 },
