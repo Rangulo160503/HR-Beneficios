@@ -119,25 +119,26 @@ const getCatId = (r) => {
 };
 
   async function renameCategoria(r) {
-    const id = getCatId(r);
-    const nuevo = prompt("Renombrar categoría", r?.titulo ?? r?.nombre ?? "");
-    const titulo = norm(nuevo);
-    if (!id || !titulo) return;
+  const id = getCatId(r);
+  const nuevo = prompt("Renombrar categoría", r?.nombre ?? r?.titulo ?? "");
+  const nombre = norm(nuevo);
+  if (!id || !nombre) return;
 
-    await CategoriaApi.update(id, { titulo, activa: r?.activa ?? true });
-    const fresh = await CategoriaApi.get(id);
+  await CategoriaApi.update(id, { nombre });          // ← clave correcta
+  const fresh = await CategoriaApi.get(id);           // rehidrata desde API
 
-    const nodo = {
-      ...r,
-      ...fresh,
-      id,
-      categoriaId: id,
-      titulo: norm(fresh?.titulo ?? titulo),
-      nombre: norm(fresh?.nombre ?? fresh?.titulo ?? titulo),
-    };
+  const nodo = {
+    ...r,
+    ...fresh,
+    id,
+    categoriaId: id,
+    nombre: norm(fresh?.nombre ?? nombre),
+    titulo: norm(fresh?.nombre ?? nombre),            // la UI usa prop="titulo"
+  };
 
-    setCats(s => s.map(x => (getCatId(x) === id ? nodo : x)));
-  }
+  setCats(s => s.map(x => (getCatId(x) === id ? nodo : x)));
+}
+
 
   async function deleteCategoria(r) {
     const id = getCatId(r);
