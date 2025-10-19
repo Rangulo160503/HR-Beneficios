@@ -1,6 +1,7 @@
-﻿CREATE PROCEDURE core.AgregarCategoria
-  @Nombre NVARCHAR(160),
-  @Activa BIT = 1
+﻿
+-- 4) Agregar (sin @Activa, sin CreadoEn)
+CREATE PROCEDURE core.AgregarCategoria
+  @Nombre NVARCHAR(160)
 AS
 BEGIN
   SET NOCOUNT ON;
@@ -14,8 +15,8 @@ BEGIN
   IF @Id IS NULL
   BEGIN
     SET @Id = NEWID();
-    INSERT core.Categoria (CategoriaId, Nombre, Activa, CreadoEn)
-    VALUES (@Id, @Nombre, @Activa, SYSUTCDATETIME());
+    INSERT core.Categoria (CategoriaId, Nombre)
+    VALUES (@Id, @Nombre);
   END
 
   SELECT @Id AS CategoriaId;

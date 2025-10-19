@@ -1,11 +1,19 @@
-﻿CREATE   PROCEDURE core.ObtenerProveedor
+﻿CREATE PROCEDURE [core].[ObtenerProveedor]
   @Id UNIQUEIDENTIFIER
 AS
 BEGIN
   SET NOCOUNT ON;
-  SELECT p.ProveedorId,p.Nombre,p.Correo,p.Telefono,p.Activo,p.Direccion,p.Imagen,
-         p.CreadoEn,p.ModificadoEn,
-         (SELECT COUNT(*) FROM core.Beneficio b WHERE b.ProveedorId=p.ProveedorId) AS CantidadBeneficios
+
+  SELECT 
+      p.ProveedorId,
+      p.Nombre,
+      p.Correo,
+      p.Telefono,
+      p.Direccion,
+      p.Imagen,
+      (SELECT COUNT(*) 
+         FROM core.Beneficio b 
+         WHERE b.ProveedorId = p.ProveedorId) AS CantidadBeneficios
   FROM core.Proveedor p
-  WHERE p.ProveedorId=@Id;
+  WHERE p.ProveedorId = @Id;
 END

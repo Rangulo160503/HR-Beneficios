@@ -1,12 +1,20 @@
-﻿CREATE   PROCEDURE core.ObtenerProveedores
+﻿CREATE PROCEDURE [core].[ObtenerProveedores]
 AS
 BEGIN
   SET NOCOUNT ON;
-  SELECT p.ProveedorId,p.Nombre,p.Correo,p.Telefono,p.Activo,p.Direccion,p.Imagen,
-         p.CreadoEn,p.ModificadoEn,
-         COUNT(b.BeneficioId) AS CantidadBeneficios
+
+  SELECT 
+      p.ProveedorId,
+      p.Nombre,
+      p.Correo,
+      p.Telefono,
+      p.Direccion,
+      p.Imagen,
+      COUNT(b.BeneficioId) AS CantidadBeneficios
   FROM core.Proveedor p
-  LEFT JOIN core.Beneficio b ON b.ProveedorId=p.ProveedorId
-  GROUP BY p.ProveedorId,p.Nombre,p.Correo,p.Telefono,p.Activo,p.Direccion,p.Imagen,p.CreadoEn,p.ModificadoEn
-  ORDER BY p.CreadoEn DESC;
+  LEFT JOIN core.Beneficio b ON b.ProveedorId = p.ProveedorId
+  GROUP BY 
+      p.ProveedorId, p.Nombre, p.Correo, p.Telefono, p.Direccion, p.Imagen
+  ORDER BY 
+      p.Nombre;  -- (o p.ProveedorId si preferís)
 END

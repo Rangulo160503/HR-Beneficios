@@ -1,9 +1,8 @@
-﻿CREATE   PROCEDURE core.EditarProveedor
+﻿CREATE PROCEDURE [core].[EditarProveedor]
   @Id        UNIQUEIDENTIFIER,
   @Nombre    NVARCHAR(120),
   @Correo    NVARCHAR(120) = NULL,
   @Telefono  NVARCHAR(50)  = NULL,
-  @Activo    BIT,
   @Direccion NVARCHAR(250) = NULL,
   @Imagen    VARBINARY(MAX)= NULL
 AS
@@ -14,13 +13,11 @@ BEGIN
     THROW 50010, 'Nombre de proveedor ya existe.', 1;
 
   UPDATE p
-     SET p.Nombre       = @Nombre,
-         p.Correo       = @Correo,
-         p.Telefono     = @Telefono,
-         p.Activo       = @Activo,
-         p.Direccion    = @Direccion,
-         p.Imagen       = COALESCE(@Imagen, p.Imagen),
-         p.ModificadoEn = SYSUTCDATETIME()
+     SET p.Nombre    = @Nombre,
+         p.Correo    = @Correo,
+         p.Telefono  = @Telefono,
+         p.Direccion = @Direccion,
+         p.Imagen    = COALESCE(@Imagen, p.Imagen)
   FROM core.Proveedor p
   WHERE p.ProveedorId = @Id;
 
