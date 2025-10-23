@@ -67,6 +67,8 @@ builder.Services.AddScoped<ICategoriaFlujo, CategoriaFlujo>();
 builder.Services.AddScoped<IProveedorFlujo, ProveedorFlujo>();
 builder.Services.AddScoped<IBeneficiosServicio, BeneficiosServicio>();
 builder.Services.AddScoped<IConfiguracion, Configuracion>();
+builder.Services.AddScoped<IAreaDeCategoriaDA, AreaDeCategoriaDA>();
+builder.Services.AddScoped<IAreaDeCategoriaFlujo, AreaDeCategoriaFlujo>();
 
 var app = builder.Build();
 

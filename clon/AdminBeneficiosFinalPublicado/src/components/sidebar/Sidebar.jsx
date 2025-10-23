@@ -1,5 +1,4 @@
 import NavItem from "./NavItem";
-import SubNavItem from "./SubNavItem";
 
 // Iconos sencillos
 const IconGift = (p)=>(<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...p}>
@@ -11,6 +10,11 @@ const IconTag = (p)=>(<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 const IconBuilding = (p)=>(<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...p}>
   <rect x="4" y="3" width="16" height="18" rx="2" strokeWidth="1.8"/>
   <path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2M4 19h16" strokeWidth="1.8"/></svg>);
+  const IconHandshake = (p)=>(<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...p}>
+  <path d="M3 12l3-3 3 3 3-3 3 3 3-3 3 3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+  <path d="M3 12v5a2 2 0 0 0 2 2h2m12-7v5a2 2 0 0 1-2 2h-2" strokeWidth="1.8" strokeLinecap="round"/>
+</svg>);
+
 
 const LS_SIDEBAR = "admin.sidebar.collapsed";
 
@@ -34,46 +38,46 @@ export default function Sidebar({ nav, onChangeNav, collapsed, onToggleCollapsed
 
       {/* Navegación */}
       <nav className="p-2 flex-1 space-y-1">
-        <NavItem
-          label="Beneficios"
-          icon={<IconGift className="w-5 h-5" />}
-          active={nav === "beneficios"}
-          collapsed={collapsed}
-          onClick={() => onChangeNav("beneficios")}
-        />
-
-        {!collapsed && (
-          <div className="pl-8 mt-1 space-y-1">
-            <SubNavItem
-              label="Categorías"
-              icon={<IconTag className="w-4 h-4" />}
-              active={nav === "categorias"}
-              onClick={() => onChangeNav("categorias")}
-            />
-            <SubNavItem
-              label="Proveedores"
-              icon={<IconBuilding className="w-4 h-4" />}
-              active={nav === "proveedores"}
-              onClick={() => onChangeNav("proveedores")}
-            />
-          </div>
-        )}
-
-        <a
-  href="http://hrportal"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="contents"
->
   <NavItem
-    label="HR Portal"
-    icon={<IconBuilding className="w-5 h-5" />}
-    active={nav === "hrportal"}
+    label="Beneficios"
+    icon={<IconGift className="w-5 h-5" />}
+    active={nav === "beneficios"}
     collapsed={collapsed}
-    // sin onClick: se delega al <a>
+    onClick={() => onChangeNav("beneficios")}
   />
-</a>
-      </nav>
+
+  <NavItem
+    label="Categorías"
+    icon={<IconTag className="w-5 h-5" />}
+    active={nav === "categorias"}
+    collapsed={collapsed}
+    onClick={() => onChangeNav("categorias")}
+  />
+
+  <NavItem
+  label="Proveedores"
+  icon={<IconHandshake className="w-5 h-5" />}
+  active={nav === "proveedores"}
+  collapsed={collapsed}
+  onClick={() => onChangeNav("proveedores")}
+/>
+
+
+  <a
+    href="http://hrportal"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="contents"
+  >
+    <NavItem
+      label="HR Portal"
+      icon={<IconBuilding className="w-5 h-5" />}
+      active={nav === "hrportal"}
+      collapsed={collapsed}
+    />
+  </a>
+</nav>
+
 
       <div className="p-3 text-xs text-white/50 border-t border-white/10">
         {collapsed ? "v1" : "Versión 1.0.0"}

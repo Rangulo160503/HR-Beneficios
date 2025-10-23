@@ -85,5 +85,11 @@
     <Build Include="core\Tables\SeleccionBeneficio.sql" />
     <Build Include="core\Tables\CategoriaIdMap.sql" />
     <Build Include="core\Stored Procedures\ContarCategorias.sql" />
+    <Build Include="core\Tables\AreaDeCategoria.sql" />
+    <Build Include="core\Stored Procedures\AreaDeCategoria_ObtenerPorId.sql" />
+    <Build Include="core\Stored Procedures\AreaDeCategoria_Listar.sql" />
+    <Build Include="core\Stored Procedures\AreaDeCategoria_Eliminar.sql" />
+    <Build Include="core\Stored Procedures\AreaDeCategoria_Editar.sql" />
+    <Build Include="core\Stored Procedures\AreaDeCategoria_Agregar.sql" />
   </ItemGroup>
 </Project>
