@@ -15,6 +15,24 @@ const isMeaningful = (s) => {
 const isNameSel = (sel) => String(sel).startsWith("name:");
 const nameOfSel = (sel) => String(sel).slice(5);
 
+// 🔒 Normaliza un beneficio para garantizar id estable
+const mapBenefitId = (r) => {
+  const id =
+    r?.id ??
+    r?.Id ??
+    r?.beneficioId ??
+    r?.BeneficioId ??
+    r?.beneficio?.id ??
+    r?.beneficio?.Id;
+
+  const fixed = String(id ?? "").trim();
+  return {
+    ...r,
+    id: fixed || undefined,          // clave única para React
+    beneficioId: fixed || undefined, // compatibilidad con código existente
+  };
+};
+
 export function useBeneficios() {
   const [items, setItems]     = useState([]);
   const [cats, setCats]       = useState([]);
@@ -47,9 +65,9 @@ export function useBeneficios() {
         setCats(C);
         setProvs(P);
 
-        
+        // Normaliza: todos los items con id estable
         console.log("🧩 Braw example:", B[0]);
-        setItems(B);
+        setItems(B.map(mapBenefitId));
 
       } catch {
         setErr("No se pudieron cargar los datos.");
@@ -189,26 +207,38 @@ export function useBeneficios() {
       });
   }, [items, query, selCat, selProv]);
 
- // ---- CRUD
-async function save(dto, editing) {
-  const id = editing?.beneficioId || editing?.BeneficioId || editing?.id || editing?.Id;
-  if (id) {
-    // UPDATE
-    await BeneficioApi.update(id, dto);
-    const fresh = await BeneficioApi.get(id);
-    setItems(s => s.map(x => ((x.beneficioId || x.id) === id ? fresh : x)));
-  } else {
-    // CREATE
-    const newIdOrObj = await BeneficioApi.create(dto);
-    const newId = typeof newIdOrObj === "string" ? newIdOrObj : (newIdOrObj?.id || newIdOrObj?.Id);
-    const fresh = newId ? await BeneficioApi.get(newId) : newIdOrObj;
-    setItems(s => [fresh, ...s]);
+  // ---- CRUD
+  async function save(dto, editing) {
+    const id = editing?.beneficioId || editing?.BeneficioId || editing?.id || editing?.Id;
+
+    if (id) {
+      // UPDATE
+      await BeneficioApi.update(id, dto);
+      const freshRaw = await BeneficioApi.get(id);
+      const fresh = mapBenefitId(freshRaw);
+      setItems(s => s.map(x => ((x.id || x.beneficioId) === id ? fresh : mapBenefitId(x))));
+    } else {
+      // CREATE
+      const created = await BeneficioApi.create(dto); // puede ser objeto, id o null (204)
+      let freshRaw = created;
+
+      if (freshRaw == null) {
+        // fallback: recargar lista para no insertar null
+        const Braw = await BeneficioApi.list();
+        setItems(Braw.map(mapBenefitId));
+        return;
+      }
+      if (typeof freshRaw === "string") {
+        freshRaw = await BeneficioApi.get(freshRaw);
+      }
+      const fresh = mapBenefitId(freshRaw);
+      setItems(s => [fresh, ...s.map(mapBenefitId)]);
+    }
   }
-}
 
   async function remove(id) {
     await BeneficioApi.remove(id);
-    setItems(s => s.filter(x => (x.beneficioId || x.id) !== id));
+    setItems(s => s.filter(x => x.id !== id));
   }
 
   return {

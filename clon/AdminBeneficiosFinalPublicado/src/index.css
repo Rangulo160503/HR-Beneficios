@@ -10,3 +10,8 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
+
+.chips-row {
+  scrollbar-gutter: stable both-edges; /* mismo ancho con o sin overflow */
+  overscroll-behavior-x: contain;      /* evita rebotes de 1px */
+}

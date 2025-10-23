@@ -1,17 +1,30 @@
-export default function Chip({ label, active, onClick }) {
+// src/components/common/Chip.jsx
+export default function Chip({
+  label,
+  active = false,
+  onClick,
+  title,            // opcional
+  className = "",
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
+      title={title || label}
+      aria-pressed={active}
       className={[
-        "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium border transition",
+        // base
+        "inline-flex items-center gap-1 rounded-full border text-xs font-medium",
+        "px-3 py-1.5 transition select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
+        "whitespace-nowrap flex-shrink-0 snap-start",
+        // estilos
         active
-          ? "bg-white/10 border-white/30 text-white"
-          : "bg-white/5 border-white/10 text-white/80 hover:text-white hover:bg-white/8 hover:border-white/20",
+          ? "bg-white text-black border-white shadow"
+          : "bg-neutral-900 border-white/10 text-white/90 hover:bg-white/10",
+        className,
       ].join(" ")}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-white" : "bg-white/40"}`} />
-      <span className="whitespace-nowrap">{label}</span>
+      {label}
     </button>
   );
 }
