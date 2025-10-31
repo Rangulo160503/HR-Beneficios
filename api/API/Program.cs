@@ -69,6 +69,15 @@ builder.Services.AddScoped<IBeneficiosServicio, BeneficiosServicio>();
 builder.Services.AddScoped<IConfiguracion, Configuracion>();
 builder.Services.AddScoped<IAreaDeCategoriaDA, AreaDeCategoriaDA>();
 builder.Services.AddScoped<IAreaDeCategoriaFlujo, AreaDeCategoriaFlujo>();
+// ===== Catálogos de filtros (nuevo) =====
+builder.Services.AddScoped<IProductoDA, ProductoDA>();
+builder.Services.AddScoped<IServicioDA, ServicioDA>();
+builder.Services.AddScoped<IUbicacionDA, UbicacionDA>();
+
+builder.Services.AddScoped<IProductoFlujo, ProductoFlujo>();
+builder.Services.AddScoped<IServicioFlujo, ServicioFlujo>();
+builder.Services.AddScoped<IUbicacionFlujo, UbicacionFlujo>();
+
 
 var app = builder.Build();
 
