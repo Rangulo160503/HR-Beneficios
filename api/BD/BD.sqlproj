@@ -91,28 +91,12 @@
     <Build Include="core\Stored Procedures\AreaDeCategoria_Eliminar.sql" />
     <Build Include="core\Stored Procedures\AreaDeCategoria_Editar.sql" />
     <Build Include="core\Stored Procedures\AreaDeCategoria_Agregar.sql" />
-    <Build Include="core\Tables\Ubicacion.sql" />
-    <Build Include="core\Tables\Servicio.sql" />
-    <Build Include="core\Tables\Producto.sql" />
-    <Build Include="core\Stored Procedures\Ubicacion_ObtenerPorId.sql" />
-    <Build Include="core\Stored Procedures\Ubicacion_Insertar.sql" />
-    <Build Include="core\Stored Procedures\Ubicacion_Eliminar.sql" />
-    <Build Include="core\Stored Procedures\Ubicacion_Actualizar.sql" />
-    <Build Include="core\Stored Procedures\Servicio_ObtenerPorId.sql" />
-    <Build Include="core\Stored Procedures\Servicio_Insertar.sql" />
-    <Build Include="core\Stored Procedures\Servicio_Eliminar.sql" />
-    <Build Include="core\Stored Procedures\Servicio_Actualizar.sql" />
-    <Build Include="core\Stored Procedures\Producto_ObtenerPorId.sql" />
-    <Build Include="core\Stored Procedures\Producto_Insertar.sql" />
-    <Build Include="core\Stored Procedures\Producto_Eliminar.sql" />
-    <Build Include="core\Stored Procedures\Producto_Actualizar.sql" />
-    <Build Include="core\Stored Procedures\ObtenerUbicaciones.sql" />
-    <Build Include="core\Stored Procedures\ObtenerUbicacion.sql" />
-    <Build Include="core\Stored Procedures\ObtenerServicios.sql" />
-    <Build Include="core\Stored Procedures\ObtenerServicio.sql" />
-    <Build Include="core\Stored Procedures\ObtenerProductos.sql" />
-    <Build Include="core\Stored Procedures\ObtenerProducto.sql" />
-    <Build Include="core\Stored Procedures\ObtenerBeneficiosPorUbicacionProductoServicio.sql" />
-    <Build Include="core\Stored Procedures\AsignarUbicacionProductoServicio.sql" />
+    <Build Include="core\Tables\BeneficioImagen.sql" />
+    <Build Include="core\Stored Procedures\BeneficioImagen_Reordenar.sql" />
+    <Build Include="core\Stored Procedures\BeneficioImagen_Obtener.sql" />
+    <Build Include="core\Stored Procedures\BeneficioImagen_ListarPorBeneficio.sql" />
+    <Build Include="core\Stored Procedures\BeneficioImagen_Insertar.sql" />
+    <Build Include="core\Stored Procedures\BeneficioImagen_Eliminar.sql" />
+    <Build Include="core\Stored Procedures\BeneficioImagen_Actualizar.sql" />
   </ItemGroup>
 </Project>
