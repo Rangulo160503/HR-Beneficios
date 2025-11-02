@@ -1,47 +1,38 @@
-﻿/* INSERT con GUID + imagen VARBINARY o Base64 */
-CREATE   PROCEDURE core.AgregarBeneficio
-    @BeneficioId     UNIQUEIDENTIFIER = NULL,
-    @Titulo          NVARCHAR(200),
-    @Descripcion     NVARCHAR(MAX)       = NULL,
-    @PrecioCRC       DECIMAL(18,2)       = NULL,
-    @Condiciones     NVARCHAR(MAX)       = NULL,
-    @VigenciaInicio  DATETIME2           = NULL,
-    @VigenciaFin     DATETIME2           = NULL,
-    @Disponible      BIT                 = 1,
-    @Origen          NVARCHAR(50)        = NULL,
-    @Imagen          VARBINARY(MAX)      = NULL,      -- ✅ bytes directos
-    @ImagenBase64    NVARCHAR(MAX)       = NULL,      -- ✅ alternativa en Base64
-    @CategoriaId     UNIQUEIDENTIFIER    = NULL,
-    @ProveedorId     UNIQUEIDENTIFIER    = NULL,
-    @UbicacionId     UNIQUEIDENTIFIER    = NULL,
-    @ProductoId      UNIQUEIDENTIFIER    = NULL,
-    @ServicioId      UNIQUEIDENTIFIER    = NULL
+﻿CREATE PROCEDURE [core].[AgregarBeneficio]
+  @Titulo         NVARCHAR(140),
+  @Descripcion    NVARCHAR(MAX),
+  @PrecioCRC      DECIMAL(12,2),
+  @ProveedorId    UNIQUEIDENTIFIER,
+  @CategoriaId    UNIQUEIDENTIFIER,
+  @Imagen         VARBINARY(MAX) = NULL,
+  @Condiciones    NVARCHAR(MAX) = NULL,
+  @VigenciaInicio DATE,
+  @VigenciaFin    DATE
 AS
 BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
+  SET NOCOUNT ON;
 
-    DECLARE @NewId UNIQUEIDENTIFIER = ISNULL(@BeneficioId, NEWID());
-    DECLARE @ImagenBytes VARBINARY(MAX) = @Imagen;
+  IF (@VigenciaFin < @VigenciaInicio)
+    THROW 50001, 'VigenciaFin debe ser >= VigenciaInicio.', 1;
 
-    -- Si vino Base64 y no bytes, convertir Base64 -> VARBINARY
-    IF (@ImagenBytes IS NULL AND @ImagenBase64 IS NOT NULL)
-    BEGIN
-        SET @ImagenBytes = CAST('' as xml).value('xs:base64Binary(sql:variable("@ImagenBase64"))','varbinary(max)');
-    END
+  IF NOT EXISTS (SELECT 1 FROM core.Proveedor WHERE ProveedorId=@ProveedorId)
+    THROW 50002, 'ProveedorId inválido.', 1;
 
-    INSERT INTO core.Beneficio
-    (
-        BeneficioId, Titulo, Descripcion, PrecioCRC, Condiciones,
-        VigenciaInicio, VigenciaFin, Disponible, Origen, CreadoEn, ModificadoEn,
-        Imagen, CategoriaId, ProveedorId, UbicacionId, ProductoId, ServicioId
-    )
-    VALUES
-    (
-        @NewId, @Titulo, @Descripcion, @PrecioCRC, @Condiciones,
-        @VigenciaInicio, @VigenciaFin, @Disponible, @Origen, SYSDATETIME(), NULL,
-        @ImagenBytes, @CategoriaId, @ProveedorId, @UbicacionId, @ProductoId, @ServicioId
-    );
+  IF NOT EXISTS (SELECT 1 FROM core.Categoria WHERE CategoriaId=@CategoriaId)
+    THROW 50003, 'CategoriaId inválida.', 1;
 
-    SELECT @NewId AS BeneficioId;
+  DECLARE @NewId UNIQUEIDENTIFIER = NEWID();
+
+  INSERT INTO core.Beneficio(
+    BeneficioId, Titulo, Descripcion, PrecioCRC,
+    ProveedorId, CategoriaId, Imagen, Condiciones,
+    VigenciaInicio, VigenciaFin, CreadoEn
+  )
+  VALUES(
+    @NewId, @Titulo, @Descripcion, @PrecioCRC,
+    @ProveedorId, @CategoriaId, @Imagen, @Condiciones,
+    @VigenciaInicio, @VigenciaFin, SYSUTCDATETIME()
+  );
+
+  SELECT @NewId AS BeneficioId;
 END

@@ -13,19 +13,15 @@
     [Imagen]         VARBINARY (MAX)  NULL,
     [CategoriaId]    UNIQUEIDENTIFIER NOT NULL,
     [ProveedorId]    UNIQUEIDENTIFIER NOT NULL,
-    [UbicacionId]    UNIQUEIDENTIFIER NULL,
-    [ProductoId]     UNIQUEIDENTIFIER NULL,
-    [ServicioId]     UNIQUEIDENTIFIER NULL,
     CONSTRAINT [PK_Beneficio] PRIMARY KEY CLUSTERED ([BeneficioId] ASC),
     CHECK ([Origen]='email' OR [Origen]='manual'),
     CHECK ([PrecioCRC]>=(0)),
     CONSTRAINT [CK_Beneficio_Vigencia] CHECK ([VigenciaFin]>=[VigenciaInicio]),
     CONSTRAINT [FK_Beneficio_Categoria] FOREIGN KEY ([CategoriaId]) REFERENCES [core].[Categoria] ([CategoriaId]),
-    CONSTRAINT [FK_Beneficio_Producto] FOREIGN KEY ([ProductoId]) REFERENCES [core].[Producto] ([ProductoId]),
-    CONSTRAINT [FK_Beneficio_Proveedor] FOREIGN KEY ([ProveedorId]) REFERENCES [core].[Proveedor] ([ProveedorId]),
-    CONSTRAINT [FK_Beneficio_Servicio] FOREIGN KEY ([ServicioId]) REFERENCES [core].[Servicio] ([ServicioId]),
-    CONSTRAINT [FK_Beneficio_Ubicacion] FOREIGN KEY ([UbicacionId]) REFERENCES [core].[Ubicacion] ([UbicacionId])
+    CONSTRAINT [FK_Beneficio_Proveedor] FOREIGN KEY ([ProveedorId]) REFERENCES [core].[Proveedor] ([ProveedorId])
 );
+
+
 
 
 
@@ -56,16 +52,11 @@ CREATE NONCLUSTERED INDEX [IX_Beneficio_ProveedorId]
 
 
 GO
-CREATE NONCLUSTERED INDEX [IX_Beneficio_UbicacionId]
-    ON [core].[Beneficio]([UbicacionId] ASC);
 
-
-GO
-CREATE NONCLUSTERED INDEX [IX_Beneficio_ServicioId]
-    ON [core].[Beneficio]([ServicioId] ASC);
 
 
 GO
-CREATE NONCLUSTERED INDEX [IX_Beneficio_ProductoId]
-    ON [core].[Beneficio]([ProductoId] ASC);
 
+
+
+GO

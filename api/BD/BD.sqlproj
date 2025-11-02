@@ -98,5 +98,12 @@
     <Build Include="core\Stored Procedures\BeneficioImagen_Insertar.sql" />
     <Build Include="core\Stored Procedures\BeneficioImagen_Eliminar.sql" />
     <Build Include="core\Stored Procedures\BeneficioImagen_Actualizar.sql" />
+    <Build Include="core\Stored Procedures\Usuario_QuitarProveedor.sql" />
+    <Build Include="core\Stored Procedures\Usuario_Obtener.sql" />
+    <Build Include="core\Stored Procedures\Usuario_Listar.sql" />
+    <Build Include="core\Stored Procedures\Usuario_Insertar.sql" />
+    <Build Include="core\Stored Procedures\Usuario_Eliminar.sql" />
+    <Build Include="core\Stored Procedures\Usuario_AsignarProveedor.sql" />
+    <Build Include="core\Stored Procedures\Usuario_Actualizar.sql" />
   </ItemGroup>
 </Project>

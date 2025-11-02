@@ -6,7 +6,6 @@
     [Origen]         NVARCHAR (10)    DEFAULT ('Web') NOT NULL,
     PRIMARY KEY CLUSTERED ([SeleccionId] ASC),
     CHECK ([Origen]='Email' OR [Origen]='App' OR [Origen]='Web'),
-    FOREIGN KEY ([UsuarioId]) REFERENCES [core].[Usuario] ([UsuarioId]),
     CONSTRAINT [FK_SeleccionBeneficio_BeneficioId] FOREIGN KEY ([BeneficioId]) REFERENCES [core].[Beneficio] ([BeneficioId])
 );
 
