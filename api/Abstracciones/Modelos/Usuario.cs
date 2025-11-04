@@ -47,6 +47,6 @@ namespace Abstracciones.Modelos
         public Guid UsuarioId { get; set; }
 
         // Si viene null, equivale a “quitar proveedor”
-        public Guid? ProveedorId { get; set; }
+        public Guid ProveedorId { get; set; }
     }
 }

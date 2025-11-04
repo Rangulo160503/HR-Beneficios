@@ -78,6 +78,10 @@ builder.Services.AddScoped<IProductoFlujo, ProductoFlujo>();
 builder.Services.AddScoped<IServicioFlujo, ServicioFlujo>();
 builder.Services.AddScoped<IUbicacionFlujo, UbicacionFlujo>();
 
+builder.Services.AddScoped<IUsuarioFlujo, UsuarioFlujo>();
+builder.Services.AddScoped<IUsuarioDA, UsuarioDA>();
+
+
 
 var app = builder.Build();
 
