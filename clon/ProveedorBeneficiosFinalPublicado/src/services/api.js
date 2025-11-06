@@ -1,16 +1,25 @@
 // src/services/api.js
-const API_BASE = (import.meta.env.VITE_API_BASE
-  || "https://hr-beneficios-api-grgmckc5dwdca9dc.canadacentral-01.azurewebsites.net").replace(/\/$/, "");
+const CLOUD = "https://hr-beneficios-api-xxxx.canadacentral-01.azurewebsites.net";
+const LOCAL  = "https://localhost:5001";
 
+// 🔀 cambia esto a "local" mientras Azure esté en quota exceeded
+const TARGET = "local"; // "cloud" | "local"
+
+const API_BASE = (TARGET === "cloud" ? CLOUD : LOCAL).replace(/\/$/, "");
+console.log("[API_BASE]", API_BASE);
+
+// --- tu httpGet de siempre (mejor con logs para depurar) ---
 async function httpGet(path) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: "GET",
-    headers: { Accept: "application/json" },
-    mode: "cors",
-  });
-  if (res.status === 204) return []; // NoContent -> lista vacía
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  const url = `${API_BASE}${path}`;
+  const res = await fetch(url, { method: "GET", headers: { Accept: "application/json" }, mode: "cors" });
   const ct = res.headers.get("content-type") || "";
+
+  if (res.status === 204) return [];
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    console.error("HTTP GET error:", { url, status: res.status, statusText: res.statusText, body });
+    throw new Error(`${res.status} ${res.statusText} – ${body}`);
+  }
   return ct.includes("application/json") ? res.json() : res.text();
 }
 
@@ -44,36 +53,38 @@ export const EP = {
 
 // === Funciones HTTP auxiliares ===
 async function httpPost(path, body) {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const url = `${API_BASE}${path}`;
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    mode: "cors",
     body: JSON.stringify(body),
+    mode: "cors",
   });
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  if (res.status === 204) return null;
   const ct = res.headers.get("content-type") || "";
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText} – ${await res.text()}`);
   return ct.includes("application/json") ? res.json() : res.text();
 }
 
 async function httpPut(path, body) {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const url = `${API_BASE}${path}`;
+  const res = await fetch(url, {
     method: "PUT",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    mode: "cors",
     body: JSON.stringify(body),
+    mode: "cors",
   });
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  if (res.status === 204) return null;
   const ct = res.headers.get("content-type") || "";
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText} – ${await res.text()}`);
   return ct.includes("application/json") ? res.json() : res.text();
 }
 
 async function httpDelete(path) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: "DELETE",
-    mode: "cors",
-  });
-  if (!res.ok && res.status !== 204) throw new Error(`${res.status} ${res.statusText}`);
-  return true;
+  const url = `${API_BASE}${path}`;
+  const res = await fetch(url, { method: "DELETE", headers: { Accept: "application/json" }, mode: "cors" });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText} – ${await res.text()}`);
+  return null;
 }
 
 export const Api = {
@@ -81,8 +92,8 @@ export const Api = {
   beneficios: {
     listar: () => httpGet(EP.beneficios()),
     obtener: (id) => httpGet(EP.beneficioId(id)),
-    crear: (body) => httpPost(EP.beneficios(), body),
-    editar: (id, body) => httpPut(EP.beneficioId(id), body),
+    agregar: (payload) => httpPost(EP.beneficios(), payload),
+    editar: (id, payload) => httpPut(EP.beneficioId(id), payload),
     eliminar: (id) => httpDelete(EP.beneficioId(id)),
 
     // Trae todos y filtra en el front por proveedor (usado en dashboard)
