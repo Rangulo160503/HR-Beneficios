@@ -6,6 +6,8 @@ import { Api } from "../services/api";
 import { mapBenefit, mapCategoria, mapProveedor } from "../utils/mappers";
 import BenefitDetailModal from "./modal/BenefitDetailModal";
 import HScroll from "./HScroll";
+import FormModal from "./FormModal";
+
 
 /* ========= Fuzzy Search helpers ========= */
 const SP_SYNONYMS = {
@@ -232,6 +234,11 @@ export default function Display() {
       document.body.style.overflow = "";
     };
   }, [selected]);
+  const [formOpen, setFormOpen] = useState(false);
+useEffect(() => {
+  const t = setTimeout(() => setFormOpen(true), 1500);
+  return () => clearTimeout(t);
+}, []);
 
   /* --- Index pre-normalizado para speedups --- */
   const indexed = useMemo(() => {
@@ -300,178 +307,222 @@ export default function Display() {
   }, [indexed, items, catSel, provSel, categorias, proveedores, qTokens, q]);
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* ======= HEADER UNIFICADO ======= */}
-      <header
-        ref={headerRef}
-        className={`fixed left-0 right-0 z-40 bg-black/80 backdrop-blur ${
-          scrolled ? "border-b border-white/10" : "border-b border-transparent"
-        }`}
-        style={{ transform: `translateY(${headerY}px)`, willChange: "transform" }}
-      >
-        {/* Desktop */}
-        <div className="hidden sm:flex mx-auto w-full max-w-7xl h-16 px-4 items-center gap-4">
-          <span className="text-cian-500 font-bold text-xl">Beneficios</span>
-          <div className="flex-1 flex justify-center">
-            <div className="w-full max-w-xl">
+  <div className="min-h-screen bg-black text-white">
+    {/* ======= HEADER UNIFICADO ======= */}
+    <header
+      ref={headerRef}
+      className={`fixed left-0 right-0 z-40 bg-black/80 backdrop-blur ${
+        scrolled ? "border-b border-white/10" : "border-b border-transparent"
+      }`}
+      style={{ transform: `translateY(${headerY}px)`, willChange: "transform" }}
+    >
+      {/* Desktop */}
+      <div className="hidden sm:flex mx-auto w-full max-w-7xl h-16 px-4 items-center gap-4">
+        <span className="text-cian-500 font-bold text-xl">Beneficios</span>
+
+        <div className="flex-1 flex justify-center">
+          <div className="w-full max-w-xl">
+            <input
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar beneficios..."
+              className="w-full h-10 rounded-full bg-white/10 border border-white/10 px-4 text-sm placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
+            />
+          </div>
+        </div>
+
+        {/* Botón Contacto (solo desktop) */}
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => setFormOpen(true)}
+            className="hidden sm:inline-flex h-9 items-center rounded-full border border-white/10 bg-white/5 px-4 text-sm text-white/80 hover:bg-white/10 transition"
+          >
+            Contacto
+          </button>
+        </div>
+      </div>
+
+      {/* Móvil */}
+      <div className="sm:hidden">
+        {!searchOpen ? (
+          <div className="h-14 px-4 flex items-center justify-between">
+            <span className="text-cian-500 font-bold text-xl">Beneficios</span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="p-1 rounded-full hover:bg-white/20 transition"
+                aria-label="Abrir búsqueda"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="h-6 w-6 text-white"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010.5 18.5a7.5 7.5 0 006.15-3.85z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="px-3 py-2">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSearchOpen(false)}
+                className="shrink-0 p-2 rounded-full hover:bg-white/20 transition"
+                aria-label="Cerrar búsqueda"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="h-5 w-5 text-white"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
               <input
+                {...(typeof window !== "undefined" && window.innerWidth > 640 ? { autoFocus: true } : {})}
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 placeholder="Buscar beneficios..."
-                className="w-full h-10 rounded-full bg-white/10 border border-white/10 px-4 text-sm placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
+                className="flex-1 h-9 rounded-xl bg-white/10 border border-white/10 px-3 text-base placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
               />
             </div>
           </div>
-        </div>
-
-        {/* Móvil */}
-        <div className="sm:hidden">
-          {!searchOpen ? (
-            <div className="h-14 px-4 flex items-center justify-between">
-              <span className="text-cian-500 font-bold text-xl">Beneficios</span>
-              <div className="flex items-center gap-3">
-                <button
-  onClick={() => setSearchOpen(true)}
-  className="p-1 rounded-full hover:bg-white/20 transition"
-  aria-label="Abrir búsqueda"
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={2}
-    stroke="currentColor"
-    className="h-6 w-6 text-white"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010.5 18.5a7.5 7.5 0 006.15-3.85z"
-    />
-  </svg>
-</button>
-
-              </div>
-            </div>
-          ) : (
-            <div className="px-3 py-2">
-              <div className="flex items-center gap-2">
-                <button
-  onClick={() => setSearchOpen(false)}
-  className="shrink-0 p-2 rounded-full hover:bg-white/20 transition"
-  aria-label="Cerrar búsqueda"
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={2}
-    stroke="currentColor"
-    className="h-5 w-5 text-white"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-  </svg>
-</button>
-                <input
-                  {...(typeof window !== "undefined" && window.innerWidth > 640
-                    ? { autoFocus: true }
-                    : {})}
-                  value={busqueda}
-                  onChange={(e) => setBusqueda(e.target.value)}
-                  placeholder="Buscar beneficios..."
-                  className="flex-1 h-9 rounded-xl bg-white/10 border border-white/10 px-3 text-base placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* FILTROS */}
-        <div className="border-t border-white/10">
-          <div className="mx-auto w-full max-w-7xl px-4">
-            {/* Categorías */}
-            {loadingFilters ? (
-              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <span
-                    key={`cat-skel-${i}`}
-                    className="h-8 w-28 rounded-full bg-white/5 border border-white/10 animate-pulse"
-                  />
-                ))}
-              </div>
-            ) : (
-              <HScroll>
-                <ChipsRow
-                  items={categorias}
-                  selected={catSel}
-                  onSelect={setCatSel}
-                  allLabel="Todas las categorías"
-                />
-              </HScroll>
-            )}
-
-            {/* Proveedores */}
-            {loadingFilters ? (
-              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <span
-                    key={`prov-skel-${i}`}
-                    className="h-8 w-28 rounded-full bg-white/5 border border-white/10 animate-pulse"
-                  />
-                ))}
-              </div>
-            ) : (
-              <HScroll>
-                <ChipsRow
-                  items={proveedores}
-                  selected={provSel}
-                  onSelect={setProvSel}
-                  allLabel="Todos los proveedores"
-                />
-              </HScroll>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* Spacer dinámico */}
-      <div style={{ height: headerH }} />
-
-      {/* ======= CONTENIDO ======= */}
-      <div className="mx-auto w-full max-w-7xl px-3 sm:px-4 py-4">
-        {error && (
-          <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
-            {error}
-            <button className="ml-3 underline" onClick={() => location.reload()}>
-              Reintentar
-            </button>
-          </div>
         )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-          {loading ? (
-            <div className="text-center text-white/60 col-span-full">Cargando...</div>
-          ) : (
-            filtered.map((it) => (
-              <BenefitCard key={it.id} item={it} onClick={() => setSelected(it)} />
-            ))
-          )}
-        </div>
-
-        {!loading && !error && filtered.length === 0 && (
-          <div className="mt-8 text-center text-white/60">No se encontraron beneficios.</div>
-        )}
-
-        <div className="h-32" />
       </div>
 
-      {/* ======= MODAL DETALLE ======= */}
-      {selected && (
-        <BenefitDetailModal
-          selected={selected}
-          onClose={() => setSelected(null)}
+      {/* FILTROS */}
+      <div className="border-t border-white/10">
+  <div className="mx-auto w-full max-w-7xl px-4">
+    {/* Categorías */}
+    {loadingFilters ? (
+      <div className="flex flex-wrap items-center gap-2 py-2 pb-2">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <span
+            key={`cat-skel-${i}`}
+            aria-hidden="true"
+            className={[
+              "h-8 rounded-full bg-white/5 border border-white/10 animate-pulse",
+              // anchos alternados para que parezcan chips reales
+              i % 3 === 0 ? "w-24" : i % 3 === 1 ? "w-28" : "w-32",
+            ].join(" ")}
+          />
+        ))}
+      </div>
+    ) : (
+      <HScroll>
+        <ChipsRow
+          items={categorias}
+          selected={catSel}
+          onSelect={setCatSel}
+          allLabel="Todas las categorías"
         />
+      </HScroll>
+    )}
+
+    {/* Proveedores */}
+    {loadingFilters ? (
+      <div className="flex flex-wrap items-center gap-2 py-2 pb-2">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <span
+            key={`prov-skel-${i}`}
+            aria-hidden="true"
+            className={[
+              "h-8 rounded-full bg-white/5 border border-white/10 animate-pulse",
+              i % 3 === 0 ? "w-24" : i % 3 === 1 ? "w-28" : "w-32",
+            ].join(" ")}
+          />
+        ))}
+      </div>
+    ) : (
+      <HScroll>
+        <ChipsRow
+          items={proveedores}
+          selected={provSel}
+          onSelect={setProvSel}
+          allLabel="Todos los proveedores"
+        />
+      </HScroll>
+    )}
+  </div>
+</div>
+    </header>
+
+    {/* Spacer dinámico */}
+    <div style={{ height: headerH }} />
+
+    {/* ======= CONTENIDO ======= */}
+    <div className="mx-auto w-full max-w-7xl px-3 sm:px-4 py-4">
+      {error && (
+        <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
+          {error}
+          <button className="ml-3 underline" onClick={() => location.reload()}>
+            Reintentar
+          </button>
+        </div>
       )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+        {loading ? (
+          <div className="text-center text-white/60 col-span-full">Cargando...</div>
+        ) : (
+          filtered.map((it) => (
+            <BenefitCard key={it.id} item={it} onClick={() => setSelected(it)} />
+          ))
+        )}
+      </div>
+
+      {!loading && !error && filtered.length === 0 && (
+        <div className="mt-8 text-center text-white/60">No se encontraron beneficios.</div>
+      )}
+
+      <div className="h-32" />
     </div>
-  );
+
+    {/* ======= MODAL DETALLE ======= */}
+    {selected && (
+      <BenefitDetailModal selected={selected} onClose={() => setSelected(null)} />
+    )}
+
+    {/* ======= FORMULARIO DE CONTACTO ======= */}
+    <FormModal
+      isOpen={formOpen}
+      onClose={() => setFormOpen(false)}
+      postUrl={`${import.meta.env.VITE_API_URL}/api/Contacto`}
+      onSubmitted={(resp) => console.log("Contacto enviado:", resp)}
+    />
+
+    {/* FAB de Contacto — solo móvil */}
+    {!formOpen && (
+      <button
+        onClick={() => setFormOpen(true)}
+        aria-label="Contacto"
+        className="sm:hidden fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-cyan-600 shadow-lg shadow-cyan-900/30 hover:bg-cyan-500 active:scale-95 transition"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="mx-auto h-7 w-7 text-white"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 7l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      </button>
+    )}
+  </div>
+);
 }
