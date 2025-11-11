@@ -105,5 +105,6 @@
     <Build Include="core\Stored Procedures\Usuario_Eliminar.sql" />
     <Build Include="core\Stored Procedures\Usuario_AsignarProveedor.sql" />
     <Build Include="core\Stored Procedures\Usuario_Actualizar.sql" />
+    <Build Include="core\Tables\ProveedorUsuario.sql" />
   </ItemGroup>
 </Project>
