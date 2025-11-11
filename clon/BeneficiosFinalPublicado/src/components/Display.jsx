@@ -405,20 +405,24 @@ useEffect(() => {
       {/* FILTROS */}
       <div className="border-t border-white/10">
   <div className="mx-auto w-full max-w-7xl px-4">
+
     {/* Categorías */}
     {loadingFilters ? (
-      <div className="flex flex-wrap items-center gap-2 py-2 pb-2">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <span
-            key={`cat-skel-${i}`}
-            aria-hidden="true"
-            className={[
-              "h-8 rounded-full bg-white/5 border border-white/10 animate-pulse",
-              // anchos alternados para que parezcan chips reales
-              i % 3 === 0 ? "w-24" : i % 3 === 1 ? "w-28" : "w-32",
-            ].join(" ")}
-          />
-        ))}
+      <div className="w-full py-2">
+        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 px-1 -mx-1">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <span
+              key={`cat-skel-${i}`}
+              aria-hidden="true"
+              className={[
+                // ⬇️ AJUSTA ESTA ALTURA para igualar la de tus chips reales (h-9 u h-10)
+                "h-9 rounded-full bg-white/5 border border-white/10 animate-pulse",
+                // anchos variados para simular chips
+                i % 4 === 0 ? "w-20" : i % 4 === 1 ? "w-24" : i % 4 === 2 ? "w-28" : "w-32",
+              ].join(" ")}
+            />
+          ))}
+        </div>
       </div>
     ) : (
       <HScroll>
@@ -433,17 +437,20 @@ useEffect(() => {
 
     {/* Proveedores */}
     {loadingFilters ? (
-      <div className="flex flex-wrap items-center gap-2 py-2 pb-2">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <span
-            key={`prov-skel-${i}`}
-            aria-hidden="true"
-            className={[
-              "h-8 rounded-full bg-white/5 border border-white/10 animate-pulse",
-              i % 3 === 0 ? "w-24" : i % 3 === 1 ? "w-28" : "w-32",
-            ].join(" ")}
-          />
-        ))}
+      <div className="w-full py-2">
+        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 px-1 -mx-1">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <span
+              key={`prov-skel-${i}`}
+              aria-hidden="true"
+              className={[
+                // ⬇️ AJUSTA ESTA ALTURA para igualar la de tus chips reales (h-9 u h-10)
+                "h-9 rounded-full bg-white/5 border border-white/10 animate-pulse",
+                i % 4 === 0 ? "w-20" : i % 4 === 1 ? "w-24" : i % 4 === 2 ? "w-28" : "w-32",
+              ].join(" ")}
+            />
+          ))}
+        </div>
       </div>
     ) : (
       <HScroll>
@@ -455,8 +462,10 @@ useEffect(() => {
         />
       </HScroll>
     )}
+
   </div>
 </div>
+
     </header>
 
     {/* Spacer dinámico */}
@@ -475,12 +484,26 @@ useEffect(() => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
         {loading ? (
-          <div className="text-center text-white/60 col-span-full">Cargando...</div>
-        ) : (
-          filtered.map((it) => (
-            <BenefitCard key={it.id} item={it} onClick={() => setSelected(it)} />
-          ))
-        )}
+  // 🦴 Skeletons mientras se cargan los beneficios
+  Array.from({ length: 12 }).map((_, i) => (
+    <div
+      key={`skeleton-${i}`}
+      className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-3 animate-pulse"
+    >
+      {/* Imagen simulada */}
+      <div className="h-40 w-full rounded-xl bg-white/10" />
+
+      {/* Espacio para texto */}
+      <div className="mt-3 h-4 w-3/4 rounded bg-white/10" />
+      <div className="mt-2 h-3 w-1/2 rounded bg-white/10" />
+      <div className="mt-4 h-3 w-2/3 rounded bg-white/10" />
+    </div>
+  ))
+) : (
+  filtered.map((it) => (
+    <BenefitCard key={it.id} item={it} onClick={() => setSelected(it)} />
+  ))
+)}
       </div>
 
       {!loading && !error && filtered.length === 0 && (
