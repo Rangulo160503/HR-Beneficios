@@ -24,29 +24,46 @@ async function httpGet(path) {
 
 // 🧱 Endpoints centralizados
 export const EP = {
-  beneficios: () => `/api/Beneficio`,
-  beneficioId: (id) => `/api/Beneficio/${id}`,
-  categorias: () => `/api/Categoria`,
-  categoriaId: (id) => `/api/Categoria/${id}`,
-  proveedores: () => `/api/Proveedor`,
-  proveedorId: (id) => `/api/Proveedor/${id}`,
+  beneficios:      ()    => `/api/Beneficio`,
+  beneficioId:     (id)  => `/api/Beneficio/${id}`,
+
+  categorias:      ()    => `/api/Categoria`,
+  categoriaId:     (id)  => `/api/Categoria/${id}`,
+
+  proveedores:     ()    => `/api/Proveedor`,
+  proveedorId:     (id)  => `/api/Proveedor/${id}`,
+
+  // 👇 NUEVO: imágenes de un beneficio
+  beneficioImagenPorBeneficio: (beneficioId) =>
+    `/api/BeneficioImagen/${beneficioId}`,
+  // si algún día ocupas el detalle de 1 imagen:
+  // beneficioImagenDetalle: (imagenId) => `/api/BeneficioImagen/detalle/${imagenId}`,
 };
 
 // 🚀 API agrupada por recurso
 export const Api = {
   beneficios: {
-    listar: () => httpGet(EP.beneficios()),
+    listar:  ()   => httpGet(EP.beneficios()),
     obtener: (id) => httpGet(EP.beneficioId(id)),
   },
   categorias: {
-    listar: () => httpGet(EP.categorias()),
+    listar:  ()   => httpGet(EP.categorias()),
     obtener: (id) => httpGet(EP.categoriaId(id)),
   },
   proveedores: {
-    listar: () => httpGet(EP.proveedores()),
+    listar:  ()   => httpGet(EP.proveedores()),
     obtener: (id) => httpGet(EP.proveedorId(id)),
+  },
+
+  // 👇 NUEVO: módulo para las imágenes de beneficio
+  beneficioImagen: {
+    // esto es lo que vas a usar en el modal:
+    obtenerPorBeneficio: (beneficioId) =>
+      httpGet(EP.beneficioImagenPorBeneficio(beneficioId)),
+    // si luego quieres detalle por imagenId:
+    // obtenerDetalle: (imagenId) => httpGet(EP.beneficioImagenDetalle(imagenId)),
   },
 };
 
-// 🧾 (Opcional) Log de entorno activo
+// 🧾 Log de entorno activo
 console.log(`🌍 API activa: ${target.toUpperCase()} → ${API_BASE}`);

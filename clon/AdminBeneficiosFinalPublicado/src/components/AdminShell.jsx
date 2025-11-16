@@ -75,10 +75,9 @@ export default function AdminShell() {
         {/* Contenido principal */}
         <main className="flex-1 overflow-y-auto">
           <div className="pt-4 px-4 md:px-6 space-y-4">
-            {/* ===================== BENEFICIOS ===================== */}
+            {/* ====================== BENEFICIOS ====================== */}
             {nav === "beneficios" && (
               <>
-                {/* Card grande "Nuevo beneficio" */}
                 <section>
                   <CardNew
                     onClick={() => {
@@ -88,10 +87,11 @@ export default function AdminShell() {
                   />
                 </section>
 
-                {/* Lista de beneficios reales */}
                 <section className="space-y-3">
                   {state.loading && (
-                    <p className="text-xs text-white/50">Cargando beneficios…</p>
+                    <p className="text-xs text-white/50">
+                      Cargando beneficios…
+                    </p>
                   )}
 
                   {state.err && (
@@ -124,69 +124,100 @@ export default function AdminShell() {
               </>
             )}
 
-            {/* ===================== CATEGORÍAS ===================== */}
+            {/* ====================== CATEGORÍAS ====================== */}
             {nav === "categorias" && (
               <section className="space-y-3">
-                <h2 className="text-sm md:text-base font-semibold">
-                  Categorías
-                </h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-semibold">Categorías</h2>
+                  <button
+                    onClick={async () => { await addCategoria(); }}
+                    className="px-3 py-1.5 rounded-full text-xs bg-white/5 hover:bg-white/10 border border-white/10"
+                  >
+                    + Nueva
+                  </button>
+                </div>
 
-                <ul className="space-y-2 text-sm">
-                  {(cats || []).map((c, i) => {
-                    const nombre =
-                      c.titulo ??
-                      c.nombre ??
-                      c.Nombre ??
-                      `Categoría ${i + 1}`;
-                    return (
-                      <li
-                        key={c.id ?? c.categoriaId ?? c.CategoriaId ?? i}
-                        className="rounded-xl bg-neutral-900  px-3 py-2"
+                <div className="rounded-2xl border border-white/10 bg-black/40 divide-y divide-white/5">
+                  {(cats || []).map((c) => (
+                    <div
+                      key={c.id ?? c.categoriaId}
+                      className="px-4 py-3 flex items-center text-sm"
+                    >
+                      <span className="flex-1 truncate">
+                        {c.nombre ?? c.titulo ?? c.Nombre ?? c.Titulo}
+                      </span>
+
+                      {/* botones reales de renombrar/eliminar los conectamos
+                          cuando veamos los helpers de useCatalogos */}
+                      <button
+                        className="ml-2 px-2 py-1 rounded-full text-xs bg-white/5 hover:bg-white/10"
                       >
-                        {nombre}
-                      </li>
-                    );
-                  })}
+                        Renombrar
+                      </button>
+                      <button
+                        className="ml-2 px-2 py-1 rounded-full text-xs bg-white/5 hover:bg-red-500/20 text-red-300/90"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  ))}
 
                   {(cats || []).length === 0 && (
-                    <li className="text-xs text-white/50">
-                      No hay categorías registradas.
-                    </li>
+                    <p className="px-4 py-6 text-xs text-white/40">
+                      Aún no hay categorías registradas.
+                    </p>
                   )}
-                </ul>
+                </div>
               </section>
             )}
 
-            {/* ===================== PROVEEDORES ===================== */}
+            {/* ====================== PROVEEDORES ====================== */}
             {nav === "proveedores" && (
               <section className="space-y-3">
-                <h2 className="text-sm md:text-base font-semibold">
-                  Proveedores
-                </h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-semibold">Proveedores</h2>
+                  <button
+                    onClick={async () => { await addProveedor(); }}
+                    className="px-3 py-1.5 rounded-full text-xs bg-white/5 hover:bg-white/10 border border-white/10"
+                  >
+                    + Nuevo
+                  </button>
+                </div>
 
-                <ul className="space-y-2 text-sm">
-                  {(provs || []).map((p, i) => {
-                    const nombre = p.nombre ?? p.Nombre ?? `Proveedor ${i + 1}`;
-                    return (
-                      <li
-                        key={p.id ?? p.proveedorId ?? p.ProveedorId ?? i}
-                        className="rounded-xl bg-neutral-900  px-3 py-2"
+                <div className="rounded-2xl border border-white/10 bg-black/40 divide-y divide-white/5">
+                  {(provs || []).map((p) => (
+                    <div
+                      key={p.id ?? p.proveedorId}
+                      className="px-4 py-3 flex items-center text-sm"
+                    >
+                      <span className="flex-1 truncate">
+                        {p.nombre ?? p.Nombre}
+                      </span>
+
+                      <button
+                        className="ml-2 px-2 py-1 rounded-full text-xs bg-white/5 hover:bg-white/10"
                       >
-                        {nombre}
-                      </li>
-                    );
-                  })}
+                        Renombrar
+                      </button>
+                      <button
+                        className="ml-2 px-2 py-1 rounded-full text-xs bg-white/5 hover:bg-red-500/20 text-red-300/90"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  ))}
 
                   {(provs || []).length === 0 && (
-                    <li className="text-xs text-white/50">
-                      No hay proveedores registrados.
-                    </li>
+                    <p className="px-4 py-6 text-xs text-white/40">
+                      Aún no hay proveedores registrados.
+                    </p>
                   )}
-                </ul>
+                </div>
               </section>
             )}
           </div>
         </main>
+
 
         {/* Formulario de crear/editar beneficio */}
         {showForm && (

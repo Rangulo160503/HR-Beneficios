@@ -1,5 +1,12 @@
 import { useRef, useState } from "react";
 import FileUpload from "./FileUpload";
+import { normalizeImage } from "../../utils/image";
+import { useBeneficioImagenes } from "../../hooks/useBeneficioImagenes";
+import MultiFileUpload from "./MultiFileUpload";
+import { fileToBase64Pure } from "../../utils/image";
+import { BeneficioImagenApi } from "../../services/adminApi"; // si no existe, lo agregamos
+
+
 
 const norm   = (v) => (v == null ? "" : String(v).trim());
 // ¡importante!: siempre TRIM para evitar ids con espacios
@@ -45,21 +52,9 @@ export default function FullForm({
     imagenUrl:      initial?.imagenUrl ?? initial?.imagen ?? "",
     imagenBase64:   null,
   }));
-  const [preview, setPreview] = useState(() => form.imagenUrl || "");
-
-  // archivo -> base64 (puro)
-  function fileToBase64Pure(file) {
-    return new Promise((res, rej) => {
-      const fr = new FileReader();
-      fr.onload = () => {
-        const s = String(fr.result || "");
-        const i = s.indexOf("base64,");
-        res(i >= 0 ? s.slice(i + 7) : s);
-      };
-      fr.onerror = rej;
-      fr.readAsDataURL(file);
-    });
-  }
+const [preview, setPreview] = useState(() =>
+  normalizeImage(form.imagenUrl || "")
+);
 
   // crear/seleccionar proveedor inline
   async function handleNewProv() {
@@ -78,17 +73,17 @@ export default function FullForm({
   }
 
   // subir archivo -> preview + base64
-  async function onPick(file) {
-    if (!file) {
-      setPreview("");
-      setForm(s => ({ ...s, imagenUrl: "", imagenBase64: null }));
-      return;
-    }
-    const base64 = await fileToBase64Pure(file);
-    const dataUrl = `data:${file.type || "image/jpeg"};base64,${base64}`;
-    setPreview(dataUrl);
-    setForm(s => ({ ...s, imagenUrl: dataUrl, imagenBase64: base64 }));
+async function onPick(file) {
+  if (!file) {
+    setPreview("");
+    setForm((s) => ({ ...s, imagenUrl: "", imagenBase64: null }));
+    return;
   }
+  const base64 = await fileToBase64Pure(file);
+  const dataUrl = `data:${file.type || "image/jpeg"};base64,${base64}`;
+  setPreview(dataUrl);
+  setForm((s) => ({ ...s, imagenUrl: dataUrl, imagenBase64: base64 }));
+}
 
   function submit(e) {
     e.preventDefault();
@@ -148,6 +143,41 @@ console.log("🧩 select expects:", {
   provsIds: provs.map(p => String(p?.id ?? p?.proveedorId)),
   catsIds:  cats.map(c => String(c?.id ?? c?.categoriaId)),
 });
+
+  // id del beneficio cuando estamos editando
+  const beneficioId = initial?.id ?? initial?.beneficioId ?? null;
+
+  // imágenes del beneficio (solo se dispara si hay id)
+  const { items: imagenes = [], loading: imgsLoading, err: imgsErr } =
+  useBeneficioImagenes(beneficioId);
+
+  // seleccionar una imagen de la galería como principal
+  function handleSelectGalleryImage(img) {
+    const src = normalizeImage(
+      img?.imagenBase64 ?? img?.imagen ?? img?.url ?? img?.imagenUrl
+    );
+    if (!src) return;
+    setPreview(src);
+    setForm((s) => ({ ...s, imagenUrl: src, imagenBase64: null }));
+  }
+
+  // subir muchas fotos al endpoint /api/BeneficioImagen
+  async function handleUploadMany(files) {
+    if (!beneficioId) return;          // sin id no hay a quién asociarlas
+    if (!files || files.length === 0) return;
+
+    for (const file of files) {
+      const base64 = await fileToBase64Pure(file);
+
+      await BeneficioImagenApi.create({
+        beneficioId,
+        imagen: base64,
+      });
+    }
+
+    alert("Fotos subidas");
+    window.location.reload(); // versión rápida por ahora
+  }
 
     
   return (
@@ -341,6 +371,82 @@ console.log("🧩 select expects:", {
               )}
             </div>
           </section>
+                    {/* Galería de imágenes adicionales (solo en modo editar) */}
+          {beneficioId && (
+            <section className="rounded-2xl bg-neutral-900 border border-white/10 p-3 md:p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Galería</h3>
+                <MultiFileUpload onPickMany={handleUploadMany} />
+                {imgsLoading && (
+                  <span className="text-xs text-white/50">Cargando fotos…</span>
+                )}
+              </div>
+
+              {/* Skeleton mientras carga */}
+              {imgsLoading && (
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-20 h-20 rounded-xl bg-neutral-800/80 animate-pulse flex-shrink-0"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Error */}
+              {!imgsLoading && imgsErr && (
+                <p className="text-xs text-red-400">
+                  No se pudieron cargar las imágenes adicionales.
+                </p>
+              )}
+
+              {/* Sin imágenes */}
+              {!imgsLoading && !imgsErr && imagenes.length === 0 && (
+                <p className="text-xs text-white/50">
+                  Este beneficio aún no tiene fotos adicionales.
+                </p>
+              )}
+
+              {/* Lista de miniaturas */}
+              {!imgsLoading && !imgsErr && imagenes.length > 0 && (
+                <div className="flex gap-3 overflow-x-auto pb-1">
+                  {imagenes.map((img) => {
+                    const src = normalizeImage(
+                      img?.imagenBase64 ?? img?.imagen ?? img?.url ?? img?.imagenUrl
+                    );
+                    if (!src) return null;
+
+                    const isActive = src === preview;
+
+                    return (
+                      <button
+                        key={img.id ?? img.imagenId ?? src}
+                        type="button"
+                        onClick={() => handleSelectGalleryImage(img)}
+                        className={`relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border
+                          ${isActive
+                            ? "border-emerald-400 ring-2 ring-emerald-500/60"
+                            : "border-white/15 hover:border-emerald-400/70"} 
+                        `}
+                      >
+                        <img
+                          src={src}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              <p className="text-[11px] text-white/40">
+                Puedes subir más fotos desde la vista de galería avanzada más adelante;
+                aquí solo las ves como una “historia” y eliges cuál será la principal.
+              </p>
+            </section>
+          )}
 
           {/* Descripción y condiciones */}
           <section className="rounded-2xl bg-neutral-900 border border-white/10 p-3 md:p-4 space-y-3">

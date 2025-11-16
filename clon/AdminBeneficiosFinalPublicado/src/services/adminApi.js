@@ -39,3 +39,13 @@ export const ProveedorApi = {
   update:(id,dto,o={}) => req(`/api/Proveedor/${id}`, { method:"PUT", json:dto, ...o }),
   remove:(id,o={}) => req(`/api/Proveedor/${id}`, { method:"DELETE", ...o }),
 };
+
+
+
+export const BeneficioImagenApi = {
+  list:  (beneficioId, o={}) => req(`/api/BeneficioImagen/${beneficioId}`, o),
+  get:   (id,o={}) => req(`/api/BeneficioImagen/detalle/${id}`, o),
+  create:(dto,o={}) => req(`/api/BeneficioImagen`, { method:"POST", json:dto, ...o }),
+  update:(id,dto,o={}) => req(`/api/BeneficioImagen/${id}`, { method:"PUT", json:dto, ...o }),
+  remove:(id,o={}) => req(`/api/BeneficioImagen/${id}`, { method:"DELETE", ...o }),
+};
