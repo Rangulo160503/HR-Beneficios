@@ -27,11 +27,11 @@ export default function MobileSidebar({ open, current, items, onSelect, onClose 
       <div
         ref={panelRef}
         className="absolute left-0 top-0 bottom-0 w-[80%] max-w-[320px]
-                   bg-neutral-950 border-r border-white/10 shadow-2xl
+                   bg-neutral-950  shadow-2xl
                    translate-x-0 animate-[slideIn_.18s_ease-out]"
       >
         {/* header */}
-        <div className="h-14 flex items-center gap-3 px-4 border-b border-white/10">
+        <div className="h-14 flex items-center gap-3 px-4 ">
           <div className="font-semibold text-base">HR Beneficios</div>
           <button className="ml-auto p-2 rounded-lg hover:bg-white/5" onClick={onClose} aria-label="Cerrar">
             <svg viewBox="0 0 24 24" className="w-6 h-6 text-white/90">
