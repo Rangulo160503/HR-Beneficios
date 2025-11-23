@@ -1,0 +1,109 @@
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow: hidden;
+  opacity: 1;
+}
+
+/* Fondo negro */
+.intro-black {
+  position: absolute;
+  inset: 0;
+  background: #000;
+}
+
+/* Wipe verde */
+.intro-green {
+  position: absolute;
+  inset: 0;
+  background: #00e94b;
+  transform: translateY(100%);
+  transition: transform 900ms cubic-bezier(.16,1,.3,1);
+}
+.intro.phase-2 .intro-green {
+  transform: translateY(0%);
+}
+
+/* Tarjeta */
+.intro-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 340px;
+  max-width: 82vw;
+  aspect-ratio: 1.6 / 1;
+  transform: translate(-50%, -50%) scale(.9);
+  opacity: 0;
+  border-radius: 28px;
+  background: #0a0a0a;
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 30px 80px rgba(0,0,0,.6);
+  transition:
+    transform 900ms cubic-bezier(.16,1,.3,1),
+    opacity 600ms ease;
+}
+
+.intro.phase-0 .intro-card {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.intro.phase-1 .intro-card,
+.intro.phase-2 .intro-card {
+  opacity: 1;
+  transform: translate(-50%, calc(-50% - 260px)) scale(1);
+}
+
+.card-inner {
+  height: 100%;
+  width: 100%;
+  border-radius: 28px;
+  padding: 22px;
+  background: linear-gradient(145deg, #222, #000);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.card-tag {
+  color: rgba(255,255,255,.8);
+  font-size: 12px;
+  letter-spacing: .14em;
+}
+.card-title {
+  color: white;
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.card-chips {
+  display: flex;
+  gap: 8px;
+}
+.chip {
+  height: 32px;
+  width: 32px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+}
+.chip.wide {
+  width: 96px;
+}
+
+/* Glow */
+.intro-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(40% 30% at 50% 50%, rgba(255,255,255,0.08), transparent 60%);
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+.intro.phase-0 .intro-glow {
+  opacity: .25;
+}
+
+.intro.hide {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 400ms ease;
+}

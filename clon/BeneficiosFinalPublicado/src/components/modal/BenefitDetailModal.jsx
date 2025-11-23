@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Api } from "../../services/api"; // ajusta extensión si tu bundler lo requiere
 import { extractImage, safeSrc, EMBED_PLACEHOLDER } from "../../utils/images";
 
