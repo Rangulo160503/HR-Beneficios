@@ -63,11 +63,11 @@ export default function CardBeneficio({ item, onEdit, onDelete }) {
   return (
     <div className="rounded-2xl bg-neutral-900 border border-white/10 overflow-hidden">
       <div className="relative">
-        <div className="absolute left-3 top-3 z-10">
-          <span className="text-xs px-2 py-1 rounded-full bg-white/5 border border-white/10 text-white/80">
-            {item?.categoriaNombre || "—"}
-          </span>
-        </div>
+        <div className="px-3 pt-3">
+  <span className="text-xs px-2 py-1 rounded-full bg-white/5 border border-white/10 text-white/80">
+    {item?.categoriaNombre || "—"}
+  </span>
+</div>
         <div className="aspect-video bg-neutral-800 grid place-items-center text-white/50">
           {src ? (
             <img className="w-full h-full object-cover" src={src} alt={item?.titulo || ""} />

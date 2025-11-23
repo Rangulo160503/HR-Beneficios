@@ -81,6 +81,9 @@ builder.Services.AddScoped<IUbicacionFlujo, UbicacionFlujo>();
 builder.Services.AddScoped<IUsuarioFlujo, UsuarioFlujo>();
 builder.Services.AddScoped<IUsuarioDA, UsuarioDA>();
 
+builder.Services.AddScoped<IBeneficioImagenDA, BeneficioImagenDA>();
+builder.Services.AddScoped<IBeneficioImagenFlujo, BeneficioImagenFlujo>();
+
 
 
 var app = builder.Build();

@@ -1,13 +1,42 @@
 import { cls } from "../../utils/text";
-export default function NavItem({ label, icon, active, collapsed, onClick, title }) {
+// src/components/sidebar/NavItem.jsx
+export default function NavItem({
+  label,
+  icon,
+  active,
+  collapsed,
+  onClick,
+}) {
   return (
-    <button onClick={onClick}
-      className={cls("w-full flex items-center gap-3 px-3 py-2 rounded-lg",
-        active ? "bg-neutral-800 text-white" : "hover:bg-white/10 text-white/90",
-        collapsed && "justify-center px-2")}
-      title={collapsed ? (title || label) : undefined}>
-      <span className="text-lg w-5 h-5 grid place-items-center">{icon}</span>
-      {!collapsed && <span className="font-medium">{label}</span>}
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        group relative w-full flex items-center gap-3 px-3 py-2 text-sm
+        rounded-xl transition-colors
+        ${active
+          ? "bg-neutral-900 text-white"
+          : "text-white/70 hover:bg-neutral-900/70"}
+      `}
+    >
+      
+
+      {/* icono (aprovechamos los mismos del Sidebar/MobileSidebar) */}
+      <span
+        className={`
+          w-5 h-5 grid place-items-center flex-shrink-0
+          ${active ? "text-emerald-400" : "text-white/80"}
+        `}
+      >
+        {icon}
+      </span>
+
+      {/* texto – se oculta cuando el sidebar está colapsado */}
+      {!collapsed && (
+        <span className="truncate">
+          {label}
+        </span>
+      )}
     </button>
   );
 }

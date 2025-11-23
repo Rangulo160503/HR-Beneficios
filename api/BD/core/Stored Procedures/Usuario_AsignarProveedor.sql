@@ -1,11 +1,13 @@
 ﻿
+
 /* =========================================================
    core.Usuario_AsignarProveedor
-   Asigna/actualiza ProveedorId a un usuario.
+   Crea (idempotente) la relación Usuario–Proveedor en core.ProveedorUsuario.
    ========================================================= */
-CREATE   PROCEDURE core.Usuario_AsignarProveedor
+CREATE PROCEDURE [core].[Usuario_AsignarProveedor]
     @UsuarioId   UNIQUEIDENTIFIER,
-    @ProveedorId UNIQUEIDENTIFIER
+    @ProveedorId UNIQUEIDENTIFIER,
+    @Rol         NVARCHAR(50) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -16,9 +18,15 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM core.Proveedor WHERE ProveedorId = @ProveedorId)
     BEGIN RAISERROR('El proveedor no existe.',16,1); RETURN; END;
 
-    UPDATE core.Usuario
-       SET ProveedorId = @ProveedorId
-     WHERE UsuarioId   = @UsuarioId;
+    -- Idempotente: no duplica si ya existe
+    IF NOT EXISTS (
+        SELECT 1 FROM core.ProveedorUsuario
+        WHERE UsuarioId = @UsuarioId AND ProveedorId = @ProveedorId
+    )
+    BEGIN
+        INSERT INTO core.ProveedorUsuario (ProveedorId, UsuarioId, Rol)
+        VALUES (@ProveedorId, @UsuarioId, @Rol);
+    END
 
-    SELECT @UsuarioId AS UsuarioId, @ProveedorId AS ProveedorId;
+    SELECT @UsuarioId AS UsuarioId, @ProveedorId AS ProveedorId, @Rol AS Rol;
 END
