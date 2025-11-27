@@ -32,7 +32,8 @@ const IconHelp = (p) => (
   </svg>
 );
 
-const items = [
+// 👉 exportamos los items para poder reutilizarlos en el sidebar móvil
+export const proveedorNavItems = [
   { id: "beneficios", label: "Beneficios", icon: IconBenefit },
   { id: "perfil", label: "Perfil", icon: IconUser },
   { id: "ayuda", label: "Ayuda", icon: IconHelp },
@@ -46,7 +47,7 @@ export default function ProveedorSidebar({ activeSection, onChangeSection }) {
       </div>
 
       <nav className="p-2 flex-1 space-y-1">
-        {items.map(({ id, label, icon: Icon }) => {
+        {proveedorNavItems.map(({ id, label, icon: Icon }) => {
           const active = activeSection === id;
           const classes =
             "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition " +

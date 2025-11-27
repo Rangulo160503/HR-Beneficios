@@ -1,6 +1,4 @@
-// src/App.jsx
-import React from "react";
-import AdminShell from "./components/AdminShell";
+import AdminShell from "./components/AdminShell/AdminShell.jsx";
 
 export default function App() {
   return (

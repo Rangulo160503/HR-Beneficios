@@ -1,49 +1,47 @@
-// src/components/ProveedorPortal/ProveedorPortal.jsx
 import { useState } from "react";
-import ProveedorSidebar from "./ProveedorSidebar";
 import ProveedorHeader from "./ProveedorHeader";
-// importa aquí lo que uses para el contenido central (Beneficios, Perfil, Ayuda…)
+import ProveedorSidebar from "./ProveedorSidebar";
+import ProveedorMobileSidebar from "./ProveedorMobileSidebar";
+import ProveedorBenefitsList from "./ProveedorBenefitsList";
 
 export default function ProveedorPortal() {
-  const [activeSection, setActiveSection] = useState("beneficios"); 
-  // valores posibles: "beneficios" | "perfil" | "ayuda"
+  const [activeSection, setActiveSection] = useState("beneficios");
+  const [showMobileNav, setShowMobileNav] = useState(false);
 
-  const getTitle = () => {
-    switch (activeSection) {
-      case "perfil":
-        return "Perfil";
-      case "ayuda":
-        return "Ayuda";
-      case "beneficios":
-      default:
-        return "Beneficios";
-    }
+  const handleChangeSection = (key) => {
+    setActiveSection(key);
   };
 
   return (
-    <div className="flex h-screen bg-black text-white">
-      <ProveedorSidebar
-        activeSection={activeSection}
-        onChangeSection={setActiveSection}
+    <div className="min-h-screen bg-black text-white">
+      {/* header arriba */}
+      <ProveedorHeader
+        nav={activeSection}
+        setShowMobileNav={setShowMobileNav}
       />
 
-      <div className="flex-1 flex flex-col">
-        <ProveedorHeader title={getTitle()} />
+      <div className="flex">
+        {/* sidebar desktop */}
+        <ProveedorSidebar
+          activeSection={activeSection}
+          onChangeSection={handleChangeSection}
+        />
 
-        {/* Contenido central según la sección */}
-        <main className="flex-1 overflow-auto">
-          {activeSection === "beneficios" && (
-            /* aquí va tu lista de beneficios */
-            <div>TODO: Beneficios</div>
-          )}
-          {activeSection === "perfil" && (
-            <div>TODO: Perfil proveedor</div>
-          )}
-          {activeSection === "ayuda" && (
-            <div>TODO: Ayuda / FAQs</div>
-          )}
+        {/* contenido */}
+        <main className="flex-1 p-4">
+          {activeSection === "beneficios" && <ProveedorBenefitsList />}
+          {activeSection === "perfil" && <div>TODO: Perfil proveedor</div>}
+          {activeSection === "ayuda" && <div>TODO: Ayuda / FAQs</div>}
         </main>
       </div>
+
+      {/* sidebar móvil estilo admin */}
+      <ProveedorMobileSidebar
+        open={showMobileNav}
+        current={activeSection}
+        onSelect={handleChangeSection}
+        onClose={() => setShowMobileNav(false)}
+      />
     </div>
   );
 }
