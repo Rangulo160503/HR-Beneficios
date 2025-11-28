@@ -42,9 +42,6 @@ export const proveedorNavItems = [
 export default function ProveedorSidebar({ activeSection, onChangeSection }) {
   return (
     <aside className="w-60 bg-neutral-950 border-r border-white/10 hidden md:flex flex-col sticky top-0 h-screen">
-      <div className="h-14 md:h-16 flex items-center px-4">
-        <span className="font-semibold text-white/70">Portal proveedor</span>
-      </div>
 
       <nav className="p-2 flex-1 space-y-1">
         {proveedorNavItems.map(({ id, label, icon: Icon }) => {

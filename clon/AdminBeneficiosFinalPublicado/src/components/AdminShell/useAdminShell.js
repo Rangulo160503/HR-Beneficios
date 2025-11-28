@@ -1,20 +1,23 @@
+// src/components/AdminShell/useAdminShell.js
 import { useState } from "react";
-import { useBeneficios } from "@/hooks/useBeneficios";
-import { useCatalogos } from "@/hooks/useCatalogos";
+import { useBeneficios } from "../../hooks/useBeneficios";
+import { useCatalogos } from "../../hooks/useCatalogos";
 import { NAV_ITEMS } from "./constants";
 
 export default function useAdminShell() {
   const [nav, setNav] = useState(NAV_ITEMS.BENEFICIOS);
   const [collapsed, setCollapsed] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
+
+  // modal crear / editar beneficio
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
 
-  // BENEFICIOS
-  const { state, actions } = useBeneficios();
-  const beneficios = state.filtered ?? state.items ?? [];
+  // Beneficios
+  const { state: beneficiosState, actions: accionesBeneficios } = useBeneficios();
+  const beneficios = beneficiosState?.filtered ?? beneficiosState?.items ?? [];
 
-  // CATEGORÍAS Y PROVEEDORES
+  // Catálogos
   const {
     cats,
     provs,
@@ -23,7 +26,7 @@ export default function useAdminShell() {
   } = useCatalogos();
 
   return {
-    // navegación / layout
+    // navegación y layout
     nav,
     setNav,
     collapsed,
@@ -32,9 +35,9 @@ export default function useAdminShell() {
     setShowMobileNav,
 
     // beneficios
-    state,
-    accionesBeneficios: actions,
+    beneficiosState,
     beneficios,
+    accionesBeneficios,
 
     // catálogos
     cats,
@@ -42,7 +45,7 @@ export default function useAdminShell() {
     addCategoria,
     addProveedor,
 
-    // formulario
+    // formulario crear / editar
     showForm,
     setShowForm,
     editing,
