@@ -1,41 +1,47 @@
+// src/components/ProveedorPortal/ProveedorPortal.jsx
 import { useState } from "react";
 import ProveedorHeader from "./ProveedorHeader";
 import ProveedorSidebar from "./ProveedorSidebar";
 import ProveedorMobileSidebar from "./ProveedorMobileSidebar";
-import ProveedorBenefitsList from "./ProveedorBenefitsList";
+
+// Páginas del portal de proveedor
+//import ProveedorBenefitsPage from "../../pages/ProveedorPortal/ProveedorBenefitsPage/ProveedorBenefitsPage";
+import ProveedorPerfilPage from "../../components/ProveedorPortal/ProveedorPerfilPage/ProveedorPerfilPage";
+//import ProveedorAyudaPage from "../../pages/ProveedorPortal/ProveedorAyudaPage/ProveedorAyudaPage";
 
 export default function ProveedorPortal() {
   const [activeSection, setActiveSection] = useState("beneficios");
   const [showMobileNav, setShowMobileNav] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
-  const handleChangeSection = (key) => {
-    setActiveSection(key);
-  };
+  const handleChangeSection = (key) => setActiveSection(key);
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* header arriba */}
+      {/* HEADER PRINCIPAL (top bar) */}
       <ProveedorHeader
         nav={activeSection}
+        collapsed={collapsed}
+        onToggleCollapsed={setCollapsed}
         setShowMobileNav={setShowMobileNav}
       />
 
       <div className="flex">
-        {/* sidebar desktop */}
+        {/* SIDEBAR DESKTOP */}
         <ProveedorSidebar
           activeSection={activeSection}
           onChangeSection={handleChangeSection}
+          collapsed={collapsed}
+          onToggleCollapsed={setCollapsed}
         />
 
-        {/* contenido */}
+        {/* CONTENIDO */}
         <main className="flex-1 p-4">
-          {activeSection === "beneficios" && <ProveedorBenefitsList />}
-          {activeSection === "perfil" && <div>TODO: Perfil proveedor</div>}
-          {activeSection === "ayuda" && <div>TODO: Ayuda / FAQs</div>}
+          {activeSection === "perfil" && <ProveedorPerfilPage />}
         </main>
       </div>
 
-      {/* sidebar móvil estilo admin */}
+      {/* SIDEBAR MÓVIL */}
       <ProveedorMobileSidebar
         open={showMobileNav}
         current={activeSection}

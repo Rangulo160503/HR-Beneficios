@@ -39,25 +39,38 @@ export const proveedorNavItems = [
   { id: "ayuda", label: "Ayuda", icon: IconHelp },
 ];
 
-export default function ProveedorSidebar({ activeSection, onChangeSection }) {
-  return (
-    <aside className="w-60 bg-neutral-950 border-r border-white/10 hidden md:flex flex-col sticky top-0 h-screen">
+const LS_PROV_SIDEBAR = "hr-prov-sidebar-collapsed";
 
+export default function ProveedorSidebar({
+  activeSection,
+  onChangeSection,
+  collapsed,
+  onToggleCollapsed,
+}) {
+  return (
+    <aside
+      className={`hidden md:flex flex-col sticky top-0 h-screen bg-neutral-950 border-r border-white/10
+      transition-all duration-200 ${collapsed ? "w-16" : "w-60"}`}
+    >
+
+      {/* NAV */}
       <nav className="p-2 flex-1 space-y-1">
         {proveedorNavItems.map(({ id, label, icon: Icon }) => {
           const active = activeSection === id;
-          const classes =
-            "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition " +
-            (active
-              ? "bg-neutral-800 text-white"
-              : "text-neutral-400 hover:bg-neutral-900 hover:text-white");
+
+          const base =
+            "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition";
+          const stateClasses = active
+            ? " bg-neutral-800 text-white"
+            : " text-neutral-400 hover:bg-neutral-900 hover:text-white";
+          const layoutWhenCollapsed = collapsed ? " justify-center" : "";
 
           return (
             <button
               key={id}
               type="button"
               onClick={() => onChangeSection(id)}
-              className={classes}
+              className={base + stateClasses + layoutWhenCollapsed}
             >
               <Icon
                 className={
@@ -65,13 +78,16 @@ export default function ProveedorSidebar({ activeSection, onChangeSection }) {
                   (active ? "text-emerald-400" : "text-neutral-500")
                 }
               />
-              <span>{label}</span>
+              {/* ocultamos el texto cuando está colapsado */}
+              {!collapsed && <span>{label}</span>}
             </button>
           );
         })}
       </nav>
 
-      <div className="px-4 py-3 text-xs text-neutral-600">Proveedor</div>
+      <div className="px-4 py-3 text-xs text-neutral-600">
+        {!collapsed && "Proveedor"}
+      </div>
     </aside>
   );
 }

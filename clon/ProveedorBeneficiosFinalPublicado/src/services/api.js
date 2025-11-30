@@ -133,9 +133,13 @@ export const Api = {
     obtener: (id) => httpGet(EP.ubicacionId(id)),
   },
 
-  // === Proveedores ===
+    // === Proveedores ===
   proveedores: {
     listar: () => httpGet(EP.proveedores()),
     obtener: (id) => httpGet(EP.proveedorId(id)),
+    agregar: (payload) => httpPost(EP.proveedores(), payload),
+    editar: (id, payload) => httpPut(EP.proveedorId(id), payload),
+    eliminar: (id) => httpDelete(EP.proveedorId(id)),
   },
+
 };
