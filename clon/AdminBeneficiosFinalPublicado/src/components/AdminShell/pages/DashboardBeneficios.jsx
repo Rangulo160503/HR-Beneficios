@@ -95,14 +95,16 @@ export default function DashboardBeneficios({
       </div>
 
       {/* Sheet móvil con detalle */}
-      <BenefitDetailPanel
-        benefit={selectedBenefit}
-        touchesSeries={touchesSeries}
-        mode="mobile-sheet"
-        visible={showDetailMobile}
-        onClose={handleCloseDetail}
-        loading={isLoading}
-      />
+       <div className="md:hidden">
+        <BenefitDetailPanel
+          benefit={selectedBenefit}
+          touchesSeries={touchesSeries}
+          mode="mobile-sheet"
+          visible={showDetailMobile}
+          onClose={handleCloseDetail}
+          loading={isLoading}
+        />
+      </div>
 
       {/* Formulario crear / editar beneficio */}
       {showForm && (

@@ -23,7 +23,6 @@ export default function App() {
         <>
           <LandingIntro
             onOpenPreview={() => setPreviewOpen(true)}
-            onEnterApp={() => setStage("app")}
           />
           <EpicPreview
             open={previewOpen}

@@ -2,7 +2,7 @@ import "./LandingIntro.css";
 import { LANDING_TEXT } from "./constants";
 import { useLandingIntro } from "./useLandingIntro";
 
-export default function LandingIntro({ onOpenPreview, onEnterApp }) {
+export default function LandingIntro({ onOpenPreview }) {
   useLandingIntro();
 
   const headlineLines = LANDING_TEXT.headline.split("\n");
@@ -58,9 +58,16 @@ export default function LandingIntro({ onOpenPreview, onEnterApp }) {
             ))}
           </p>
 
-          <button className="cta white" onClick={onEnterApp}>
-            {LANDING_TEXT.rightBtn}
-          </button>
+          <button
+  className="cta white"
+  onClick={() => {
+    window.location.href =
+      "https://hr-beneficios-web-client-cfdshdfeeyemfmh3.canadacentral-01.azurewebsites.net/";
+  }}
+>
+  {LANDING_TEXT.rightBtn}
+</button>
+
         </div>
       </section>
     </div>

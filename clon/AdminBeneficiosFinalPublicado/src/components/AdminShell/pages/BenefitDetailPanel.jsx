@@ -26,7 +26,7 @@ export default function BenefitDetailPanel({
   const baseClasses =
     "rounded-t-3xl md:rounded-2xl bg-black/40 border border-white/10 shadow-xl";
   const mobileSheetClasses = isMobileSheet
-    ? "fixed inset-x-0 bottom-0 max-h-[70vh] px-4 pt-3 pb-6 z-40 backdrop-blur-md"
+    ? "fixed inset-x-0 bottom-0 max-h-[70vh] px-4 pt-3 pb-6 z-40 backdrop-blur-md md:hidden"
     : "px-4 py-4";
 
   const totalToques =
