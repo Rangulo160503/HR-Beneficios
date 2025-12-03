@@ -1,6 +1,6 @@
 // ProveedorBeneficiosFinalPublicado/src/App.jsx
-import ProveedorPortal from "./components/ProveedorPortal";
+import ProveedorHome from "./views/ProveedorHome";
 
 export default function App() {
-  return <ProveedorPortal />;
+  return <ProveedorHome  />;
 }
