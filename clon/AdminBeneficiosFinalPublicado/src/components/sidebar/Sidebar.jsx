@@ -1,3 +1,4 @@
+// src/components/sidebar/Sidebar.jsx
 import NavItem from "./NavItem";
 
 const IconGift = (p) => (
@@ -43,6 +44,13 @@ const IconHandshake = (p) => (
   </svg>
 );
 
+const IconShield = (p) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...p}>
+    <path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z" strokeWidth="1.8" />
+    <path d="m9 12 2 2 4-4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const LS_SIDEBAR = "admin.sidebar.collapsed";
 
 export default function Sidebar({
@@ -52,8 +60,7 @@ export default function Sidebar({
   onToggleCollapsed,
 }) {
   return (
-    <aside className="bg-neutral-950 border-r border-white/10 hidden md:flex flex-col
-                 sticky top-0 h-screen">
+    <aside className="bg-neutral-950 border-r border-white/10 hidden md:flex flex-col sticky top-0 h-screen">
       <div className="h-14 md:h-16 flex items-center px-4">
         <button
           onClick={() => {
@@ -95,11 +102,12 @@ export default function Sidebar({
           onClick={() => onChangeNav("proveedores")}
         />
 
+        {/* HR Portal como link externo independiente */}
         <a
           href="http://hrportal"
           target="_blank"
           rel="noopener noreferrer"
-          className="contents"
+          className="block"
         >
           <NavItem
             label="HR Portal"
@@ -108,6 +116,15 @@ export default function Sidebar({
             collapsed={collapsed}
           />
         </a>
+
+        {/* Aprobaciones separado, sin estar dentro del <a> */}
+        <NavItem
+          label="Aprobaciones"
+          icon={<IconShield className="w-5 h-5" />}
+          active={nav === "aprobaciones"}
+          collapsed={collapsed}
+          onClick={() => onChangeNav("aprobaciones")}
+        />
       </nav>
     </aside>
   );

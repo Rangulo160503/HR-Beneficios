@@ -33,7 +33,9 @@ namespace DA
                     b.VigenciaFin,
                     Imagen = b.Imagen,
                     b.ProveedorId,
-                    b.CategoriaId
+                    b.CategoriaId,
+                    Estado = (int)EstadoBeneficio.Pendiente,
+                    FechaCreacion = DateTime.UtcNow
                     // ⬅️ sin contadores
                 },
                 null, null, CommandType.StoredProcedure
@@ -83,6 +85,24 @@ namespace DA
             return rows;
         }
 
+        public async Task<IEnumerable<BeneficioResponse>> ObtenerAprobados()
+        {
+            const string sp = "core.ObtenerBeneficiosAprobados";
+            var rows = await _dapperWrapper.QueryAsync<BeneficioResponse>(
+                _dbConnection, sp, null, null, null, CommandType.StoredProcedure
+            );
+            return rows;
+        }
+
+        public async Task<IEnumerable<BeneficioResponse>> ObtenerPendientes()
+        {
+            const string sp = "core.ObtenerBeneficiosPendientes";
+            var rows = await _dapperWrapper.QueryAsync<BeneficioResponse>(
+                _dbConnection, sp, null, null, null, CommandType.StoredProcedure
+            );
+            return rows;
+        }
+
         public async Task<BeneficioDetalle> Obtener(Guid Id)
         {
             const string sp = "core.ObtenerBeneficio";
@@ -90,6 +110,22 @@ namespace DA
                 _dbConnection, sp, new { Id }, null, null, CommandType.StoredProcedure
             );
             return rows.FirstOrDefault() ?? new BeneficioDetalle();
+        }
+
+        public async Task<Guid> Aprobar(Guid Id, Guid? usuarioId)
+        {
+            const string sp = "core.AprobarBeneficio";
+            return await _dapperWrapper.ExecuteScalarAsync<Guid>(
+                _dbConnection, sp, new { Id, usuarioId }, null, null, CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<Guid> Rechazar(Guid Id, Guid? usuarioId)
+        {
+            const string sp = "core.RechazarBeneficio";
+            return await _dapperWrapper.ExecuteScalarAsync<Guid>(
+                _dbConnection, sp, new { Id, usuarioId }, null, null, CommandType.StoredProcedure
+            );
         }
         #endregion
 

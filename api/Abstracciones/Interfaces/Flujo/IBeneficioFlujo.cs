@@ -12,9 +12,13 @@ namespace Abstracciones.Interfaces.Flujo
     public interface IBeneficioFlujo
     {
         Task<IEnumerable<BeneficioResponse>> Obtener();
+        Task<IEnumerable<BeneficioResponse>> ObtenerAprobados();
+        Task<IEnumerable<BeneficioResponse>> ObtenerPendientes();
         Task<BeneficioDetalle> Obtener(Guid Id);
         Task<Guid> Agregar(BeneficioRequest vehiculo);
         Task<Guid> Editar(Guid Id, BeneficioRequest vehiculo);
         Task<Guid> Eliminar(Guid Id);
+        Task<Guid> Aprobar(Guid Id, Guid? usuarioId);
+        Task<Guid> Rechazar(Guid Id, Guid? usuarioId);
     }
 }

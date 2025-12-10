@@ -4,6 +4,7 @@ import { NAV_ITEMS } from "./constants";
 import DashboardBeneficios from "./pages/DashboardBeneficios";
 import CategoriasPage from "./pages/CategoriasPage";
 import ProveedoresPage from "./pages/ProveedoresPage";
+import AprobacionesPage from "./pages/AprobacionesPage";
 
 export default function AdminMain(props) {
   const {
@@ -55,6 +56,9 @@ export default function AdminMain(props) {
             provs={provs}
             addProveedor={addProveedor}
           />
+        )}
+        {nav === NAV_ITEMS.APROBACIONES && (
+          <AprobacionesPage />
         )}
       </div>
     </main>

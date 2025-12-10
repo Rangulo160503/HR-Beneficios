@@ -20,6 +20,9 @@ export const BeneficioApi = {
   create:(dto,o={}) => req("/api/Beneficio", { method:"POST", json:dto, ...o }),
   update:(id,dto,o={}) => req(`/api/Beneficio/${id}`, { method:"PUT", json:dto, ...o }),
   remove:(id,o={}) => req(`/api/Beneficio/${id}`, { method:"DELETE", ...o }),
+  pending: (o={}) => req("/api/Beneficio/pendientes", o),
+  approve: (id,o={}) => req(`/api/Beneficio/${id}/aprobar`, { method:"PUT", json:{}, ...o }),
+  reject:  (id,body={},o={}) => req(`/api/Beneficio/${id}/rechazar`, { method:"PUT", json:body, ...o }),
 };
 
 // src/services/adminApi.js

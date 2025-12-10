@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { BeneficioApi, CategoriaApi } from "../../services/adminApi";
 
-export default function ProveedorBeneficioForm({ providerId, initial = null, onSaved, onCancel }) {
+export default function ProveedorBeneficioForm({ initial = null, onSaved, onCancel }) {
   const [form, setForm] = useState({
     titulo: "",
     descripcion: "",
@@ -69,10 +69,21 @@ export default function ProveedorBeneficioForm({ providerId, initial = null, onS
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+
+    const proveedorId = localStorage.getItem("proveedorId");
+    const guidRegex = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
+
+    if (!proveedorId || !guidRegex.test(proveedorId)) {
+      console.error("[Proveedor] proveedorId inválido o ausente", proveedorId);
+      alert("No se encontró el proveedor asignado. Abra el portal desde su código QR.");
+      return;
+    }
+
     setSaving(true);
     try {
       const payload = {
-        proveedorId: providerId,
+        proveedorId,
         categoriaId: form.categoriaId || null,
         titulo: form.titulo,
         descripcion: form.descripcion,
@@ -82,8 +93,10 @@ export default function ProveedorBeneficioForm({ providerId, initial = null, onS
         vigenciaFin: form.vigenciaFin ? new Date(form.vigenciaFin).toISOString() : null,
         imagen: form.imagen || null,
       };
+      console.log("[Proveedor] payload a enviar:", payload);
 
       await BeneficioApi.create(payload);
+      alert("El beneficio fue enviado para aprobación. Un administrador debe aprobarlo antes de que aparezca publicado.");
       onSaved?.();
     } catch (error) {
       console.error("No se pudo guardar el beneficio", error);
@@ -216,13 +229,6 @@ export default function ProveedorBeneficioForm({ providerId, initial = null, onS
           )}
 
           <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 rounded-lg border border-neutral-800 text-neutral-200 hover:bg-neutral-800"
-            >
-              Cancelar
-            </button>
             <button
               type="submit"
               disabled={saving}

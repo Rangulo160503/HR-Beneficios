@@ -1,6 +1,12 @@
-// ProveedorBeneficiosFinalPublicado/src/App.jsx
+import {Routes, Route } from "react-router-dom";
+import ProveedorLogin from "./proveedor/pages/ProveedorLogin";
 import ProveedorHome from "./views/ProveedorHome";
 
 export default function App() {
-  return <ProveedorHome  />;
+  return (
+    <Routes>
+      <Route path="/login" element={<ProveedorLogin />} />
+      <Route path="/*" element={<ProveedorHome />} />
+    </Routes>
+  );
 }

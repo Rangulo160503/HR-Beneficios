@@ -89,6 +89,17 @@ namespace API.Controllers
             var resultado = await _proveedorFlujo.Obtener(Id);
             return Ok(resultado);
         }
+
+        [HttpGet("validar-login/{Id:guid}")]
+        public async Task<IActionResult> ValidarLogin([FromRoute] Guid Id)
+        {
+            var existe = await _proveedorFlujo.ExisteProveedor(Id);
+
+            if (!existe)
+                return NotFound(new { ok = false, mensaje = "QR inválido o proveedor no encontrado." });
+
+            return Ok(new { ok = true, mensaje = "Proveedor válido." });
+        }
         #endregion
 
         #region Helpers

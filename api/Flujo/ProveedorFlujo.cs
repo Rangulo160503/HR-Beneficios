@@ -42,5 +42,10 @@ namespace Flujo
             var proveedor = await _proveedorDA.Obtener(id);
             return proveedor;
         }
+        public async Task<bool> ExisteProveedor(Guid id)
+        {
+            var existe = await _proveedorDA.ExisteProveedor(id);
+            return existe;
+        }
     }
 }

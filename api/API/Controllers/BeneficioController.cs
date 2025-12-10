@@ -62,7 +62,7 @@ namespace API.Controllers
         [HttpGet]
         public async Task<IActionResult> Obtener()
         {
-            var lista = await _beneficioFlujo.Obtener();
+            var lista = await _beneficioFlujo.ObtenerAprobados();
             return Ok(lista ?? Enumerable.Empty<BeneficioResponse>());
         }
 
@@ -73,6 +73,35 @@ namespace API.Controllers
             var item = await _beneficioFlujo.Obtener(Id);
             return item is null ? NotFound() : Ok(item);
         }
+
+        // GET api/Beneficio/pendientes
+        [HttpGet("pendientes")]
+        public async Task<IActionResult> ObtenerPendientes()
+        {
+            var lista = await _beneficioFlujo.ObtenerPendientes();
+            return Ok(lista ?? Enumerable.Empty<BeneficioResponse>());
+        }
+
+        // PUT api/Beneficio/{Id}/aprobar
+        [HttpPut("{Id:guid}/aprobar")]
+        public async Task<IActionResult> Aprobar([FromRoute] Guid Id)
+        {
+            if (!await VerificarBeneficioExiste(Id)) return NotFound("El beneficio no existe");
+
+            await _beneficioFlujo.Aprobar(Id, null);
+            return NoContent();
+        }
+
+        // PUT api/Beneficio/{Id}/rechazar
+        [HttpPut("{Id:guid}/rechazar")]
+        public async Task<IActionResult> Rechazar([FromRoute] Guid Id)
+        {
+            if (!await VerificarBeneficioExiste(Id)) return NotFound("El beneficio no existe");
+
+            await _beneficioFlujo.Rechazar(Id, null);
+            return NoContent();
+        }
+
 
         // ===== Helpers =====
         private async Task<bool> VerificarBeneficioExiste(Guid Id)

@@ -14,5 +14,6 @@ namespace Abstracciones.Interfaces.DA
         Task<Guid> Agregar(ProveedorRequest proveedor);
         Task<Guid> Editar(Guid Id, ProveedorRequest proveedor);
         Task<Guid> Eliminar(Guid Id);
+        Task<bool> ExisteProveedor(Guid id);
     }
 }

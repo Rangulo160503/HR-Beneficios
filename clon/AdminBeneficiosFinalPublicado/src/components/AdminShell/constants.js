@@ -4,6 +4,7 @@ export const NAV_ITEMS = {
   CATEGORIAS: "categorias",
   PROVEEDORES: "proveedores",
   HRPORTAL: "hrportal",
+  APROBACIONES: "aprobaciones",
 };
 
 export const MOBILE_ITEMS = [
@@ -11,4 +12,5 @@ export const MOBILE_ITEMS = [
   { key: NAV_ITEMS.CATEGORIAS, label: "Categorías" },
   { key: NAV_ITEMS.PROVEEDORES, label: "Proveedores" },
   { key: NAV_ITEMS.HRPORTAL, label: "HR Portal", href: "http://hrportal" },
+  { key: NAV_ITEMS.APROBACIONES, label: "Aprobaciones" },
 ];

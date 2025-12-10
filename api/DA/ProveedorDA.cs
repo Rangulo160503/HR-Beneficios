@@ -83,6 +83,25 @@ namespace DA
             );
             return rows.FirstOrDefault() ?? new ProveedorDetalle();
         }
+
+        public async Task<bool> ExisteProveedor(Guid id)
+        {
+            const string sp = "core.ExisteProveedor";
+
+            var rows = await _dapperWrapper.QueryAsync<int>(
+                _dbConnection,
+                sp,
+                new { Id = id },
+                null,
+                null,
+                CommandType.StoredProcedure
+            );
+
+            int valor = rows.FirstOrDefault();
+            return valor == 1;
+        }
+
+
         #endregion
 
         #region Helpers
