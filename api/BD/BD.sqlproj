@@ -106,5 +106,10 @@
     <Build Include="core\Stored Procedures\Usuario_AsignarProveedor.sql" />
     <Build Include="core\Stored Procedures\Usuario_Actualizar.sql" />
     <Build Include="core\Tables\ProveedorUsuario.sql" />
+    <Build Include="core\Stored Procedures\RechazarBeneficio.sql" />
+    <Build Include="core\Stored Procedures\ObtenerBeneficiosPendientes.sql" />
+    <Build Include="core\Stored Procedures\ObtenerBeneficiosAprobados.sql" />
+    <Build Include="core\Stored Procedures\ExisteProveedor.sql" />
+    <Build Include="core\Stored Procedures\AprobarBeneficio.sql" />
   </ItemGroup>
 </Project>
