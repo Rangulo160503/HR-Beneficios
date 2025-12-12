@@ -95,11 +95,8 @@ export default function MobileSidebar({ open, current, items, onSelect, onClose 
         {/* header con logo */}
         <div className="h-14 flex items-center px-4 border-b border-white/10">
           <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-full bg-emerald-500 text-black text-xs font-bold flex items-center justify-center">
-              HR
-            </div>
             <span className="text-sm font-semibold tracking-wide">
-              HR Beneficios
+              Beneficios
             </span>
           </div>
 

@@ -1,5 +1,5 @@
-// src/components/AdminShell/pages/DashboardBeneficios.jsx
 import { useState } from "react";
+import { BeneficioApi } from "../../../services/adminApi";
 import BenefitsList from "./BenefitsList";
 import BenefitDetailPanel from "./BenefitDetailPanel";
 import FullForm from "../../beneficio/FullForm";
@@ -20,9 +20,13 @@ export default function DashboardBeneficios({
 }) {
   const [selectedBenefit, setSelectedBenefit] = useState(null);
   const [showDetailMobile, setShowDetailMobile] = useState(false);
+  const [localLoading, setLocalLoading] = useState(false);
+  const [localError, setLocalError] = useState();
 
-  const isLoading = state?.loading;
-  const hasError = !!state?.err;
+  
+  const isLoading = Boolean(state?.loading || localLoading);
+  const hasError =
+    localError !== undefined ? Boolean(localError) : Boolean(state?.err);
 
   const handleSelect = (benefit) => {
     setSelectedBenefit(benefit);
@@ -45,14 +49,37 @@ export default function DashboardBeneficios({
     setEditing?.(null);
   };
 
-  // si tu hook tiene alguna acción para recargar, puedes usarla aquí:
-  const handleRetry = async () => {
-    if (accionesBeneficios?.reload) {
-      await accionesBeneficios.reload();
-    } else if (accionesBeneficios?.fetch) {
-      await accionesBeneficios.fetch();
-    } else {
-      console.warn("No hay acción de recarga configurada todavía");
+
+  const mapBenefitId = (r) => {
+    const id =
+      r?.id ??
+      r?.Id ??
+      r?.beneficioId ??
+      r?.BeneficioId ??
+      r?.beneficio?.id ??
+      r?.beneficio?.Id;
+
+    const fixed = String(id ?? "").trim();
+    return {
+      ...r,
+      id: fixed || undefined,
+      beneficioId: fixed || undefined,
+    };
+  };
+
+  const cargarBeneficios = async () => {
+    setLocalLoading(true);
+    setLocalError(false);
+
+    try {
+      const data = await BeneficioApi.list();
+      const normalized = Array.isArray(data) ? data.map(mapBenefitId) : [];
+      accionesBeneficios?.setItems?.(normalized);
+      setLocalError(false);
+    } catch (err) {
+      setLocalError(err || true);
+    } finally {
+      setLocalLoading(false);
     }
   };
 
@@ -76,12 +103,12 @@ export default function DashboardBeneficios({
       {/* Layout responsive: lista + panel */}
       <div className="grid md:grid-cols-[minmax(0,280px)_minmax(0,1fr)] gap-4">
         <BenefitsList
-          items={benefits || []}
+          items={benefits}
           selectedId={selectedBenefit?.id}
           onSelect={handleSelect}
           loading={isLoading}
           error={hasError}
-          onRetry={handleRetry}
+          onRetry={cargarBeneficios}
         />
 
         <div className="hidden md:block">
