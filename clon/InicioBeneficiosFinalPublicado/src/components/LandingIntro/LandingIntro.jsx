@@ -6,7 +6,23 @@ export default function LandingIntro({ onOpenPreview }) {
   useLandingIntro();
 
   const headlineLines = LANDING_TEXT.headline.split("\n");
-  const rightLines = LANDING_TEXT.rightText.split("\n");
+  const accessOptions = [
+    {
+      label: "Colaboradores",
+      href:
+        "https://hr-beneficios-web-client-cfdshdfeeyemfmh3.canadacentral-01.azurewebsites.net/",
+    },
+    {
+      label: "Proveedores",
+      href:
+        "https://hr-beneficios-web-proveedor-btgqhgdfaqhzc0gg.canadacentral-01.azurewebsites.net/",
+    },
+    {
+      label: "Administración",
+      href:
+        "https://hr-beneficios-web-admin-dqbwbedkb2duhqbs.canadacentral-01.azurewebsites.net/",
+    },
+  ];
 
   return (
     <div className="landing-root">
@@ -39,35 +55,30 @@ export default function LandingIntro({ onOpenPreview }) {
             {LANDING_TEXT.leftBtn}
           </button>
         </div>
+        {/* Access panel */}
+        <div className="col panel">
+          <div className="access-panel">
+            <div className="access-header">
+              <p className="access-kicker">{LANDING_TEXT.kicker}</p>
+              <h2>{LANDING_TEXT.panelTitle}</h2>
+              <p className="access-subtitle">{LANDING_TEXT.panelSubtitle}</p>
+            </div>
 
-        {/* Center mock phone */}
-        <div className="col center">
-          <div className="phone">
-            <div className="phone-screen" />
+            <div className="access-grid">
+              {accessOptions.map((option) => (
+                <button
+                  key={option.label}
+                  className="access-card"
+                  onClick={() => {
+                    window.location.href = option.href;
+                  }}
+                >
+                  <span className="access-label">{option.label}</span>
+                  <span className="access-arrow">→</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-
-        {/* Right */}
-        <div className="col right">
-          <p>
-            {rightLines.map((l, i) => (
-              <span key={i}>
-                {l}
-                <br />
-              </span>
-            ))}
-          </p>
-
-          <button
-  className="cta white"
-  onClick={() => {
-    window.location.href =
-      "https://hr-beneficios-web-client-cfdshdfeeyemfmh3.canadacentral-01.azurewebsites.net/";
-  }}
->
-  {LANDING_TEXT.rightBtn}
-</button>
-
         </div>
       </section>
     </div>
