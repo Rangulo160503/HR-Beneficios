@@ -5,6 +5,7 @@ import DashboardBeneficios from "./pages/DashboardBeneficios";
 import CategoriasPage from "./pages/CategoriasPage";
 import ProveedoresPage from "./pages/ProveedoresPage";
 import AprobacionesPage from "./pages/AprobacionesPage";
+import InfoBoardPage from "./pages/InfoBoardPage";
 
 export default function AdminMain(props) {
   const {
@@ -57,6 +58,7 @@ export default function AdminMain(props) {
             addProveedor={addProveedor}
           />
         )}
+        {nav === NAV_ITEMS.INFOBOARD && <InfoBoardPage />}
         {nav === NAV_ITEMS.APROBACIONES && (
           <AprobacionesPage />
         )}
