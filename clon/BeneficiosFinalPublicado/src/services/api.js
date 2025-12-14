@@ -22,6 +22,23 @@ async function httpGet(path) {
   return ct.includes("application/json") ? res.json() : res.text();
 }
 
+// 📡 Función POST genérica
+async function httpPost(path, body) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body ?? {}),
+    mode: "cors",
+  });
+
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  const ct = res.headers.get("content-type") || "";
+  return ct.includes("application/json") ? res.json() : res.text();
+}
+
 // 🧱 Endpoints centralizados
 export const EP = {
   beneficios:      ()    => `/api/Beneficio`,
@@ -38,6 +55,8 @@ export const EP = {
     `/api/BeneficioImagen/${beneficioId}`,
   // si algún día ocupas el detalle de 1 imagen:
   // beneficioImagenDetalle: (imagenId) => `/api/BeneficioImagen/detalle/${imagenId}`,
+
+  toqueBeneficio: () => `/api/ToqueBeneficio`,
 };
 
 // 🚀 API agrupada por recurso
@@ -62,6 +81,11 @@ export const Api = {
       httpGet(EP.beneficioImagenPorBeneficio(beneficioId)),
     // si luego quieres detalle por imagenId:
     // obtenerDetalle: (imagenId) => httpGet(EP.beneficioImagenDetalle(imagenId)),
+  },
+
+  toqueBeneficio: {
+    registrar: (beneficioId, origen) =>
+      httpPost(EP.toqueBeneficio(), { beneficioId, origen }),
   },
 };
 

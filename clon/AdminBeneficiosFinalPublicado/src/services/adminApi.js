@@ -52,3 +52,8 @@ export const BeneficioImagenApi = {
   update:(id,dto,o={}) => req(`/api/BeneficioImagen/${id}`, { method:"PUT", json:dto, ...o }),
   remove:(id,o={}) => req(`/api/BeneficioImagen/${id}`, { method:"DELETE", ...o }),
 };
+
+export const ToqueBeneficioApi = {
+  analytics: (beneficioId, range = "1W", o = {}) =>
+    req(`/api/ToqueBeneficio/analytics/${beneficioId}?range=${range}`, o),
+};
