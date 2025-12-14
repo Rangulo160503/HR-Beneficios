@@ -50,11 +50,14 @@ export default function BenefitDetailPanel({
   const kpis = analytics.kpis || analytics.Kpis || {};
   const delta = analytics.delta ?? analytics.Delta;
   const deltaPct = analytics.deltaPct ?? analytics.DeltaPct;
-
-  const maxCount = Math.max(...(series?.map((p) => p.count ?? p.Count ?? 0) ?? [0]), 0);
-  const scaledMax = maxCount <= 10 ? maxCount + 1 : maxCount;
-  const barWidth = series?.length <= 8 ? 24 : series?.length <= 14 ? 18 : 14;
-  const gap = series?.length <= 8 ? "gap-3" : series?.length <= 20 ? "gap-2" : "gap-1.5";
+  const counts = series?.map((p) => p.count ?? p.Count ?? p.total ?? p.Total ?? 0) ?? [0];
+  const maxCount = Math.max(...counts, 0);
+  const scaleMax = Math.max(maxCount, 1000);
+  const barWidth = series?.length <= 8 ? 28 : series?.length <= 14 ? 20 : 16;
+  const gap = series?.length <= 8 ? "gap-4" : series?.length <= 20 ? "gap-3" : "gap-2";
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((fraction) =>
+    Math.round(scaleMax * fraction)
+  );
 
   const renderSeries = () => {
     if (touchLoading) {
@@ -85,30 +88,53 @@ export default function BenefitDetailPanel({
     }
 
     return (
-      <div className={`h-full rounded-2xl bg-emerald-900/30 px-4 py-3 flex items-end ${gap} overflow-x-auto`}>
-        {series.map((p, idx) => {
-          const pointCount = p.count ?? p.Count ?? 0;
-          const altura = scaledMax > 0 ? Math.max((pointCount / scaledMax) * 100, 6) : 6;
-          const etiqueta = p.label || p.Label || p.iso || p.Iso || idx;
-          const label = typeof etiqueta === "string" ? etiqueta : String(etiqueta ?? "");
-          return (
-            <div
-              key={`${label}-${idx}`}
-              className="flex flex-col items-center gap-1 text-[10px] text-white/70"
-            >
-              <div
-                className="rounded-full bg-emerald-400/80"
-                style={{
-                  height: `${altura}%`,
-                  minHeight: "8px",
-                  width: `${barWidth}px`,
-                }}
-                title={`${label}: ${pointCount}`}
-              />
-              <span className="whitespace-nowrap">{label}</span>
-            </div>
-          );
-        })}
+      <div className={`h-full rounded-2xl bg-emerald-950/30 px-4 py-3 overflow-hidden`}>
+        <div className="text-[10px] text-white/60 mb-1 flex justify-between">
+          <span>Escala 0 - {scaleMax}</span>
+          <span>Objetivo: 1000 usuarios</span>
+        </div>
+
+        <div className="h-[85%] flex items-end gap-3">
+          <div className="flex flex-col justify-between text-[10px] text-white/50 pr-3 h-full">
+            {ticks
+              .slice()
+              .reverse()
+              .map((tick) => (
+                <div key={tick} className="flex items-center gap-2">
+                  <span className="w-9 text-right">{tick}</span>
+                  <div className="h-px flex-1 bg-white/10" />
+                </div>
+              ))}
+          </div>
+
+          <div className={`flex items-end ${gap} overflow-x-auto flex-1 pb-2`}>
+            {series.map((p, idx) => {
+              const pointCount = p.count ?? p.Count ?? p.total ?? p.Total ?? 0;
+              const relative = scaleMax > 0 ? (pointCount / scaleMax) * 100 : 0;
+              const altura = Math.max(relative, pointCount > 0 ? 12 : 4);
+              const etiqueta = p.label || p.Label || p.iso || p.Iso || idx;
+              const label = typeof etiqueta === "string" ? etiqueta : String(etiqueta ?? "");
+
+              return (
+                <div
+                  key={`${label}-${idx}`}
+                  className="flex flex-col items-center gap-1 text-[11px] text-white/80"
+                >
+                  <div
+                    className="rounded-md bg-emerald-400/90 shadow-lg shadow-emerald-500/40"
+                    style={{
+                      height: `${Math.min(altura, 100)}%`,
+                      minHeight: "14px",
+                      width: `${barWidth}px`,
+                    }}
+                    title={`${label}: ${pointCount}`}
+                  />
+                  <span className="whitespace-nowrap">{label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     );
   };

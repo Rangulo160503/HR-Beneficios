@@ -16,6 +16,8 @@ namespace Abstracciones.Modelos
         public int Count { get; set; }
         public string Label { get; set; } = string.Empty;
         public string Iso { get; set; } = string.Empty;
+        public string Fecha => string.IsNullOrWhiteSpace(Iso) ? Date.ToString("yyyy-MM-dd") : Iso;
+        public int Total => Count;
     }
 
     public class ToqueBeneficioAnalyticsResponse

@@ -61,4 +61,10 @@ export const ToqueBeneficioApi = {
   },
   resumen: (range = "1W", o = {}) =>
     req(`/api/ToqueBeneficio/resumen?range=${range}`, o),
+  registrar: (beneficioId, origen, o = {}) =>
+    req(`/api/ToqueBeneficio`, {
+      method: "POST",
+      json: { beneficioId, origen },
+      ...o,
+    }),
 };

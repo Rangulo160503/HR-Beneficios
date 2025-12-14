@@ -1,6 +1,7 @@
-﻿using Abstracciones.Interfaces.DA;
+using Abstracciones.Interfaces.DA;
 using Abstracciones.Modelos;
 using System.Data;
+using System.Linq;
 
 namespace DA
 {
@@ -8,13 +9,11 @@ namespace DA
     {
         private readonly IRepositorioDapper _repositorioDapper;
         private readonly IDapperWrapper _dapperWrapper;
-        private readonly IDbConnection _dbConnection;
 
         public ToqueBeneficioDA(IRepositorioDapper repositorioDapper, IDapperWrapper dapperWrapper)
         {
             _repositorioDapper = repositorioDapper ?? throw new ArgumentNullException(nameof(repositorioDapper));
             _dapperWrapper = dapperWrapper ?? throw new ArgumentNullException(nameof(dapperWrapper));
-            _dbConnection = _repositorioDapper.ObtenerRepositorio();
         }
 
         public async Task<ToqueBeneficio> Registrar(Guid beneficioId, string? origen)
@@ -25,8 +24,10 @@ OUTPUT INSERTED.ToqueBeneficioId, INSERTED.BeneficioId, INSERTED.Fecha, INSERTED
 VALUES (@BeneficioId, SYSUTCDATETIME(), @Origen);
 ";
 
+            using var connection = _repositorioDapper.ObtenerRepositorio();
+
             var toque = await _dapperWrapper.QueryFirstOrDefaultAsync<ToqueBeneficio>(
-                _dbConnection,
+                connection,
                 sql,
                 new { BeneficioId = beneficioId, Origen = origen },
                 commandType: CommandType.Text
@@ -83,30 +84,44 @@ FROM core.ToqueBeneficio
 WHERE BeneficioId = @BeneficioId;
 ";
 
-            var seriesTask = _dapperWrapper.QueryAsync<ToqueBeneficioDia>(
-                _dbConnection,
+            using var connection = _repositorioDapper.ObtenerRepositorio();
+
+            var series = await _dapperWrapper.QueryAsync<ToqueBeneficioDia>(
+                connection,
                 sqlSeries,
                 new { BeneficioId = beneficioId, Desde = desde, Hasta = hasta },
                 commandType: CommandType.Text
             );
 
-            var totalsTask = _dapperWrapper.QueryFirstOrDefaultAsync<dynamic>(
-                _dbConnection,
+            var normalizedSeries = series
+                .Select(s =>
+                {
+                    var dateOnly = s.Date.Date;
+                    var iso = dateOnly.ToString("yyyy-MM-dd");
+
+                    return new ToqueBeneficioDia
+                    {
+                        Date = dateOnly,
+                        Count = s.Count,
+                        Iso = iso,
+                        Label = iso
+                    };
+                })
+                .ToList();
+
+            var totals = await _dapperWrapper.QueryFirstOrDefaultAsync<AnalyticsTotals>(
+                connection,
                 sqlTotals,
                 new { BeneficioId = beneficioId, Desde = desde, Hasta = hasta, PrevDesde = prevDesde, PrevHasta = prevHasta },
                 commandType: CommandType.Text
-            );
+            ) ?? new AnalyticsTotals();
 
-            var kpisTask = _dapperWrapper.QueryFirstOrDefaultAsync<ToqueBeneficioKpis>(
-                _dbConnection,
+            var kpis = await _dapperWrapper.QueryFirstOrDefaultAsync<ToqueBeneficioKpis>(
+                connection,
                 sqlKpis,
                 new { BeneficioId = beneficioId },
                 commandType: CommandType.Text
-            );
-
-            await Task.WhenAll(seriesTask, totalsTask, kpisTask);
-
-            var totals = await totalsTask ?? new { Total = 0, PrevTotal = 0 };
+            ) ?? new ToqueBeneficioKpis();
 
             return new ToqueBeneficioAnalyticsResponse
             {
@@ -115,12 +130,12 @@ WHERE BeneficioId = @BeneficioId;
                 Granularity = granularity,
                 From = desde,
                 To = hasta,
-                Series = await seriesTask,
-                Total = (int)(totals.Total ?? 0),
+                Series = normalizedSeries,
+                Total = totals.Total,
                 PrevFrom = prevDesde,
                 PrevTo = prevHasta,
-                PrevTotal = (int)(totals.PrevTotal ?? 0),
-                Kpis = await kpisTask ?? new ToqueBeneficioKpis()
+                PrevTotal = totals.PrevTotal,
+                Kpis = kpis
             };
         }
 
@@ -133,12 +148,22 @@ WHERE Fecha >= @Desde AND Fecha < @Hasta
 GROUP BY BeneficioId;
 ";
 
-            return await _dapperWrapper.QueryAsync<ToqueBeneficioResumen>(
-              _dbConnection,
-              sql,
-              new { Desde = desde, Hasta = hasta },
-              commandType: CommandType.Text
-          );
+            using var connection = _repositorioDapper.ObtenerRepositorio();
+
+            var resumen = await _dapperWrapper.QueryAsync<ToqueBeneficioResumen>(
+                connection,
+                sql,
+                new { Desde = desde, Hasta = hasta },
+                commandType: CommandType.Text
+            );
+
+            return resumen.ToList();
+        }
+
+        private class AnalyticsTotals
+        {
+            public int Total { get; set; }
+            public int PrevTotal { get; set; }
         }
     }
 }
