@@ -52,3 +52,19 @@ export const BeneficioImagenApi = {
   update:(id,dto,o={}) => req(`/api/BeneficioImagen/${id}`, { method:"PUT", json:dto, ...o }),
   remove:(id,o={}) => req(`/api/BeneficioImagen/${id}`, { method:"DELETE", ...o }),
 };
+
+export const ToqueBeneficioApi = {
+  analytics: (beneficioId, range = "1W", o = {}, granularity) => {
+    const params = new URLSearchParams({ range });
+    if (granularity) params.set("granularity", granularity);
+    return req(`/api/ToqueBeneficio/analytics/${beneficioId}?${params.toString()}`, o);
+  },
+  resumen: (range = "1W", o = {}) =>
+    req(`/api/ToqueBeneficio/resumen?range=${range}`, o),
+  registrar: (beneficioId, origen, o = {}) =>
+    req(`/api/ToqueBeneficio`, {
+      method: "POST",
+      json: { beneficioId, origen },
+      ...o,
+    }),
+};

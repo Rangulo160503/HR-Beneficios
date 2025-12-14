@@ -14,22 +14,20 @@ namespace DA.Repositorios
     public class RepositorioDapper : IRepositorioDapper
     {
         private readonly IConfiguration _configuracion;
-        private readonly IDbConnection _conexionBaseDatos;
+        private readonly string _connectionString;
 
         public RepositorioDapper(IConfiguration configuracion)
         {
             _configuracion = configuracion ?? throw new ArgumentNullException(nameof(configuracion));
-            var connectionString = _configuracion["ConnectionStrings:BD"];
+            _connectionString = _configuracion["ConnectionStrings:BD"];
 
-            if (string.IsNullOrWhiteSpace(connectionString))
-                throw new ArgumentException("Connection string 'BD' no puede ser nulo o vacío", nameof(connectionString));
-
-            _conexionBaseDatos = new SqlConnection(connectionString);
+            if (string.IsNullOrWhiteSpace(_connectionString))
+                throw new ArgumentException("Connection string 'BD' no puede ser nulo o vacío", nameof(_connectionString));
         }
 
         public IDbConnection ObtenerRepositorio()
         {
-            return _conexionBaseDatos;
+            return new SqlConnection(_connectionString);
         }
     }
 }

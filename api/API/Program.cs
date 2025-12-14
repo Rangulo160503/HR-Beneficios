@@ -62,6 +62,7 @@ builder.Services.AddScoped<IRepositorioDapper, DA.Repositorios.RepositorioDapper
 builder.Services.AddScoped<IBeneficioDA, BeneficioDA>();
 builder.Services.AddScoped<ICategoriaDA, CategoriaDA>();
 builder.Services.AddScoped<IProveedorDA, ProveedorDA>();
+builder.Services.AddScoped<IToqueBeneficioDA, ToqueBeneficioDA>();
 builder.Services.AddScoped<IBeneficioFlujo, BeneficiosFlujo>();
 builder.Services.AddScoped<ICategoriaFlujo, CategoriaFlujo>();
 builder.Services.AddScoped<IProveedorFlujo, ProveedorFlujo>();
@@ -69,6 +70,7 @@ builder.Services.AddScoped<IBeneficiosServicio, BeneficiosServicio>();
 builder.Services.AddScoped<IConfiguracion, Configuracion>();
 builder.Services.AddScoped<IAreaDeCategoriaDA, AreaDeCategoriaDA>();
 builder.Services.AddScoped<IAreaDeCategoriaFlujo, AreaDeCategoriaFlujo>();
+builder.Services.AddScoped<IToqueBeneficioFlujo, ToqueBeneficioFlujo>();
 // ===== Catálogos de filtros (nuevo) =====
 builder.Services.AddScoped<IProductoDA, ProductoDA>();
 builder.Services.AddScoped<IServicioDA, ServicioDA>();
