@@ -52,6 +52,13 @@ const IconShield = (p) => (
   </svg>
 );
 
+const IconBoard = (p) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...p}>
+    <rect x="4" y="5" width="16" height="14" rx="2" strokeWidth="1.8" />
+    <path d="M8 9h8M8 13h5" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+
 /* ================================================== */
 
 export default function MobileSidebar({ open, current, items, onSelect, onClose }) {
@@ -132,6 +139,8 @@ export default function MobileSidebar({ open, current, items, onSelect, onClose 
               iconNode = <IconBuilding className="w-5 h-5" />;
             } else if (i.key === "aprobaciones") {
               iconNode = <IconShield className="w-5 h-5" />;
+            } else if (i.key === "infoboard") {
+              iconNode = <IconBoard className="w-5 h-5" />;
             }
 
             const rowClasses = `

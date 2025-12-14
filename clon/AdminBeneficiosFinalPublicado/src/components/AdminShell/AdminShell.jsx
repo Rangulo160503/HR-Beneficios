@@ -1,4 +1,6 @@
 // src/components/AdminShell/AdminShell.jsx
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../sidebar/Sidebar";
 import MobileSidebar from "../sidebar/MobileSidebar";
 import AdminHeader from "./AdminHeader";
@@ -7,6 +9,8 @@ import useAdminShell from "./useAdminShell";
 import { MOBILE_ITEMS, NAV_ITEMS } from "./constants";
 
 export default function AdminShell() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const {
     nav,
     setNav,
@@ -34,6 +38,33 @@ export default function AdminShell() {
     }
     setNav(key);
   };
+
+  useEffect(() => {
+    const path = location.pathname.toLowerCase();
+    if (path.includes("/admin/infoboard")) setNav(NAV_ITEMS.INFOBOARD);
+    else if (path.includes("/admin/categorias")) setNav(NAV_ITEMS.CATEGORIAS);
+    else if (path.includes("/admin/proveedores")) setNav(NAV_ITEMS.PROVEEDORES);
+    else if (path.includes("/admin/aprobaciones")) setNav(NAV_ITEMS.APROBACIONES);
+    else if (!path.includes("/admin")) setNav(NAV_ITEMS.BENEFICIOS);
+    else setNav((prev) => prev || NAV_ITEMS.BENEFICIOS);
+  }, [location.pathname, setNav]);
+
+  useEffect(() => {
+    const nextPath =
+      nav === NAV_ITEMS.INFOBOARD
+        ? "/admin/infoboard"
+        : nav === NAV_ITEMS.CATEGORIAS
+          ? "/admin/categorias"
+          : nav === NAV_ITEMS.PROVEEDORES
+            ? "/admin/proveedores"
+            : nav === NAV_ITEMS.APROBACIONES
+              ? "/admin/aprobaciones"
+              : "/admin";
+
+    if (location.pathname !== nextPath) {
+      navigate(nextPath, { replace: true });
+    }
+  }, [nav, navigate, location.pathname]);
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white flex flex-col md:flex-row">
