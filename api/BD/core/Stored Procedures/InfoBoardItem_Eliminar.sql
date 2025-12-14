@@ -1,4 +1,5 @@
-CREATE PROCEDURE [core].[InfoBoardItem_Eliminar]
+﻿
+CREATE   PROCEDURE [core].[InfoBoardItem_Eliminar]
     @InfoBoardItemId UNIQUEIDENTIFIER
 AS
 BEGIN
@@ -12,4 +13,3 @@ BEGIN
 
     SELECT @InfoBoardItemId AS InfoBoardItemId;
 END
-GO

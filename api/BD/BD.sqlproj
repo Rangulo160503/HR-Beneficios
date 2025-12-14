@@ -112,10 +112,10 @@
     <Build Include="core\Stored Procedures\ExisteProveedor.sql" />
     <Build Include="core\Stored Procedures\AprobarBeneficio.sql" />
     <Build Include="core\Tables\InfoBoardItem.sql" />
-    <Build Include="core\Stored Procedures\InfoBoardItem_Agregar.sql" />
-    <Build Include="core\Stored Procedures\InfoBoardItem_Editar.sql" />
-    <Build Include="core\Stored Procedures\InfoBoardItem_Eliminar.sql" />
-    <Build Include="core\Stored Procedures\InfoBoardItem_Listar.sql" />
     <Build Include="core\Stored Procedures\InfoBoardItem_ObtenerPorId.sql" />
+    <Build Include="core\Stored Procedures\InfoBoardItem_Listar.sql" />
+    <Build Include="core\Stored Procedures\InfoBoardItem_Eliminar.sql" />
+    <Build Include="core\Stored Procedures\InfoBoardItem_Editar.sql" />
+    <Build Include="core\Stored Procedures\InfoBoardItem_Agregar.sql" />
   </ItemGroup>
 </Project>

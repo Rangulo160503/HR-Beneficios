@@ -1,4 +1,5 @@
-CREATE PROCEDURE [core].[InfoBoardItem_Editar]
+﻿
+CREATE   PROCEDURE [core].[InfoBoardItem_Editar]
     @InfoBoardItemId UNIQUEIDENTIFIER,
     @Titulo          NVARCHAR(120),
     @Descripcion     NVARCHAR(500) = NULL,
@@ -27,4 +28,3 @@ BEGIN
 
     SELECT @InfoBoardItemId AS InfoBoardItemId;
 END
-GO

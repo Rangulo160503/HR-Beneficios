@@ -1,4 +1,5 @@
-CREATE PROCEDURE [core].[InfoBoardItem_ObtenerPorId]
+﻿
+CREATE   PROCEDURE [core].[InfoBoardItem_ObtenerPorId]
     @InfoBoardItemId UNIQUEIDENTIFIER
 AS
 BEGIN
@@ -19,4 +20,3 @@ BEGIN
     WHERE InfoBoardItemId = @InfoBoardItemId
       AND IsDeleted = 0;
 END
-GO

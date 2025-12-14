@@ -1,4 +1,6 @@
-CREATE PROCEDURE [core].[InfoBoardItem_Agregar]
+﻿
+/* 4) Stored Procedures */
+CREATE   PROCEDURE [core].[InfoBoardItem_Agregar]
     @Titulo       NVARCHAR(120),
     @Descripcion  NVARCHAR(500) = NULL,
     @Url          NVARCHAR(500),
@@ -10,6 +12,7 @@ CREATE PROCEDURE [core].[InfoBoardItem_Agregar]
 AS
 BEGIN
     SET NOCOUNT ON;
+
     DECLARE @Id UNIQUEIDENTIFIER = NEWID();
 
     INSERT INTO core.InfoBoardItem
@@ -19,4 +22,3 @@ BEGIN
 
     SELECT @Id AS InfoBoardItemId;
 END
-GO
