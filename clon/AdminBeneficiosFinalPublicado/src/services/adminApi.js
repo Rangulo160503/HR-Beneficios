@@ -54,6 +54,11 @@ export const BeneficioImagenApi = {
 };
 
 export const ToqueBeneficioApi = {
-  analytics: (beneficioId, range = "1W", o = {}) =>
-    req(`/api/ToqueBeneficio/analytics/${beneficioId}?range=${range}`, o),
+  analytics: (beneficioId, range = "1W", o = {}, granularity) => {
+    const params = new URLSearchParams({ range });
+    if (granularity) params.set("granularity", granularity);
+    return req(`/api/ToqueBeneficio/analytics/${beneficioId}?${params.toString()}`, o);
+  },
+  resumen: (range = "1W", o = {}) =>
+    req(`/api/ToqueBeneficio/resumen?range=${range}`, o),
 };

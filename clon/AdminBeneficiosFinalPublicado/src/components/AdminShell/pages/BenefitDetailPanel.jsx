@@ -2,6 +2,7 @@
 export default function BenefitDetailPanel({
   benefit,
   touchesSeries,
+  touchesAnalytics,
   range = "1W",
   onRangeChange,
   touchTotal = 0,
@@ -14,6 +15,10 @@ export default function BenefitDetailPanel({
   loading = false,
 }) {
   const isMobileSheet = mode === "mobile-sheet";
+  const analytics = touchesAnalytics || {};
+  const series = Array.isArray(analytics.series) && analytics.series.length > 0
+    ? analytics.series
+    : touchesSeries;
 
   // En desktop: si no hay beneficio y no está cargando, mensaje normal
   if (!benefit && !isMobileSheet && !loading) {
@@ -37,12 +42,19 @@ export default function BenefitDetailPanel({
 
   const activeRange = range || "1W";
   const totalToques =
-    touchTotal ?? touchesSeries?.reduce((ac, p) => ac + (p.count ?? 0), 0) ?? 0;
+    analytics.total ??
+    analytics.Total ??
+    touchTotal ??
+    touchesSeries?.reduce((ac, p) => ac + (p.count ?? p.Count ?? 0), 0) ?? 0;
 
-  const maxCount = Math.max(
-    ...(touchesSeries?.map((p) => p.count || 0) ?? [0]),
-    0
-  );
+  const kpis = analytics.kpis || analytics.Kpis || {};
+  const delta = analytics.delta ?? analytics.Delta;
+  const deltaPct = analytics.deltaPct ?? analytics.DeltaPct;
+
+  const maxCount = Math.max(...(series?.map((p) => p.count ?? p.Count ?? 0) ?? [0]), 0);
+  const scaledMax = maxCount <= 10 ? maxCount + 1 : maxCount;
+  const barWidth = series?.length <= 8 ? 24 : series?.length <= 14 ? 18 : 14;
+  const gap = series?.length <= 8 ? "gap-3" : series?.length <= 20 ? "gap-2" : "gap-1.5";
 
   const renderSeries = () => {
     if (touchLoading) {
@@ -64,7 +76,7 @@ export default function BenefitDetailPanel({
       );
     }
 
-    if (!touchesSeries || touchesSeries.length === 0) {
+    if (!series || series.length === 0) {
       return (
         <div className="h-full rounded-2xl bg-white/5 flex items-center justify-center text-xs text-white/60">
           Sin datos en el rango seleccionado.
@@ -73,21 +85,27 @@ export default function BenefitDetailPanel({
     }
 
     return (
-      <div className="h-full rounded-2xl bg-emerald-900/30 px-4 py-3 flex items-end gap-2 overflow-x-auto">
-        {touchesSeries.map((p) => {
-          const altura = maxCount > 0 ? Math.max((p.count / maxCount) * 100, 4) : 4;
-          const fecha = new Date(p.date || p.Date || p.Fecha || p.fecha);
-          const etiqueta = isNaN(fecha.getTime())
-            ? ""
-            : fecha.toISOString().slice(5, 10);
+      <div className={`h-full rounded-2xl bg-emerald-900/30 px-4 py-3 flex items-end ${gap} overflow-x-auto`}>
+        {series.map((p, idx) => {
+          const pointCount = p.count ?? p.Count ?? 0;
+          const altura = scaledMax > 0 ? Math.max((pointCount / scaledMax) * 100, 6) : 6;
+          const etiqueta = p.label || p.Label || p.iso || p.Iso || idx;
+          const label = typeof etiqueta === "string" ? etiqueta : String(etiqueta ?? "");
           return (
-            <div key={`${etiqueta}-${p.count}`} className="flex flex-col items-center gap-1 text-[10px] text-white/70">
+            <div
+              key={`${label}-${idx}`}
+              className="flex flex-col items-center gap-1 text-[10px] text-white/70"
+            >
               <div
-                className="w-7 rounded-full bg-emerald-400/80"
-                style={{ height: `${altura}%`, minHeight: "6px" }}
-                title={`${etiqueta}: ${p.count}`}
+                className="rounded-full bg-emerald-400/80"
+                style={{
+                  height: `${altura}%`,
+                  minHeight: "8px",
+                  width: `${barWidth}px`,
+                }}
+                title={`${label}: ${pointCount}`}
               />
-              <span>{etiqueta}</span>
+              <span className="whitespace-nowrap">{label}</span>
             </div>
           );
         })}
@@ -168,6 +186,19 @@ export default function BenefitDetailPanel({
           </div>
 
           {/* Área gráfico */}
+          <div className="grid grid-cols-3 gap-2 text-[11px] mb-3">
+            {[
+              { label: "Hoy", value: kpis.today ?? kpis.Today },
+              { label: "Últimos 7 días", value: kpis.last7d ?? kpis.Last7d },
+              { label: "YTD", value: kpis.ytd ?? kpis.Ytd },
+            ].map((kpi) => (
+              <div key={kpi.label} className="rounded-xl bg-white/5 px-3 py-2">
+                <p className="text-white/50">{kpi.label}</p>
+                <p className="text-sm font-semibold">{kpi.value ?? 0}</p>
+              </div>
+            ))}
+          </div>
+
           <div className="h-40 md:h-56 mb-3">{renderSeries()}</div>
 
           {/* Stats */}
@@ -178,7 +209,13 @@ export default function BenefitDetailPanel({
             </div>
             <div>
               <p className="text-white/40">Último período</p>
-              <p className="text-sm font-semibold">—</p>
+              <p className="text-sm font-semibold">
+                {delta == null
+                  ? "—"
+                  : `${delta > 0 ? "+" : ""}${delta}${
+                      deltaPct == null ? "" : ` (${deltaPct}%)`
+                    }`}
+              </p>
             </div>
           </div>
         </>

@@ -20,6 +20,14 @@ export default function BenefitCard({ item, onClick }) {
     }
   };
 
+  const registrarToqueUnico = async (event) => {
+    if (event?.nativeEvent) {
+      if (event.nativeEvent.__toqueRegistrado) return;
+      event.nativeEvent.__toqueRegistrado = true;
+    }
+    await registrarToque();
+  };
+
   useEffect(() => {
     if (!ref.current) return;
     if (imgSrc && imgSrc !== EMBED_PLACEHOLDER) return;
@@ -58,7 +66,12 @@ export default function BenefitCard({ item, onClick }) {
   }, [item, imgSrc]);
 
   const handleClick = (event) => {
-    registrarToque();
+    onClick?.(event);
+  };
+
+  const handleInnerAction = (event) => {
+    event?.stopPropagation?.();
+    registrarToqueUnico(event);
     onClick?.(event);
   };
 
@@ -67,6 +80,7 @@ export default function BenefitCard({ item, onClick }) {
       ref={ref}
       className="rounded-2xl bg-neutral-900 border border-white/10 p-3 cursor-pointer hover:bg-white/5 transition"
       onClick={handleClick}
+      onClickCapture={registrarToqueUnico}
     >
       {/* Imagen + badges */}
       <div className="w-full aspect-[4/3] rounded-xl bg-white/10 overflow-hidden relative">
@@ -87,9 +101,13 @@ export default function BenefitCard({ item, onClick }) {
 
         {/* Descuento (si existe) */}
         {item.descuento && (
-          <span className="absolute right-2 top-2 rounded-full bg-emerald-500 text-black text-[11px] px-2 py-0.5 font-semibold">
+          <button
+            type="button"
+            className="absolute right-2 top-2 rounded-full bg-emerald-500 text-black text-[11px] px-2 py-0.5 font-semibold"
+            onClick={handleInnerAction}
+          >
             {item.descuento}
-          </span>
+          </button>
         )}
       </div>
 
