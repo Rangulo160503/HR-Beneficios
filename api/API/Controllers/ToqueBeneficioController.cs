@@ -32,10 +32,20 @@ namespace API.Controllers
         }
 
         [HttpGet("analytics/{beneficioId:guid}")]
-        public async Task<IActionResult> ObtenerAnalytics([FromRoute] Guid beneficioId, [FromQuery] string? range = "1W")
+        public async Task<IActionResult> ObtenerAnalytics(
+            [FromRoute] Guid beneficioId,
+            [FromQuery] string? range = "1W",
+            [FromQuery] string? granularity = null)
         {
-            var analytics = await _toqueBeneficioFlujo.ObtenerAnalytics(beneficioId, range);
+            var analytics = await _toqueBeneficioFlujo.ObtenerAnalytics(beneficioId, range, granularity);
             return Ok(analytics);
+        }
+
+        [HttpGet("resumen")]
+        public async Task<IActionResult> ObtenerResumen([FromQuery] string? range = "1W")
+        {
+            var resumen = await _toqueBeneficioFlujo.ObtenerResumen(range);
+            return Ok(resumen);
         }
     }
 }

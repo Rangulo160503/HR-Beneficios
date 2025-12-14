@@ -24,6 +24,8 @@ export default function DashboardBeneficios({
   const [range, setRange] = useState("1W");
   const [touchTotal, setTouchTotal] = useState(0);
   const [touchSeries, setTouchSeries] = useState([]);
+  const [touchAnalytics, setTouchAnalytics] = useState(null);
+  const [touchSummary, setTouchSummary] = useState({});
   const [loadingTouches, setLoadingTouches] = useState(false);
   const [touchError, setTouchError] = useState(null);
 
@@ -84,6 +86,7 @@ export default function DashboardBeneficios({
       const data = await BeneficioApi.list();
       const normalized = Array.isArray(data) ? data.map(mapBenefitId) : [];
       accionesBeneficios?.setItems?.(normalized);
+      await cargarResumen(normalized);
       setLocalError(false);
     } catch (err) {
       setLocalError(err || true);
@@ -96,6 +99,7 @@ export default function DashboardBeneficios({
     if (!selectedId) {
       setTouchSeries([]);
       setTouchTotal(0);
+      setTouchAnalytics(null);
       return;
     }
 
@@ -106,18 +110,57 @@ export default function DashboardBeneficios({
       const data = await ToqueBeneficioApi.analytics(selectedId, range);
       setTouchTotal(data?.total ?? 0);
       setTouchSeries(Array.isArray(data?.series) ? data.series : []);
+      setTouchAnalytics(data || null);
     } catch (err) {
       setTouchError(err || true);
       setTouchTotal(0);
       setTouchSeries([]);
+      setTouchAnalytics(null);
     } finally {
       setLoadingTouches(false);
     }
   }, [range, selectedId]);
 
+  const cargarResumen = useCallback(
+    async (benefitsSnapshot) => {
+      try {
+        const data = await ToqueBeneficioApi.resumen(range);
+        const arr = Array.isArray(data)
+          ? data
+          : Object.entries(data || {}).map(([beneficioId, count]) => ({
+              beneficioId,
+              count,
+            }));
+
+        const map = arr.reduce((ac, curr) => {
+          if (!curr?.beneficioId) return ac;
+          ac[String(curr.beneficioId).trim()] = curr?.count ?? 0;
+          return ac;
+        }, {});
+
+        setTouchSummary(map);
+        accionesBeneficios?.setItems?.((prev = benefitsSnapshot || []) => {
+          const base = benefitsSnapshot || prev;
+          return base.map((b) => {
+            const normalized = mapBenefitId(b);
+            const count = map[normalized.beneficioId] ?? 0;
+            return { ...b, totalToques: count };
+          });
+        });
+      } catch (err) {
+        console.error("No se pudo cargar el resumen de toques", err);
+      }
+    },
+    [accionesBeneficios, range]
+  );
+
   useEffect(() => {
     cargarAnalytics();
   }, [cargarAnalytics]);
+
+  useEffect(() => {
+    cargarResumen();
+  }, [cargarResumen]);
 
   return (
     <>
@@ -146,6 +189,7 @@ export default function DashboardBeneficios({
           <BenefitDetailPanel
             benefit={selectedBenefit}
             touchesSeries={touchSeries}
+            touchesAnalytics={touchAnalytics}
             range={range}
             onRangeChange={setRange}
             touchTotal={touchTotal}
@@ -163,6 +207,7 @@ export default function DashboardBeneficios({
         <BenefitDetailPanel
           benefit={selectedBenefit}
           touchesSeries={touchSeries}
+          touchesAnalytics={touchAnalytics}
           range={range}
           onRangeChange={setRange}
           touchTotal={touchTotal}
