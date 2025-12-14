@@ -1,8 +1,11 @@
+import { useState } from "react";
 import "./LandingIntro.css";
+import InfoBoardModal from "../InfoBoardModal";
 import { LANDING_TEXT } from "./constants";
 import { useLandingIntro } from "./useLandingIntro";
 
 export default function LandingIntro({ onOpenPreview }) {
+  const [infoModalOpen, setInfoModalOpen] = useState(false);
   useLandingIntro();
 
   const headlineLines = LANDING_TEXT.headline.split("\n");
@@ -31,9 +34,12 @@ export default function LandingIntro({ onOpenPreview }) {
         <div className="landing-logo">{LANDING_TEXT.logo}</div>
 
         <div className="landing-actions">
-          <button className="pill white">Sign up →</button>
-          <button className="pill black">Log in</button>
-          <button className="pill ghost">☰</button>
+          <button
+            className="pill black"
+            onClick={() => setInfoModalOpen(true)}
+          >
+            Pizarra informativa
+          </button>
         </div>
       </div>
 
@@ -81,6 +87,11 @@ export default function LandingIntro({ onOpenPreview }) {
           </div>
         </div>
       </section>
+
+      <InfoBoardModal
+        open={infoModalOpen}
+        onClose={() => setInfoModalOpen(false)}
+      />
     </div>
   );
 }
