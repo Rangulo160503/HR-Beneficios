@@ -204,7 +204,7 @@ export default function InfoBoardPage() {
           onClick={() => handleSelect(null)}
           className="px-3 py-2 rounded-xl bg-white text-black text-sm font-semibold hover:bg-white/90"
         >
-          + Nuevo
+          Limpiar
         </button>
       </header>
 
