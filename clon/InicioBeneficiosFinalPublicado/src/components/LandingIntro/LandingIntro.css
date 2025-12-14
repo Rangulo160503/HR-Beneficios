@@ -5,7 +5,15 @@
   position: relative;
   overflow: hidden;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  transition: opacity 400ms ease;
 }
+
+.landing-root.landing-hidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 
 .landing-topbar {
   position: absolute;
@@ -81,6 +89,15 @@
 .col.panel {
   width: 100%;
 }
+
+.panel-placeholder {
+  opacity: 0;
+}
+
+.panel-anchor {
+  width: 100%;
+}
+
 
 .access-panel {
   background: #fff;

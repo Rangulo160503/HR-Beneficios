@@ -3,7 +3,7 @@ import { useIntroSplash } from "./useIntroSplash";
 import IntroSplashCard from "./IntroSplashCard";
 
 
-export default function IntroSplash({ show, onFinish, onPhaseChange }) {
+export default function IntroSplash({ show, onFinish, onPhaseChange, cardRef }) {
   const { phase, hide } = useIntroSplash(show, onFinish, onPhaseChange);
 
   if (!show) return null;
@@ -13,11 +13,12 @@ export default function IntroSplash({ show, onFinish, onPhaseChange }) {
       <div className="intro-black" />
       <div className="intro-green" />
 
-      <div className="intro-card">
+      <div className="intro-card" ref={cardRef}>
         <IntroSplashCard />
       </div>
 
       <div className="intro-glow" />
     </div>
   );
+
 }
