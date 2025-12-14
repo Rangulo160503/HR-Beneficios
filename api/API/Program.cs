@@ -83,6 +83,8 @@ builder.Services.AddScoped<IUsuarioDA, UsuarioDA>();
 
 builder.Services.AddScoped<IBeneficioImagenDA, BeneficioImagenDA>();
 builder.Services.AddScoped<IBeneficioImagenFlujo, BeneficioImagenFlujo>();
+builder.Services.AddScoped<IInfoBoardDA, InfoBoardDA>();
+builder.Services.AddScoped<IInfoBoardFlujo, InfoBoardFlujo>();
 
 
 
