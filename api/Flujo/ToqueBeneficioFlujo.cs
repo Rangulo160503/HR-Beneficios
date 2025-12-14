@@ -128,20 +128,42 @@ namespace Flujo
         private static IEnumerable<ToqueBeneficioDia> TransformarSeries(IEnumerable<ToqueBeneficioDia> series, string granularity)
         {
             var ordered = series
-                .Where(s => s.Date != default)
+                .Select(s =>
+                {
+                    var date = s.Date == default && !string.IsNullOrWhiteSpace(s.Iso)
+                        ? DateTime.TryParse(s.Iso, out var parsed) ? parsed.Date : DateTime.MinValue
+                        : s.Date.Date;
+
+                    var iso = !string.IsNullOrWhiteSpace(s.Iso)
+                        ? s.Iso
+                        : date != DateTime.MinValue
+                            ? date.ToString("yyyy-MM-dd")
+                            : string.Empty;
+
+                    return new ToqueBeneficioDia
+                    {
+                        Date = date,
+                        Count = s.Count,
+                        Iso = iso,
+                        Label = iso
+                    };
+                })
+                .Where(s => s.Date != DateTime.MinValue)
                 .OrderBy(s => s.Date)
                 .ToList();
 
             foreach (var punto in ordered)
             {
+                var label = granularity == "MONTH"
+                    ? punto.Date.ToString("yyyy-MM")
+                    : punto.Iso;
+
                 yield return new ToqueBeneficioDia
                 {
                     Date = punto.Date,
                     Count = punto.Count,
-                    Iso = punto.Date.ToString("yyyy-MM-dd"),
-                    Label = granularity == "MONTH"
-                        ? punto.Date.ToString("yyyy-MM")
-                        : punto.Date.ToString("MM-dd")
+                    Iso = punto.Iso,
+                    Label = label
                 };
             }
         }
