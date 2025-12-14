@@ -67,3 +67,5 @@ export const Api = {
 
 // 🧾 Log de entorno activo
 console.log(`🌍 API activa: ${target.toUpperCase()} → ${API_BASE}`);
+
+export { API_BASE, httpGet };
