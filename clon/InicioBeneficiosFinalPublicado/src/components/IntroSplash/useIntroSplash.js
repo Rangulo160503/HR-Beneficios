@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export function useIntroSplash(show, onFinish) {
+export function useIntroSplash(show, onFinish, onPhaseChange) {
   const [phase, setPhase] = useState("phase-0");
   const [hide, setHide]     = useState(false);
 
@@ -23,6 +23,10 @@ export function useIntroSplash(show, onFinish) {
       clearTimeout(t2);
     };
   }, [show, onFinish]);
+
+  useEffect(() => {
+    onPhaseChange?.(phase);
+  }, [phase, onPhaseChange]);
 
   return { phase, hide };
 }

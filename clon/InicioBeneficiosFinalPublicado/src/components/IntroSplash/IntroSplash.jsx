@@ -1,9 +1,10 @@
 import "./IntroSplash.css";
 import { useIntroSplash } from "./useIntroSplash";
-import { INTRO_TEXT } from "./constants";
+import IntroSplashCard from "./IntroSplashCard";
 
-export default function IntroSplash({ show, onFinish }) {
-  const { phase, hide } = useIntroSplash(show, onFinish);
+
+export default function IntroSplash({ show, onFinish, onPhaseChange }) {
+  const { phase, hide } = useIntroSplash(show, onFinish, onPhaseChange);
 
   if (!show) return null;
 
@@ -13,23 +14,7 @@ export default function IntroSplash({ show, onFinish }) {
       <div className="intro-green" />
 
       <div className="intro-card">
-        <div className="card-inner">
-          <div className="card-tag">{INTRO_TEXT.tag}</div>
-
-          <div className="card-title">
-            {INTRO_TEXT.title.split("\n").map((line, i) => (
-              <span key={i}>
-                {line}
-                <br />
-              </span>
-            ))}
-          </div>
-
-          <div className="card-chips">
-            <span className="chip"></span>
-            <span className="chip wide"></span>
-          </div>
-        </div>
+        <IntroSplashCard />
       </div>
 
       <div className="intro-glow" />

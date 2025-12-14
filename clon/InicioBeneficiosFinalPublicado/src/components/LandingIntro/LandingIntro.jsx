@@ -3,14 +3,13 @@ import "./LandingIntro.css";
 import InfoBoardModal from "../InfoBoardModal";
 import { LANDING_TEXT } from "./constants";
 import { useLandingIntro } from "./useLandingIntro";
+import LandingIntroCard from "./LandingIntroCard";
 
-export default function LandingIntro({ onOpenPreview }) {
-  const [infoModalOpen, setInfoModalOpen] = useState(false);
+export default function LandingIntro({ onOpenPreview, accessOptions: accessOptionsProp }) {  const [infoModalOpen, setInfoModalOpen] = useState(false);
   useLandingIntro();
 
   const headlineLines = LANDING_TEXT.headline.split("\n");
-  const accessOptions = [
-    {
+  const accessOptions = accessOptionsProp ?? [    {
       label: "Colaboradores",
       href:
         "https://hr-beneficios-web-client-cfdshdfeeyemfmh3.canadacentral-01.azurewebsites.net/",
@@ -63,29 +62,13 @@ export default function LandingIntro({ onOpenPreview }) {
         </div>
         {/* Access panel */}
         <div className="col panel">
-          <div className="access-panel">
-            <div className="access-header">
-              <p className="access-kicker">{LANDING_TEXT.kicker}</p>
-              <h2>{LANDING_TEXT.panelTitle}</h2>
-              <p className="access-subtitle">{LANDING_TEXT.panelSubtitle}</p>
-            </div>
-
-            <div className="access-grid">
-              {accessOptions.map((option) => (
-                <button
-                  key={option.label}
-                  className="access-card"
-                  onClick={() => {
-                    window.location.href = option.href;
-                  }}
-                >
-                  <span className="access-label">{option.label}</span>
-                  <span className="access-arrow">→</span>
-                </button>
-              ))}
-            </div>
+           <LandingIntroCard
+              kicker={LANDING_TEXT.kicker}
+              title={LANDING_TEXT.panelTitle}
+              subtitle={LANDING_TEXT.panelSubtitle}
+              options={accessOptions}
+            />
           </div>
-        </div>
       </section>
 
       <InfoBoardModal
