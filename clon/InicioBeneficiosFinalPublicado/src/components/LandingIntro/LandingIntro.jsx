@@ -31,7 +31,6 @@ export default function LandingIntro({ onOpenPreview }) {
     <div className="landing-root">
       {/* Topbar tipo Cash */}
       <div className="landing-topbar">
-        <div className="landing-logo">{LANDING_TEXT.logo}</div>
 
         <div className="landing-actions">
           <button
