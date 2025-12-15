@@ -78,6 +78,7 @@
     <Build Include="Security\core.sql" />
     <Build Include="core\Stored Procedures\ObtenerProveedores.sql" />
     <Build Include="core\Stored Procedures\ObtenerProveedor.sql" />
+    <Build Include="core\Stored Procedures\ObtenerProveedorPorToken.sql" />
     <Build Include="core\Stored Procedures\EliminarProveedor.sql" />
     <Build Include="core\Stored Procedures\EditarProveedor.sql" />
     <Build Include="core\Stored Procedures\AgregarProveedor.sql" />

@@ -18,11 +18,13 @@ namespace Abstracciones.Modelos
     public class ProveedorRequest : ProveedorBase
     {
         // Para creación/edición
+        public string? AccessToken { get; set; }
     }
 
     public class ProveedorResponse : ProveedorBase
     {
         public Guid ProveedorId { get; set; }
+        public string? AccessToken { get; set; }
     }
 
     public class ProveedorDetalle : ProveedorResponse
@@ -30,5 +32,10 @@ namespace Abstracciones.Modelos
         // Información extendida para cuando se consulta el proveedor
         public string? Direccion { get; set; }
         public int? CantidadBeneficios { get; set; }
+    }
+
+    public class ProveedorLoginRequest
+    {
+        public string Token { get; set; } = string.Empty;
     }
 }
