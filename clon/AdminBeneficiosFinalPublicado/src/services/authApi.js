@@ -14,37 +14,31 @@ function validateMockLogin(user, pass) {
   }
 
   return {
-    access_token: "mock-token",
-    token_type: "Bearer",
-    expires_in: 60 * 60,
-    user: { usuario: envUser, mock: true },
+    token: "mock-token",
+    tokenType: "Bearer",
+    expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    profile: { usuario: envUser, mock: true },
   };
 }
 
 export async function adminLogin({ user, pass }) {
-  if (useMock) {
-    return validateMockLogin(user, pass);
-  }
+  if (useMock) return validateMockLogin(user, pass);
 
   const API_BASE = getApiBase();
-  const res = await fetch(`${API_BASE}/api/auth/login`, {
+
+  const res = await fetch(`${API_BASE}/api/AdminAuth/login`, {
     method: "POST",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
     mode: "cors",
-    body: JSON.stringify({ correo: user, password: pass }),
+    body: JSON.stringify({ usuario: user, password: pass }),
   });
 
-  if (res.status === 401) {
-    throw new Error("Credenciales inválidas");
-  }
+  if (res.status === 401) throw new Error("Credenciales inválidas");
+  if (res.status === 403) throw new Error("Usuario inactivo");
+  if (!res.ok) throw new Error("No se pudo iniciar sesión");
 
-  if (!res.ok) {
-    throw new Error("No se pudo iniciar sesión");
-  }
-
-  const ct = res.headers.get("content-type") || "";
-  return ct.includes("application/json") ? res.json() : res.text();
+  return res.json();
 }
