@@ -108,13 +108,13 @@ export default function ProveedorBeneficioForm({ initial = null, onSaved, onCanc
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 overflow-y-auto">
-      <div className="w-full max-w-4xl bg-neutral-950 border border-neutral-800 rounded-2xl shadow-xl my-10 mx-4">
+      <div className="w-full max-w-4xl bg-neutral-950 border border-white/10 rounded-2xl shadow-xl my-10 mx-4 text-white">
         <div className="bg-emerald-500 text-black text-xs px-2 py-1 mb-2">
           FORM PROVEEDOR ACTIVO
         </div>
 
-        <div className="px-6 pt-4 pb-2 flex items-center justify-between border-b border-neutral-800">
-          <h2 className="text-xl font-semibold">{initial ? "Editar beneficio" : "Nuevo beneficio"}</h2>
+        <div className="px-6 pt-4 pb-2 flex items-center justify-between border-b border-white/10">
+          <h2 className="text-lg sm:text-xl font-semibold">{initial ? "Editar beneficio" : "Nuevo beneficio"}</h2>
           <button
             onClick={onCancel}
             className="text-sm text-neutral-300 hover:text-white transition"
@@ -124,84 +124,84 @@ export default function ProveedorBeneficioForm({ initial = null, onSaved, onCanc
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-6 space-y-4">
+        <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5">
           <div className="grid md:grid-cols-2 gap-4">
-            <label className="block">
-              <span className="text-sm text-neutral-400">Título</span>
+            <label className="block space-y-1">
+              <span className="block text-xs text-neutral-400 mb-1">Título</span>
               <input
                 name="titulo"
                 value={form.titulo}
                 onChange={handleChange}
                 required
-                className="w-full mt-1 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 focus:outline-none focus:ring focus:ring-emerald-500/40"
+                className="w-full rounded-xl border border-white/10 bg-neutral-900/80 px-3 py-2 text-sm text-white placeholder:text-neutral-400 focus:border-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
               />
             </label>
 
-            <label className="block">
-              <span className="text-sm text-neutral-400">Precio (CRC)</span>
+            <label className="block space-y-1">
+              <span className="block text-xs text-neutral-400 mb-1">Precio (CRC)</span>
               <input
                 type="number"
                 name="precioCRC"
                 value={form.precioCRC}
                 onChange={handleChange}
-                className="w-full mt-1 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 focus:outline-none focus:ring focus:ring-emerald-500/40"
+                className="w-full rounded-xl border border-white/10 bg-neutral-900/80 px-3 py-2 text-sm text-white placeholder:text-neutral-400 focus:border-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
               />
             </label>
           </div>
 
-          <label className="block">
-            <span className="text-sm text-neutral-400">Descripción</span>
+          <label className="block space-y-1">
+            <span className="block text-xs text-neutral-400 mb-1">Descripción</span>
             <textarea
               name="descripcion"
               value={form.descripcion}
               onChange={handleChange}
               rows={3}
-              className="w-full mt-1 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 focus:outline-none focus:ring focus:ring-emerald-500/40"
+              className="w-full rounded-xl border border-white/10 bg-neutral-900/80 px-3 py-2 text-sm text-white placeholder:text-neutral-400 focus:border-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
             />
           </label>
 
-          <label className="block">
-            <span className="text-sm text-neutral-400">Condiciones</span>
+          <label className="block space-y-1">
+            <span className="block text-xs text-neutral-400 mb-1">Condiciones</span>
             <textarea
               name="condiciones"
               value={form.condiciones}
               onChange={handleChange}
               rows={2}
-              className="w-full mt-1 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 focus:outline-none focus:ring focus:ring-emerald-500/40"
+              className="w-full rounded-xl border border-white/10 bg-neutral-900/80 px-3 py-2 text-sm text-white placeholder:text-neutral-400 focus:border-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
             />
           </label>
 
           <div className="grid md:grid-cols-2 gap-4">
-            <label className="block">
-              <span className="text-sm text-neutral-400">Vigencia inicio</span>
+            <label className="block space-y-1">
+              <span className="block text-xs text-neutral-400 mb-1">Vigencia inicio</span>
               <input
                 type="date"
                 name="vigenciaInicio"
                 value={form.vigenciaInicio}
                 onChange={handleChange}
-                className="w-full mt-1 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 focus:outline-none focus:ring focus:ring-emerald-500/40"
+                className="w-full rounded-xl border border-white/10 bg-neutral-900/80 px-3 py-2 text-sm text-white placeholder:text-neutral-400 focus:border-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
               />
             </label>
 
-            <label className="block">
-              <span className="text-sm text-neutral-400">Vigencia fin</span>
+            <label className="block space-y-1">
+              <span className="block text-xs text-neutral-400 mb-1">Vigencia fin</span>
               <input
                 type="date"
                 name="vigenciaFin"
                 value={form.vigenciaFin}
                 onChange={handleChange}
-                className="w-full mt-1 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 focus:outline-none focus:ring focus:ring-emerald-500/40"
+                className="w-full rounded-xl border border-white/10 bg-neutral-900/80 px-3 py-2 text-sm text-white placeholder:text-neutral-400 focus:border-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
               />
             </label>
           </div>
 
-          <label className="block">
-            <span className="text-sm text-neutral-400">Categoría</span>
+          <label className="block space-y-1">
+            <span className="block text-xs text-neutral-400 mb-1">Categoría</span>
             <select
               name="categoriaId"
               value={form.categoriaId}
               onChange={handleChange}
-              className="w-full mt-1 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 focus:outline-none focus:ring focus:ring-emerald-500/40"
+              className="w-full rounded-xl border border-white/10 bg-neutral-900/80 px-3 py-2 text-sm text-white placeholder:text-neutral-400 focus:border-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 appearance-none"
             >
               <option value="">Selecciona una categoría</option>
               {categorias.map((c) => (
@@ -212,18 +212,18 @@ export default function ProveedorBeneficioForm({ initial = null, onSaved, onCanc
             </select>
           </label>
 
-          <label className="block">
-            <span className="text-sm text-neutral-400">Imagen</span>
+          <label className="block space-y-1">
+            <span className="block text-xs text-neutral-400 mb-1">Imagen</span>
             <input
               type="file"
               accept="image/*"
               onChange={handleFile}
-              className="mt-1 text-sm text-neutral-300"
+              className="block w-full rounded-xl border border-white/10 bg-neutral-900/80 px-3 py-2 text-sm text-white file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-500 file:px-3 file:py-1.5 file:text-black file:font-semibold hover:file:bg-emerald-400 focus:border-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
             />
           </label>
 
           {imagePreview && (
-            <div className="rounded-lg overflow-hidden border border-neutral-800 bg-neutral-900/80">
+            <div className="rounded-xl overflow-hidden border border-white/10 bg-neutral-900/80">
               <img src={imagePreview} alt="Vista previa" className="w-full object-cover max-h-64" />
             </div>
           )}
@@ -232,7 +232,7 @@ export default function ProveedorBeneficioForm({ initial = null, onSaved, onCanc
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-2 rounded-lg bg-emerald-500 text-black font-semibold hover:bg-emerald-400 disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {saving ? "Guardando..." : "Guardar"}
             </button>
