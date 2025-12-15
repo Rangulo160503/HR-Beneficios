@@ -20,7 +20,7 @@ export default function FormModal({
   const [toastOpen, setToastOpen] = useState(false);
   const firstInputRef = useRef(null);
 
-  const successMessage = "¡Participación registrada!\nYa estás participando en la rifa 🎉";
+  const successMessage = "¡Participación registrada!\nYa estás participando en la rifa";
 
   // Abrir: reset, bloquear scroll, autofocus
   useEffect(() => {
@@ -150,7 +150,7 @@ export default function FormModal({
               </label>
 
               <label className="grid gap-1">
-                <span className="text-sm text-black/80">Teléfono (opcional)</span>
+                <span className="text-sm text-black/80">Teléfono</span>
                 <input
                   className="rounded border px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:text-slate-900 focus:placeholder:text-slate-500 disabled:text-slate-500 disabled:placeholder:text-slate-400"
                   placeholder="+506 8888 8888"
@@ -162,7 +162,7 @@ export default function FormModal({
               </label>
 
               <label className="grid gap-1">
-                <span className="text-sm text-black/80">Mensaje (opcional)</span>
+                <span className="text-sm text-black/80">Mensaje</span>
                 <textarea
                   className="min-h-[96px] rounded border px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:text-slate-900 focus:placeholder:text-slate-500 disabled:text-slate-500 disabled:placeholder:text-slate-400"
                   placeholder="Contanos cómo te ayudamos…"
