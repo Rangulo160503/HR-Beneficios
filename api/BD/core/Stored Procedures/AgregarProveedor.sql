@@ -1,9 +1,10 @@
-﻿CREATE PROCEDURE [core].[AgregarProveedor]
-  @Nombre   NVARCHAR(120),
-  @Correo   NVARCHAR(120) = NULL,
-  @Telefono NVARCHAR(50)  = NULL,
-  @Direccion NVARCHAR(250)= NULL,
-  @Imagen   VARBINARY(MAX)= NULL
+CREATE PROCEDURE [core].[AgregarProveedor]
+  @Nombre     NVARCHAR(120),
+  @Correo     NVARCHAR(120) = NULL,
+  @Telefono   NVARCHAR(50)  = NULL,
+  @Direccion  NVARCHAR(250)= NULL,
+  @Imagen     VARBINARY(MAX)= NULL,
+  @AccessToken VARCHAR(128) = NULL
 AS
 BEGIN
   SET NOCOUNT ON;
@@ -14,8 +15,8 @@ BEGIN
   IF @Id IS NULL
   BEGIN
     SET @Id = NEWID();
-    INSERT core.Proveedor (ProveedorId, Nombre, Correo, Telefono, Direccion, Imagen)
-    VALUES (@Id, @Nombre, @Correo, @Telefono, @Direccion, @Imagen);
+    INSERT core.Proveedor (ProveedorId, Nombre, Correo, Telefono, Direccion, Imagen, AccessToken)
+    VALUES (@Id, @Nombre, @Correo, @Telefono, @Direccion, @Imagen, @AccessToken);
   END
 
   SELECT @Id AS ProveedorId;

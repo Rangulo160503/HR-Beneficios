@@ -47,5 +47,11 @@ namespace Flujo
             var existe = await _proveedorDA.ExisteProveedor(id);
             return existe;
         }
+
+        public async Task<ProveedorDetalle?> ObtenerPorToken(string token)
+        {
+            var proveedor = await _proveedorDA.ObtenerPorToken(token);
+            return proveedor;
+        }
     }
 }

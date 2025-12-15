@@ -1,10 +1,11 @@
-﻿CREATE PROCEDURE [core].[EditarProveedor]
-  @Id        UNIQUEIDENTIFIER,
-  @Nombre    NVARCHAR(120),
-  @Correo    NVARCHAR(120) = NULL,
-  @Telefono  NVARCHAR(50)  = NULL,
-  @Direccion NVARCHAR(250) = NULL,
-  @Imagen    VARBINARY(MAX)= NULL
+CREATE PROCEDURE [core].[EditarProveedor]
+  @Id         UNIQUEIDENTIFIER,
+  @Nombre     NVARCHAR(120),
+  @Correo     NVARCHAR(120) = NULL,
+  @Telefono   NVARCHAR(50)  = NULL,
+  @Direccion  NVARCHAR(250) = NULL,
+  @Imagen     VARBINARY(MAX)= NULL,
+  @AccessToken VARCHAR(128) = NULL
 AS
 BEGIN
   SET NOCOUNT ON;
@@ -13,11 +14,12 @@ BEGIN
     THROW 50010, 'Nombre de proveedor ya existe.', 1;
 
   UPDATE p
-     SET p.Nombre    = @Nombre,
-         p.Correo    = @Correo,
-         p.Telefono  = @Telefono,
-         p.Direccion = @Direccion,
-         p.Imagen    = COALESCE(@Imagen, p.Imagen)
+     SET p.Nombre     = @Nombre,
+         p.Correo     = @Correo,
+         p.Telefono   = @Telefono,
+         p.Direccion  = @Direccion,
+         p.Imagen     = COALESCE(@Imagen, p.Imagen),
+         p.AccessToken = @AccessToken
   FROM core.Proveedor p
   WHERE p.ProveedorId = @Id;
 

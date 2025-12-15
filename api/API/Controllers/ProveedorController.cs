@@ -100,6 +100,24 @@ namespace API.Controllers
 
             return Ok(new { ok = true, mensaje = "Proveedor válido." });
         }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] ProveedorLoginRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Token))
+                return BadRequest(new { ok = false, mensaje = "Token inválido." });
+
+            var proveedor = await _proveedorFlujo.ObtenerPorToken(request.Token);
+
+            if (proveedor == null || proveedor.ProveedorId == Guid.Empty)
+                return Unauthorized(new { ok = false, mensaje = "QR inválido o expirado." });
+
+            return Ok(new
+            {
+                ok = true,
+                proveedor
+            });
+        }
         #endregion
 
         #region Helpers
