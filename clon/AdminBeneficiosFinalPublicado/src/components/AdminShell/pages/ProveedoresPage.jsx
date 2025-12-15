@@ -1,7 +1,11 @@
 // src/components/AdminShell/pages/ProveedoresPage.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ProveedorApi } from "../../../services/adminApi";
-import { buildBadgeLink, generateAccessToken } from "../../../utils/badge";
+import {
+  buildBadgeLink,
+  generateAccessToken,
+  getProviderPortalBase,
+} from "../../../utils/badge";
 
 const GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const norm = (v) => (v == null ? "" : String(v).trim());
@@ -21,11 +25,13 @@ export default function ProveedoresPage({ provs = [], addProveedor, onProveedorU
   const attempted = useRef(new Set());
 
   const withLinks = useMemo(() => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const provBase = getProviderPortalBase();
     return provs.map((p) => {
       const proveedorId = getProvId(p);
       const accessToken = getToken(p);
-      const link = buildBadgeLink(origin, accessToken);
+      const link = proveedorId
+        ? buildBadgeLink(provBase, { proveedorId, accessToken, newFlag: true })
+        : "";
       return { ...p, proveedorId, accessToken, link };
     });
   }, [provs]);
