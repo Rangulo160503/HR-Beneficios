@@ -1,4 +1,4 @@
-export default function AdminHeader({ nav, onOpenMobile }) {
+export default function AdminHeader({ nav, onOpenMobile, onLogout }) {
   return (
     <header className="h-14 px-4 flex items-center bg-neutral-950 sticky top-0 z-10">
       {/* Ícono menú móvil */}
@@ -20,6 +20,16 @@ export default function AdminHeader({ nav, onOpenMobile }) {
       <h1 className="font-semibold text-sm md:text-base capitalize">
         {nav}
       </h1>
+
+      <div className="ml-auto">
+        <button
+          type="button"
+          onClick={onLogout}
+          className="px-3 py-1 text-sm rounded-full bg-white/10 hover:bg-white/20 transition"
+        >
+          Cerrar sesión
+        </button>
+      </div>
     </header>
   );
 }

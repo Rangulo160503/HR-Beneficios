@@ -7,6 +7,7 @@ import AdminHeader from "./AdminHeader";
 import AdminMain from "./AdminMain";
 import useAdminShell from "./useAdminShell";
 import { MOBILE_ITEMS, NAV_ITEMS } from "./constants";
+import { clearAuth } from "../../utils/adminAuth";
 
 export default function AdminShell() {
   const location = useLocation();
@@ -38,6 +39,11 @@ export default function AdminShell() {
       return;
     }
     setNav(key);
+  };
+
+  const handleLogout = () => {
+    clearAuth();
+    navigate("/admin/login", { replace: true });
   };
 
   useEffect(() => {
@@ -82,6 +88,7 @@ export default function AdminShell() {
         <AdminHeader
           nav={nav}
           onOpenMobile={() => setShowMobileNav(true)}
+          onLogout={handleLogout}
         />
 
         {/* Contenido principal */}

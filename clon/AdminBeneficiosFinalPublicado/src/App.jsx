@@ -4,6 +4,7 @@ import ProviderLogin from "./pages/ProviderLogin.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useMemo } from "react";
+import RequireAdminAuth from "./routes/RequireAdminAuth.jsx";
 
 function useStoredSession(key) {
   const location = useLocation();
@@ -33,9 +34,7 @@ function RequireProviderSession({ children }) {
 }
 
 function RequireAdminSession({ children }) {
-  const session = useStoredSession("hr_admin_session");
-  if (!session) return <Navigate to="/admin/login" replace />;
-  return children;
+  return <RequireAdminAuth>{children}</RequireAdminAuth>;
 }
 
 export default function App() {
