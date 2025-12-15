@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Abstracciones.Modelos
@@ -25,7 +26,7 @@ namespace Abstracciones.Modelos
 
     public class RifaParticipacionResponse : RifaParticipacionBase
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required, StringLength(30)]
         public string Estado { get; set; } = "Nuevo";

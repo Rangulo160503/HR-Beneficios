@@ -2,6 +2,7 @@ using Abstracciones.Interfaces.API;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace API.Controllers
 {
@@ -21,7 +22,7 @@ namespace API.Controllers
     /// 
     /// Respuesta 201:
     /// {
-    ///   "id": 1,
+    ///   "id": "c2e8ecab-0d7f-4f36-9fa9-3f5ff3e5c001",
     ///   "nombre": "Ana Pérez",
     ///   "correo": "ana@example.com",
     ///   "telefono": "+50688888888",
@@ -75,17 +76,19 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> Obtener(int id)
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> Obtener(Guid id)
         {
+            if (id == Guid.Empty) return BadRequest("Id inválido");
             var item = await _flujo.Obtener(id);
-            return item is null || item.Id == 0 ? NotFound() : Ok(item);
+            return item is null || item.Id == Guid.Empty ? NotFound() : Ok(item);
         }
 
-        [HttpPut("{id:int}/estado")]
-        public async Task<IActionResult> ActualizarEstado(int id, [FromBody] RifaParticipacionEstadoRequest body)
+        [HttpPut("{id:guid}/estado")]
+        public async Task<IActionResult> ActualizarEstado(Guid id, [FromBody] RifaParticipacionEstadoRequest body)
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (id == Guid.Empty) return BadRequest("Id inválido");
             var actualizado = await _flujo.ActualizarEstado(id, body.Estado);
             if (!actualizado) return NotFound();
 

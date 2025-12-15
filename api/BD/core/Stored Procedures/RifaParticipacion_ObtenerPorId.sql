@@ -1,5 +1,5 @@
 CREATE PROCEDURE core.RifaParticipacion_ObtenerPorId
-    @Id INT
+    @Id UNIQUEIDENTIFIER
 AS
 BEGIN
     SET NOCOUNT ON;
