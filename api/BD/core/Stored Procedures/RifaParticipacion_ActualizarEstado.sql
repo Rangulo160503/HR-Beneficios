@@ -1,4 +1,8 @@
-CREATE PROCEDURE core.RifaParticipacion_ActualizarEstado
+﻿
+/* ============================
+   ACTUALIZAR ESTADO (GUID)
+============================ */
+CREATE   PROCEDURE core.RifaParticipacion_ActualizarEstado
     @Id UNIQUEIDENTIFIER,
     @Estado NVARCHAR(30)
 AS

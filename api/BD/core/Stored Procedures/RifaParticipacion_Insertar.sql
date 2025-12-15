@@ -1,4 +1,8 @@
-CREATE PROCEDURE core.RifaParticipacion_Insertar
+﻿
+/* ============================
+   INSERTAR (devuelve GUID)
+============================ */
+CREATE   PROCEDURE core.RifaParticipacion_Insertar
     @Nombre NVARCHAR(150),
     @Correo NVARCHAR(200),
     @Telefono NVARCHAR(30) = NULL,
@@ -10,5 +14,11 @@ BEGIN
 
     INSERT INTO core.RifaParticipacion (Nombre, Correo, Telefono, Mensaje, Source)
     OUTPUT inserted.Id
-    VALUES (@Nombre, @Correo, @Telefono, @Mensaje, ISNULL(NULLIF(@Source, ''), 'web'));
+    VALUES (
+        @Nombre,
+        @Correo,
+        @Telefono,
+        @Mensaje,
+        ISNULL(NULLIF(@Source, ''), 'web')
+    );
 END
