@@ -13,5 +13,32 @@ export function generateAccessToken(byteLength = 32) {
   }
 }
 
-export const buildBadgeLink = (origin, token) =>
-  token ? `${origin}/login?token=${token}` : "";
+export const getProviderPortalBase = () => {
+  const target = (import.meta.env.VITE_PROV_PORTAL_TARGET || "local").toLowerCase();
+  const baseLocal = String(import.meta.env.VITE_PROV_PORTAL_BASE_LOCAL || "").replace(/\/+$/, "");
+  const baseCloud = String(import.meta.env.VITE_PROV_PORTAL_BASE_CLOUD || "").replace(/\/+$/, "");
+
+  if (target === "cloud") return baseCloud;
+  return baseLocal;
+};
+
+export const buildBadgeLink = (baseUrl, options) => {
+  if (!baseUrl) return "";
+
+  const normalizedBase = String(baseUrl).replace(/\/+$/, "");
+
+  if (typeof options === "string" || options == null) {
+    const token = typeof options === "string" ? options : undefined;
+    return token ? `${normalizedBase}/login?token=${encodeURIComponent(token)}` : "";
+  }
+
+  const { proveedorId, accessToken, newFlag } = options;
+  if (!proveedorId) return "";
+
+  const params = new URLSearchParams();
+  params.set("proveedorId", proveedorId);
+  if (newFlag) params.set("new", "1");
+  if (accessToken) params.set("token", accessToken);
+
+  return `${normalizedBase}/?${params.toString()}`;
+};
