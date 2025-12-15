@@ -1,6 +1,7 @@
 using Abstracciones.Interfaces.DA;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
+using System;
 
 namespace Flujo
 {
@@ -18,7 +19,7 @@ namespace Flujo
             _rifaParticipacionDA = rifaParticipacionDA ?? throw new ArgumentNullException(nameof(rifaParticipacionDA));
         }
 
-        public async Task<int> Crear(RifaParticipacionRequest request)
+        public async Task<Guid> Crear(RifaParticipacionRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Source))
             {
@@ -33,7 +34,7 @@ namespace Flujo
             return await _rifaParticipacionDA.Crear(request);
         }
 
-        public async Task<RifaParticipacionResponse?> Obtener(int id)
+        public async Task<RifaParticipacionResponse?> Obtener(Guid id)
         {
             return await _rifaParticipacionDA.Obtener(id);
         }
@@ -70,7 +71,7 @@ namespace Flujo
             };
         }
 
-        public async Task<bool> ActualizarEstado(int id, string estado)
+        public async Task<bool> ActualizarEstado(Guid id, string estado)
         {
             return await _rifaParticipacionDA.ActualizarEstado(id, estado);
         }

@@ -1,5 +1,6 @@
 using Abstracciones.Interfaces.DA;
 using Abstracciones.Modelos;
+using System;
 using System.Data;
 using System.Linq;
 
@@ -16,10 +17,10 @@ namespace DA
             _dapperWrapper = dapperWrapper;
         }
 
-        public async Task<int> Crear(RifaParticipacionRequest request)
+        public async Task<Guid> Crear(RifaParticipacionRequest request)
         {
             const string sp = "core.RifaParticipacion_Insertar";
-            return await _dapperWrapper.ExecuteScalarAsync<int>(_dbConnection, sp, new
+            return await _dapperWrapper.ExecuteScalarAsync<Guid>(_dbConnection, sp, new
             {
                 request.Nombre,
                 request.Correo,
@@ -29,7 +30,7 @@ namespace DA
             }, commandType: CommandType.StoredProcedure);
         }
 
-        public async Task<RifaParticipacionResponse?> Obtener(int id)
+        public async Task<RifaParticipacionResponse?> Obtener(Guid id)
         {
             const string sp = "core.RifaParticipacion_ObtenerPorId";
             return await _dapperWrapper.QueryFirstOrDefaultAsync<RifaParticipacionResponse>(_dbConnection, sp, new { Id = id }, commandType: CommandType.StoredProcedure);
@@ -50,7 +51,7 @@ namespace DA
             }, commandType: CommandType.StoredProcedure);
         }
 
-        public async Task<bool> ActualizarEstado(int id, string estado)
+        public async Task<bool> ActualizarEstado(Guid id, string estado)
         {
             const string sp = "core.RifaParticipacion_ActualizarEstado";
             var affected = await _dapperWrapper.ExecuteAsync(_dbConnection, sp, new { Id = id, Estado = estado }, commandType: CommandType.StoredProcedure);

@@ -1,12 +1,13 @@
+using System;
 using Abstracciones.Modelos;
 
 namespace Abstracciones.Interfaces.Flujo
 {
     public interface IRifaParticipacionFlujo
     {
-        Task<int> Crear(RifaParticipacionRequest request);
-        Task<RifaParticipacionResponse?> Obtener(int id);
+        Task<Guid> Crear(RifaParticipacionRequest request);
+        Task<RifaParticipacionResponse?> Obtener(Guid id);
         Task<PagedResult<RifaParticipacionResponse>> Listar(RifaParticipacionFiltro filtro);
-        Task<bool> ActualizarEstado(int id, string estado);
+        Task<bool> ActualizarEstado(Guid id, string estado);
     }
 }

@@ -1,5 +1,5 @@
 CREATE PROCEDURE core.RifaParticipacion_ActualizarEstado
-    @Id INT,
+    @Id UNIQUEIDENTIFIER,
     @Estado NVARCHAR(30)
 AS
 BEGIN
