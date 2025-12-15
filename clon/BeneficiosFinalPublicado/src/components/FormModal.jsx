@@ -27,8 +27,7 @@ export default function FormModal({
     document.body.style.overflow = "hidden";
     setTimeout(() => firstInputRef.current?.focus(), 0);
     return () => { document.body.style.overflow = ""; };
-  }, [isOpen, defaultValues]);
-
+  }, [isOpen]);
   // Cerrar con ESC
   useEffect(() => {
     if (!isOpen) return;
