@@ -60,7 +60,7 @@ export default function ProviderPortal() {
             Portal de proveedor
           </p>
           <h1 className="text-2xl font-semibold">
-            {session?.nombre || "Proveedor"}
+            {session?.proveedorNombre || session?.nombre || "Proveedor"}
           </h1>
         </div>
         <button
