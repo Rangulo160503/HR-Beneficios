@@ -3,6 +3,7 @@ export default function BenefitsList({
   items,
   selectedId,
   onSelect,
+  onEdit,
   loading,
   error,
   onRetry,
@@ -115,6 +116,15 @@ export default function BenefitsList({
                     toques
                   </p>
                 </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit?.({ ...b, id: itemId, beneficioId: itemId });
+                  }}
+                  className="ml-2 px-3 py-1.5 rounded-full text-[11px] border border-white/15 hover:bg-white/10"
+                >
+                  Editar
+                </button>
               </li>
             );
           })}

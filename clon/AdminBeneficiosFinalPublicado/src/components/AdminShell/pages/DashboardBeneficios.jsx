@@ -3,6 +3,7 @@ import { BeneficioApi, ToqueBeneficioApi } from "../../../services/adminApi";
 import BenefitsList from "./BenefitsList";
 import BenefitDetailPanel from "./BenefitDetailPanel";
 import FullForm from "../../beneficio/FullForm";
+import BenefitEditModal from "./BenefitEditModal";
 
 export default function DashboardBeneficios({
   state,
@@ -28,6 +29,7 @@ export default function DashboardBeneficios({
   const [touchSummary, setTouchSummary] = useState({});
   const [loadingTouches, setLoadingTouches] = useState(false);
   const [touchError, setTouchError] = useState(null);
+  const [editTarget, setEditTarget] = useState(null);
 
   const selectedId = selectedBenefit?.beneficioId || selectedBenefit?.id;
 
@@ -90,6 +92,22 @@ export default function DashboardBeneficios({
     await accionesBeneficios.save(dto, editing);
     setShowForm?.(false);
     setEditing?.(null);
+  };
+
+  const handleEditSaved = (updated) => {
+    if (!updated) return;
+    const normalized = mapBenefitId(updated);
+    accionesBeneficios?.setItems?.((prev = []) =>
+      prev.map((b) =>
+        mapBenefitId(b).beneficioId === normalized.beneficioId ? normalized : b
+      )
+    );
+    setSelectedBenefit((prev) => {
+      if (!prev) return prev;
+      return mapBenefitId(prev).beneficioId === normalized.beneficioId
+        ? { ...prev, ...normalized }
+        : prev;
+    });
   };
 
 
@@ -212,6 +230,7 @@ export default function DashboardBeneficios({
           items={benefits}
           selectedId={selectedId}
           onSelect={handleSelect}
+          onEdit={(b) => setEditTarget(mapBenefitId(b))}
           loading={isLoading}
           error={hasError}
           onRetry={cargarBeneficios}
@@ -268,6 +287,13 @@ export default function DashboardBeneficios({
           onSave={handleSave}
         />
       )}
+
+      <BenefitEditModal
+        open={Boolean(editTarget)}
+        benefit={editTarget}
+        onClose={() => setEditTarget(null)}
+        onSaved={handleEditSaved}
+      />
     </>
   );
 }

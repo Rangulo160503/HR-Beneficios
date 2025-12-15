@@ -23,6 +23,7 @@ export default function useAdminShell() {
     provs,
     addCategoria,
     addProveedor,
+    upsertProveedorLocal,
   } = useCatalogos();
 
   return {
@@ -44,6 +45,7 @@ export default function useAdminShell() {
     provs,
     addCategoria,
     addProveedor,
+    upsertProveedorLocal,
 
     // formulario crear / editar
     showForm,

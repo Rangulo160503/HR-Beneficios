@@ -25,6 +25,7 @@ export default function AdminShell() {
     provs,
     addCategoria,
     addProveedor,
+    upsertProveedorLocal,
     showForm,
     setShowForm,
     editing,
@@ -95,6 +96,7 @@ export default function AdminShell() {
           provs={provs}
           addCategoria={addCategoria}
           addProveedor={addProveedor}
+          upsertProveedorLocal={upsertProveedorLocal}
           // formulario
           showForm={showForm}
           setShowForm={setShowForm}
