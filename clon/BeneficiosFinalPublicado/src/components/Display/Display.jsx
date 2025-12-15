@@ -117,14 +117,13 @@ export default function Display() {
       <FormModal
         isOpen={formOpen}
         onClose={() => setFormOpen(false)}
-        postUrl={`${import.meta.env.VITE_API_URL}/api/Contacto`}
-        onSubmitted={(resp) => console.log("Contacto enviado:", resp)}
+        onSubmitted={(resp) => console.log("Participación enviada:", resp)}
       />
 
       {!formOpen && (
         <button
           onClick={() => setFormOpen(true)}
-          aria-label="Contacto"
+          aria-label="Participar en rifa"
           className="sm:hidden fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-cyan-600 shadow-lg shadow-cyan-900/30 hover:bg-cyan-500 active:scale-95 transition"
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0)" }}
         >

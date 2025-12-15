@@ -1,10 +1,10 @@
 // src/components/FormModal.jsx
 import { useEffect, useRef, useState } from "react";
+import { Api } from "../services/api";
 
 export default function FormModal({
   isOpen,
   onClose,
-  postUrl,              // p.ej. `${import.meta.env.VITE_API_URL}/api/Contacto`
   onSubmitted,          // callback opcional con la respuesta del backend
   defaultValues = {
     nombre: "",
@@ -21,7 +21,7 @@ export default function FormModal({
   // Abrir: reset, bloquear scroll, autofocus
   useEffect(() => {
     if (!isOpen) return;
-    setForm(defaultValues);
+    setForm({ ...defaultValues });
     setErrors({});
     setSubmitting(false);
     document.body.style.overflow = "hidden";
@@ -43,21 +43,23 @@ export default function FormModal({
     const e = {};
     // Nombre
     if (!form.nombre?.trim()) e.nombre = "Requerido";
+    else if (form.nombre.trim().length < 3) e.nombre = "Mínimo 3 caracteres";
     // Correo
     if (!form.correo?.trim()) e.correo = "Requerido";
     else {
       const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!re.test(form.correo.trim())) e.correo = "Correo inválido";
     }
-    // Teléfono (opcional pero validable si viene)
-    if (form.telefono?.trim()) {
-      const onlyDigits = form.telefono.replace(/[^\d+]/g, "");
-      if (onlyDigits.length < 8) e.telefono = "Teléfono inválido";
-    }
-    // Mensaje
-    if (!form.mensaje?.trim()) e.mensaje = "Requerido";
     setErrors(e);
     return Object.keys(e).length === 0;
+  };
+
+  const normalizeTelefono = (value) => {
+    if (!value?.trim()) return null;
+    const cleaned = value.replace(/\s+/g, "");
+    const match = cleaned.match(/^\+?506?(\d{8})$/);
+    if (match) return `+506${match[1]}`;
+    return cleaned.replace(/(?!^)\+/g, "").replace(/[^\d+]/g, "");
   };
 
   const handleSubmit = async (ev) => {
@@ -66,20 +68,21 @@ export default function FormModal({
 
     setSubmitting(true);
     try {
-      const res = await fetch(postUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
-      });
-      if (!res.ok) {
-        const txt = await res.text().catch(() => "");
-        throw new Error(txt || `Error ${res.status}`);
-      }
-      const data = await res.json().catch(() => ({}));
+      const payload = {
+        nombre: form.nombre.trim(),
+        correo: form.correo.trim(),
+        telefono: normalizeTelefono(form.telefono),
+        mensaje: form.mensaje?.trim() || null,
+        source: "web",
+      };
+      const data = await Api.rifaParticipacion.crear(payload);
       onSubmitted?.(data);
+      alert("¡Listo! Ya estás participando.");
       onClose?.();
+      setForm({ ...defaultValues });
     } catch (err) {
-      setErrors(s => ({ ...s, _server: err.message || "No se pudo enviar el formulario" }));
+      alert("No se pudo registrar tu participación. Intentá de nuevo.");
+      setErrors(s => ({ ...s, _server: err?.message }));
     } finally {
       setSubmitting(false);
     }
@@ -103,7 +106,7 @@ export default function FormModal({
         onMouseDown={(e) => e.stopPropagation()} // evita cierre por burbujeo
       >
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-black">Contacto</h2>
+          <h2 className="text-lg font-semibold text-black">Participar en rifa</h2>
           <button
             type="button"
             onClick={onClose}
@@ -158,14 +161,13 @@ export default function FormModal({
           </label>
 
           <label className="grid gap-1">
-            <span className="text-sm text-black/80">Mensaje</span>
+            <span className="text-sm text-black/80">Mensaje (opcional)</span>
             <textarea
               className="min-h-[96px] rounded border px-3 py-2"
               placeholder="Contanos cómo te ayudamos…"
               value={form.mensaje}
               onChange={(e) => handleChange("mensaje", e.target.value)}
             />
-            {errors.mensaje && <small className="text-red-600">{errors.mensaje}</small>}
           </label>
         </div>
 
@@ -183,7 +185,7 @@ export default function FormModal({
             className="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
             disabled={submitting}
           >
-            {submitting ? "Enviando…" : "Enviar"}
+            {submitting ? "Enviando…" : "Participar"}
           </button>
         </div>
       </form>

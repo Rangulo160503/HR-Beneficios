@@ -57,6 +57,8 @@ export const EP = {
   // beneficioImagenDetalle: (imagenId) => `/api/BeneficioImagen/detalle/${imagenId}`,
 
   toqueBeneficio: () => `/api/ToqueBeneficio`,
+
+  rifaParticipacionCrear: () => `/api/RifaParticipacion`,
 };
 
 // 🚀 API agrupada por recurso
@@ -86,6 +88,10 @@ export const Api = {
   toqueBeneficio: {
     registrar: (beneficioId, origen) =>
       httpPost(EP.toqueBeneficio(), { beneficioId, origen }),
+  },
+
+  rifaParticipacion: {
+    crear: (body) => httpPost(EP.rifaParticipacionCrear(), body),
   },
 };
 
