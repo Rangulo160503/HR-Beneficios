@@ -17,6 +17,7 @@ export default function AdminMain(props) {
     provs,
     addCategoria,
     addProveedor,
+    upsertProveedorLocal,
     showForm,
     setShowForm,
     editing,
@@ -56,6 +57,7 @@ export default function AdminMain(props) {
           <ProveedoresPage
             provs={provs}
             addProveedor={addProveedor}
+            onProveedorUpdated={upsertProveedorLocal}
           />
         )}
         {nav === NAV_ITEMS.INFOBOARD && <InfoBoardPage />}

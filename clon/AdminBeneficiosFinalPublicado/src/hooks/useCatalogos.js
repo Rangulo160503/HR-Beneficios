@@ -196,9 +196,15 @@ const getCatId = (r) => {
     setProvs(s => s.filter(x => getProvId(x) !== id));
   }
 
+  const upsertProveedorLocal = (prov) => {
+    if (!prov) return;
+    setProvs((s) => dedupeById([prov, ...s], getProvId));
+  };
+
   return {
     cats, provs, loading, err,
     addCategoria, renameCategoria, deleteCategoria,
     addProveedor, renameProveedor, deleteProveedor,
+    upsertProveedorLocal,
   };
 }

@@ -1,6 +1,7 @@
 // src/components/AdminShell/pages/AprobacionesPage.jsx
 import { useMemo, useState } from "react";
 import { useAprobaciones } from "../../../hooks/useAprobaciones";
+import BenefitEditModal from "./BenefitEditModal";
 
 const IconRefresh = (p) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...p}>
@@ -14,6 +15,7 @@ const IconRefresh = (p) => (
 export default function AprobacionesPage() {
   const { items, loading, error, selected, selectedId, setSelectedId, refresh, aprobar, rechazar } = useAprobaciones();
   const [processing, setProcessing] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
 
   const onAprobar = async () => {
     if (!selected?.id) return;
@@ -107,6 +109,17 @@ export default function AprobacionesPage() {
                   <p className="text-[10px] text-white/40 mt-1">
                     Creado: {b.fechaCreacion?.slice?.(0, 10) || "—"}
                   </p>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      className="px-2 py-1 rounded-full text-[11px] border border-white/15 hover:bg-white/10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditTarget(b);
+                      }}
+                    >
+                      Editar
+                    </button>
+                  </div>
                 </li>
               );
             })}
@@ -159,6 +172,19 @@ export default function AprobacionesPage() {
           )}
         </section>
       </div>
+
+      <BenefitEditModal
+        open={Boolean(editTarget)}
+        benefit={editTarget}
+        onClose={() => setEditTarget(null)}
+        onSaved={async (updated) => {
+          setEditTarget(null);
+          await refresh();
+          if (updated?.id || updated?.beneficioId) {
+            setSelectedId(updated.id || updated.beneficioId);
+          }
+        }}
+      />
     </div>
   );
 }
