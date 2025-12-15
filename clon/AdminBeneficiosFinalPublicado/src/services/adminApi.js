@@ -1,13 +1,47 @@
 // src/services/adminApi.js
-const BASE_URL = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
+import { clearAuth, getAuth } from "../utils/adminAuth";
+import { API_BASE } from "./apiBase";
 
-async function req(path, { method="GET", json, headers, signal } = {}) {
-  const res = await fetch(`${BASE_URL}${path}`, {
+export function authHeader() {
+  const auth = getAuth();
+  if (!auth?.access_token) return {};
+
+  const expiresAt = Number(auth.expires_at);
+  if (Number.isFinite(expiresAt) && expiresAt <= Date.now()) {
+    clearAuth();
+    return {};
+  }
+
+  const type = auth.token_type || "Bearer";
+  return { Authorization: `${type} ${auth.access_token}`.trim() };
+}
+
+function handleUnauthorized() {
+  clearAuth();
+  if (typeof window !== "undefined") {
+    window.location.replace("/admin/login");
+  }
+}
+
+async function req(path, { method = "GET", json, headers, signal } = {}) {
+  const res = await fetch(`${API_BASE}${path}`, {
     method,
-    headers: { Accept: "application/json", ...(json ? { "Content-Type": "application/json" } : {}), ...headers },
+    headers: {
+      Accept: "application/json",
+      ...(json ? { "Content-Type": "application/json" } : {}),
+      ...authHeader(),
+      ...headers,
+    },
     body: json ? JSON.stringify(json) : undefined,
     signal,
+    mode: "cors",
   });
+
+  if (res.status === 401) {
+    handleUnauthorized();
+    throw new Error("unauthorized");
+  }
+
   if (!res.ok) throw new Error(`${method} ${path} → ${res.status}`);
   if (res.status === 204) return null;
   const ct = res.headers.get("content-type") || "";

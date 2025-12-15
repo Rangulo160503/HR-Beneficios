@@ -1,27 +1,43 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { adminLogin } from "../services/authApi";
+import { setAuth } from "../utils/adminAuth";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const expected = useMemo(() => {
-    const envUser = import.meta.env.VITE_ADMIN_USER || "admin";
-    const envPass = import.meta.env.VITE_ADMIN_PASS || "admin123";
-    return { envUser, envPass };
-  }, []);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (user === expected.envUser && pass === expected.envPass) {
-      localStorage.setItem("hr_admin_session", JSON.stringify({ ts: Date.now() }));
+    setLoading(true);
+
+    try {
+      const {
+        access_token,
+        token_type,
+        expires_in,
+        user: userInfo,
+      } = await adminLogin({ user, pass });
+
+      setAuth({
+        access_token,
+        token_type: token_type || "Bearer",
+        expires_at: Date.now() + Number(expires_in || 0) * 1000,
+        user: userInfo,
+      });
+
       navigate("/admin", { replace: true });
-      return;
+    } catch (err) {
+      if (err?.message === "Credenciales inválidas")
+        setError(err.message);
+      else setError("No se pudo iniciar sesión");
+    } finally {
+      setLoading(false);
     }
-    setError("Credenciales inválidas");
   };
 
   return (
@@ -59,9 +75,10 @@ export default function AdminLogin() {
 
         <button
           type="submit"
-          className="w-full px-4 py-2 rounded-full bg-emerald-500 text-black font-semibold hover:bg-emerald-400"
+          disabled={loading}
+          className="w-full px-4 py-2 rounded-full bg-emerald-500 text-black font-semibold hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Entrar
+          {loading ? "Ingresando..." : "Entrar"}
         </button>
       </form>
     </div>
