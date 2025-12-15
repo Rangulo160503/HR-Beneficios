@@ -27,7 +27,8 @@ function useStoredSession(key) {
 
 function RequireProviderSession({ children }) {
   const session = useStoredSession("hr_proveedor_session");
-  if (!session?.proveedorId) return <Navigate to="/login" replace />;
+  if (!session?.proveedorId || !session?.token)
+    return <Navigate to="/login" replace />;
   return children;
 }
 

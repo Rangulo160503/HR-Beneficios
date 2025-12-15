@@ -2,15 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ProveedorApi } from "../services/adminApi";
 
-const GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 export default function ProviderLogin() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
 
-  const proveedorId = useMemo(() => params.get("proveedorId")?.trim() || "", [params]);
+  const token = useMemo(() => params.get("token")?.trim() || "", [params]);
 
   useEffect(() => {
     const existing = (() => {
@@ -21,7 +19,7 @@ export default function ProviderLogin() {
         return null;
       }
     })();
-    if (existing?.proveedorId) {
+    if (existing?.proveedorId && existing?.token) {
       navigate("/", { replace: true });
     }
   }, [navigate]);
@@ -29,29 +27,35 @@ export default function ProviderLogin() {
   useEffect(() => {
     let alive = true;
     const login = async () => {
-      if (!proveedorId || !GUID_RE.test(proveedorId)) {
-        setError("El enlace no es válido o expiró.");
+      if (!token) {
+        setError("El enlace de acceso es inválido o expiró.");
         setStatus("error");
         return;
       }
       try {
         setStatus("loading");
         setError("");
-        const proveedor = await ProveedorApi.get(proveedorId);
+        const proveedores = await ProveedorApi.list();
         if (!alive) return;
+        const proveedor = Array.isArray(proveedores)
+          ? proveedores.find((p) => (p?.accessToken || "").trim() === token)
+          : null;
         if (!proveedor) throw new Error("Proveedor no encontrado");
         const nombre =
           proveedor?.nombre || proveedor?.Nombre || proveedor?.titulo || proveedor?.Titulo || "";
+        const proveedorId =
+          proveedor?.proveedorId || proveedor?.id || proveedor?.ProveedorId || proveedor?.ID;
         const session = {
           proveedorId,
-          nombre,
-          ts: Date.now(),
+          proveedorNombre: nombre,
+          token,
+          tsLogin: Date.now(),
         };
         localStorage.setItem("hr_proveedor_session", JSON.stringify(session));
         navigate("/", { replace: true });
       } catch (err) {
         console.error("Login de proveedor falló", err);
-        setError("El enlace no es válido o expiró.");
+        setError("El enlace de acceso es inválido o expiró.");
         setStatus("error");
       }
     };
@@ -59,7 +63,7 @@ export default function ProviderLogin() {
     return () => {
       alive = false;
     };
-  }, [navigate, proveedorId]);
+  }, [navigate, token]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-950 text-white px-4">
@@ -71,8 +75,8 @@ export default function ProviderLogin() {
             {error || "El enlace no es válido o expiró."}
           </p>
         )}
-        {status === "idle" && !proveedorId && (
-          <p className="text-sm text-white/70">Falta el parámetro proveedorId.</p>
+        {status === "idle" && !token && (
+          <p className="text-sm text-white/70">El enlace de acceso es inválido o expiró.</p>
         )}
         <button
           onClick={() => navigate(0)}
