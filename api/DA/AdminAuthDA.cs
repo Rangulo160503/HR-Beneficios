@@ -23,7 +23,7 @@ namespace DA
             var admin = await _dapperWrapper.QueryFirstOrDefaultAsync<AdminUsuario>(
                 _dbConnection,
                 sp,
-                new { Usuario = usuario, Password = string.Empty },
+                new { Usuario = usuario },
                 commandType: CommandType.StoredProcedure
             );
             return admin;

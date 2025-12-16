@@ -3,9 +3,8 @@
    Busca un administrador por Usuario y devuelve su hash para
    validar en la capa de aplicación.
    ========================================================= */
-CREATE PROCEDURE [core].[AdminUsuario_Login]
-    @Usuario  NVARCHAR(50),
-    @Password NVARCHAR(200)
+CREATE OR ALTER PROCEDURE [core].[AdminUsuario_Login]
+    @Usuario NVARCHAR(50)
 AS
 BEGIN
     SET NOCOUNT ON;
