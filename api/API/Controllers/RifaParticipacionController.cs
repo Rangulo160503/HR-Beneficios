@@ -1,6 +1,7 @@
 using Abstracciones.Interfaces.API;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
@@ -32,6 +33,7 @@ namespace API.Controllers
     ///   "fechaCreacion": "2024-05-10T12:00:00Z"
     /// }
     /// </remarks>
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class RifaParticipacionController : ControllerBase, IRifaParticipacionController
