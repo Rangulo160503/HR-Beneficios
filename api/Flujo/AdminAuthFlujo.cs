@@ -33,8 +33,10 @@ namespace Flujo
             if (!admin.Activo)
                 throw new InactiveAdminException("Usuario inactivo");
 
-            if (string.IsNullOrWhiteSpace(admin.PasswordHash) || !BCrypt.Verify(request.Password, admin.PasswordHash))
+            if (string.IsNullOrWhiteSpace(admin.PasswordHash) || !BCrypt.Net.BCrypt.Verify(request.Password, admin.PasswordHash))
+            {
                 return null;
+            }
 
             var expiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiresMinutes);
             var token = GenerarToken(admin, expiresAt);

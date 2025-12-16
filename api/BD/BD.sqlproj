@@ -125,9 +125,5 @@
     <Build Include="core\Stored Procedures\RifaParticipacion_ObtenerPorId.sql" />
     <Build Include="core\Stored Procedures\RifaParticipacion_Listar.sql" />
     <Build Include="core\Stored Procedures\RifaParticipacion_ActualizarEstado.sql" />
-    <Build Include="core\Stored Procedures\AdminUsuario_Login.sql" />
-    <Build Include="core\Stored Procedures\AdminUsuario_ActualizarUltimoLogin.sql" />
-    <Build Include="core\Stored Procedures\AdminUsuario_Crear.sql" />
-    <Build Include="core\Seed\AdminUsuario.seed.sql" />
   </ItemGroup>
 </Project>
