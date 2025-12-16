@@ -2,7 +2,7 @@
    core.AdminUsuario_Crear
    Crea un administrador usando el hash de password provisto.
    ========================================================= */
-CREATE PROCEDURE [core].[AdminUsuario_Crear]
+CREATE OR ALTER PROCEDURE [core].[AdminUsuario_Crear]
     @Usuario      NVARCHAR(50),
     @Nombre       NVARCHAR(100) = NULL,
     @Correo       NVARCHAR(150) = NULL,
@@ -12,7 +12,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @NuevoId UNIQUEIDENTIFIER = NEWSEQUENTIALID();
+    DECLARE @NuevoId UNIQUEIDENTIFIER = NEWID();
 
     INSERT INTO core.tbAdminUsuario
     (

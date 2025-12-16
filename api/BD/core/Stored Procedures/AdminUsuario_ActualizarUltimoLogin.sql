@@ -2,7 +2,7 @@
    core.AdminUsuario_ActualizarUltimoLogin
    Actualiza la fecha de último login para el administrador.
    ========================================================= */
-CREATE PROCEDURE [core].[AdminUsuario_ActualizarUltimoLogin]
+CREATE OR ALTER PROCEDURE [core].[AdminUsuario_ActualizarUltimoLogin]
     @AdminUsuarioId UNIQUEIDENTIFIER
 AS
 BEGIN
