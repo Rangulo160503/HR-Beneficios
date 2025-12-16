@@ -120,10 +120,9 @@
     <Build Include="core\Stored Procedures\InfoBoardItem_Eliminar.sql" />
     <Build Include="core\Stored Procedures\InfoBoardItem_Editar.sql" />
     <Build Include="core\Stored Procedures\InfoBoardItem_Agregar.sql" />
-    <Build Include="core\Tables\RifaParticipacion.sql" />
-    <Build Include="core\Stored Procedures\RifaParticipacion_Insertar.sql" />
-    <Build Include="core\Stored Procedures\RifaParticipacion_ObtenerPorId.sql" />
-    <Build Include="core\Stored Procedures\RifaParticipacion_Listar.sql" />
-    <Build Include="core\Stored Procedures\RifaParticipacion_ActualizarEstado.sql" />
+    <Build Include="core\Tables\ToqueBeneficio.sql" />
+    <Build Include="core\Stored Procedures\AdminUsuario_Login.sql" />
+    <Build Include="core\Stored Procedures\AdminUsuario_Crear.sql" />
+    <Build Include="core\Stored Procedures\AdminUsuario_ActualizarUltimoLogin.sql" />
   </ItemGroup>
 </Project>

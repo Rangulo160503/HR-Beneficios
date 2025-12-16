@@ -1,18 +1,24 @@
-CREATE PROCEDURE core.ObtenerProveedorPorToken
-  @AccessToken VARCHAR(128)
+﻿
+
+/* =========================================================
+   6) Stored Procedure NUEVA: core.ObtenerProveedorPorToken
+   ========================================================= */
+
+CREATE   PROCEDURE [core].[ObtenerProveedorPorToken]
+    @AccessToken VARCHAR(128)
 AS
 BEGIN
-  SET NOCOUNT ON;
+    SET NOCOUNT ON;
 
-  SELECT TOP 1
-    ProveedorId,
-    Nombre,
-    Correo,
-    Telefono,
-    Direccion,
-    Imagen,
-    AccessToken
-  FROM core.Proveedor
-  WHERE AccessToken = @AccessToken;
-END;
+    SELECT TOP 1
+        p.ProveedorId,
+        p.Nombre,
+        p.Correo,
+        p.Telefono,
+        p.Direccion,
+        p.Imagen,
+        p.AccessToken
+    FROM core.Proveedor p
+    WHERE p.AccessToken = @AccessToken;
+END
 GO
