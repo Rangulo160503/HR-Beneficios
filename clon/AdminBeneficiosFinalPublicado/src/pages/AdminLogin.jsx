@@ -11,34 +11,29 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-    try {
-      const {
-        access_token,
-        token_type,
-        expires_in,
-        user: userInfo,
-      } = await adminLogin({ user, pass });
+  try {
+    const { token, tokenType, expiresAt, profile } = await adminLogin({ user, pass });
 
-      setAuth({
-        access_token,
-        token_type: token_type || "Bearer",
-        expires_at: Date.now() + Number(expires_in || 0) * 1000,
-        user: userInfo,
-      });
+    setAuth({
+      access_token: token,                 // mantenemos tu shape interno
+      token_type: tokenType || "Bearer",
+      expires_at: new Date(expiresAt).getTime(), // ms timestamp
+      user: profile,
+    });
 
-      navigate("/admin", { replace: true });
-    } catch (err) {
-      if (err?.message === "Credenciales inválidas")
-        setError(err.message);
-      else setError("No se pudo iniciar sesión");
-    } finally {
-      setLoading(false);
-    }
-  };
+    navigate("/admin", { replace: true });
+  } catch (err) {
+    if (err?.message === "Credenciales inválidas") setError(err.message);
+    else if (err?.message === "Usuario inactivo") setError(err.message);
+    else setError("No se pudo iniciar sesión");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-950 text-white px-4">

@@ -45,37 +45,7 @@ export default function DashboardBeneficios({
     setRange("1W");
     setShowDetailMobile(true);
 
-    if (normalized?.beneficioId) {
-      const normalizedId = normalized.beneficioId;
-      const currentCount =
-        touchSummary?.[normalizedId] ?? normalized.totalToques ?? 0;
-      const optimisticCount = currentCount + 1;
-
-      setTouchSummary((prev = {}) => ({
-        ...prev,
-        [normalizedId]: optimisticCount,
-      }));
-
-      accionesBeneficios?.setItems?.((prev = []) =>
-        prev.map((b) =>
-          mapBenefitId(b).beneficioId === normalizedId
-            ? { ...b, totalToques: optimisticCount }
-            : b
-        )
-      );
-
-      setTouchTotal((prev) =>
-        normalizedId === selectedId && typeof prev === "number"
-          ? prev + 1
-          : optimisticCount
-      );
-
-      ToqueBeneficioApi.registrar(normalizedId, "admin-dashboard").catch(
-        (err) => {
-          console.error("No se pudo registrar el toque", err);
-        }
-      );
-    }
+    
   };
 
   const handleCloseDetail = () => {
