@@ -4,6 +4,7 @@ using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Interfaces.Reglas;
 using Abstracciones.Interfaces.Servicios;
 using Abstracciones.Modelos.Servicios;
+using API.Middleware;
 using DA;
 using Flujo;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -222,6 +223,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors(WebCors);
 app.UseAuthentication();
+app.UseMiddleware<PortalProveedorMiddleware>();
 app.UseAuthorization();
 
 // Swagger también en PROD: útil para probar rápidamente
