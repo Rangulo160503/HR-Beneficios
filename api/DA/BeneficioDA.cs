@@ -132,7 +132,7 @@ namespace DA
         {
             const string sp = "core.ObtenerBeneficiosPorCategoria";
 
-            var rows = await _dapperWrapper.QueryAsync<BeneficioConTotal>(
+            var rows = await _dapperWrapper.QueryAsync<BeneficioPorCategoriaRow>(
                 _dbConnection,
                 sp,
                 new
@@ -145,12 +145,12 @@ namespace DA
                 commandType: CommandType.StoredProcedure
             );
 
-            var lista = rows?.ToList() ?? new List<BeneficioConTotal>();
+            var lista = rows?.ToList() ?? new List<BeneficioPorCategoriaRow>();
             var total = lista.FirstOrDefault()?.Total ?? 0;
 
             return new PagedResult<BeneficioResponse>
             {
-                Items = lista,
+                Items = lista.Cast<BeneficioResponse>().ToList(),
                 Page = page,
                 PageSize = pageSize,
                 Total = total
@@ -194,9 +194,5 @@ namespace DA
         }
         #endregion
 
-        private class BeneficioConTotal : BeneficioResponse
-        {
-            public int Total { get; set; }
-        }
     }
 }
