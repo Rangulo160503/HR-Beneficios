@@ -1,9 +1,6 @@
-/* =========================================================
-   core.AdminUsuario_Login
-   Busca un administrador por Usuario y devuelve su hash para
-   validar en la capa de aplicación.
-   ========================================================= */
-CREATE OR ALTER PROCEDURE [core].[AdminUsuario_Login]
+﻿
+-- 3) SP: Login (devuelve el usuario + hash para validar en app)
+CREATE   PROCEDURE [core].[AdminUsuario_Login]
     @Usuario NVARCHAR(50)
 AS
 BEGIN
@@ -21,4 +18,3 @@ BEGIN
     FROM core.tbAdminUsuario
     WHERE Usuario = @Usuario;
 END
-GO
