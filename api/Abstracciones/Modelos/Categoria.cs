@@ -25,23 +25,34 @@ namespace Abstracciones.Modelos
         
     }
 
-    public class CategoriaEnUsoResponse : CategoriaResponse
+    public class CategoriaEnUsoBase
     {
         public string Code { get; set; } = "CategoriaEnUso";
         public string Message { get; set; } = "La categoría tiene beneficios asociados.";
         public int Count { get; set; }
+        public Guid CategoriaId { get; set; }
     }
 
-    public class CategoriaEnUsoException : Exception
+    public class CategoriaEnUsoResponse : CategoriaEnUsoBase
     {
-        public Guid CategoriaId { get; }
-        public int BeneficiosCount { get; }
+    }
 
-        public CategoriaEnUsoException(Guid categoriaId, int beneficiosCount, string? message = null, Exception? innerException = null)
-            : base(message ?? "La categoría tiene beneficios asociados.", innerException)
-        {
-            CategoriaId = categoriaId;
-            BeneficiosCount = beneficiosCount;
-        }
+    public class ReasignarCategoriaBase
+    {
+        [Required]
+        public Guid FromCategoriaId { get; set; }
+
+        [Required]
+        public Guid ToCategoriaId { get; set; }
+    }
+
+    public class ReasignarCategoriaRequest : ReasignarCategoriaBase
+    {
+        public IEnumerable<Guid>? BeneficioIds { get; set; }
+    }
+
+    public class ReasignarCategoriaResponse : ReasignarCategoriaBase
+    {
+        public int Actualizados { get; set; }
     }
 }

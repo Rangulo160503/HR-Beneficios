@@ -2,6 +2,7 @@
 using Abstracciones.Modelos;
 using System.Data;
 using System.Linq;
+using Reglas.Excepciones;
 
 namespace DA
 {
