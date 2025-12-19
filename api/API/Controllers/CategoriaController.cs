@@ -46,8 +46,20 @@ namespace API.Controllers
             if (!await VerificarCategoriaExiste(Id))
                 return NotFound("La categoría no existe");
 
-            var resultado = await _categoriaFlujo.Eliminar(Id);
-            return NoContent();
+            try
+            {
+                await _categoriaFlujo.Eliminar(Id);
+                return NoContent();
+            }
+            catch (CategoriaEnUsoException ex)
+            {
+                _logger.LogWarning(ex, "Categoría en uso, no se puede eliminar");
+                return Conflict(new CategoriaEnUsoResponse
+                {
+                    CategoriaId = ex.CategoriaId,
+                    Count = ex.BeneficiosCount
+                });
+            }
         }
 
         [HttpGet]
@@ -74,7 +86,7 @@ namespace API.Controllers
         {
             var resultadoValidacion = false;
             var resultadoCategoriaExiste = await _categoriaFlujo.Obtener(Id);
-            if (resultadoCategoriaExiste != null)
+            if (resultadoCategoriaExiste != null && resultadoCategoriaExiste.CategoriaId != Guid.Empty)
                 resultadoValidacion = true;
             return resultadoValidacion;
         }

@@ -19,5 +19,8 @@ namespace Abstracciones.Interfaces.DA
         Task<Guid> Eliminar(Guid Id);
         Task<Guid> Aprobar(Guid Id, Guid? usuarioId);
         Task<Guid> Rechazar(Guid Id, Guid? usuarioId);
+        Task<PagedResult<BeneficioResponse>> ObtenerPorCategoria(Guid categoriaId, int page, int pageSize, string? search);
+        Task<int> ReasignarCategoria(Guid fromCategoriaId, Guid toCategoriaId, IEnumerable<Guid>? beneficioIds);
+        Task<int> ContarPorCategoria(Guid categoriaId);
     }
 }

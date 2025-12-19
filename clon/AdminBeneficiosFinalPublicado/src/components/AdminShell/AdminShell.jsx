@@ -27,6 +27,10 @@ export default function AdminShell() {
     addCategoria,
     addProveedor,
     upsertProveedorLocal,
+    categoriaEnUso,
+    showCategoriaEnUso,
+    setCategoriaEnUso,
+    setShowCategoriaEnUso,
     showForm,
     setShowForm,
     editing,
@@ -96,6 +100,7 @@ export default function AdminShell() {
         {/* Contenido principal */}
         <AdminMain
           nav={nav}
+          setNav={setNav}
           // beneficios
           state={beneficiosState}
           beneficios={beneficios}
@@ -108,6 +113,10 @@ export default function AdminShell() {
   deleteCategoria={deleteCategoria}
           addProveedor={addProveedor}
           upsertProveedorLocal={upsertProveedorLocal}
+          categoriaEnUso={categoriaEnUso}
+          showCategoriaEnUso={showCategoriaEnUso}
+          setCategoriaEnUso={setCategoriaEnUso}
+          setShowCategoriaEnUso={setShowCategoriaEnUso}
           // formulario
           showForm={showForm}
           setShowForm={setShowForm}
