@@ -50,6 +50,10 @@ namespace DA
         public async Task<Guid> Eliminar(Guid Id)
         {
             await verficarCategoriaExiste(Id);
+            var asociados = await ContarBeneficiosAsociados(Id);
+            if (asociados > 0)
+                throw new CategoriaEnUsoException(Id, asociados);
+
             const string sp = "core.EliminarCategoria";
             var id = await _dapperWrapper.ExecuteScalarAsync<Guid>(
                 _dbConnection, sp, new { Id },
@@ -83,6 +87,13 @@ namespace DA
             var dto = await Obtener(Id);
             if (dto == null || dto.CategoriaId == Guid.Empty)
                 throw new Exception("No se encontro la categoria");
+        }
+
+        private async Task<int> ContarBeneficiosAsociados(Guid categoriaId)
+        {
+            const string sql = "SELECT COUNT(1) FROM core.Beneficio WHERE CategoriaId = @categoriaId";
+            var total = await _dapperWrapper.ExecuteScalarAsync<int>(_dbConnection, sql, new { categoriaId });
+            return total;
         }
         #endregion
     }

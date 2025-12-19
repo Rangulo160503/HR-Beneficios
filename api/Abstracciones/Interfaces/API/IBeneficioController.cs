@@ -13,5 +13,7 @@ namespace Abstracciones.Interfaces.API
         Task<IActionResult> ObtenerPendientes();
         Task<IActionResult> Aprobar(Guid Id);
         Task<IActionResult> Rechazar(Guid Id);
+        Task<IActionResult> ObtenerPorCategoria(Guid categoriaId, int page, int pageSize, string? search);
+        Task<IActionResult> ReasignarCategoria(ReasignarCategoriaRequest request);
     }
 }

@@ -127,6 +127,62 @@ namespace DA
                 _dbConnection, sp, new { Id, usuarioId }, null, null, CommandType.StoredProcedure
             );
         }
+
+        public async Task<PagedResult<BeneficioResponse>> ObtenerPorCategoria(Guid categoriaId, int page, int pageSize, string? search)
+        {
+            const string sp = "core.ObtenerBeneficiosPorCategoria";
+
+            var rows = await _dapperWrapper.QueryAsync<BeneficioConTotal>(
+                _dbConnection,
+                sp,
+                new
+                {
+                    CategoriaId = categoriaId,
+                    Page = page,
+                    PageSize = pageSize,
+                    Search = search
+                },
+                commandType: CommandType.StoredProcedure
+            );
+
+            var lista = rows?.ToList() ?? new List<BeneficioConTotal>();
+            var total = lista.FirstOrDefault()?.Total ?? 0;
+
+            return new PagedResult<BeneficioResponse>
+            {
+                Items = lista,
+                Page = page,
+                PageSize = pageSize,
+                Total = total
+            };
+        }
+
+        public async Task<int> ReasignarCategoria(Guid fromCategoriaId, Guid toCategoriaId, IEnumerable<Guid>? beneficioIds)
+        {
+            const string sp = "core.ReasignarBeneficiosCategoria";
+            var ids = beneficioIds?.Where(id => id != Guid.Empty).ToArray() ?? Array.Empty<Guid>();
+            var idList = ids.Length > 0 ? string.Join(",", ids) : null;
+
+            var updated = await _dapperWrapper.ExecuteScalarAsync<int>(
+                _dbConnection,
+                sp,
+                new
+                {
+                    FromCategoriaId = fromCategoriaId,
+                    ToCategoriaId = toCategoriaId,
+                    BeneficioIds = idList
+                },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return updated;
+        }
+
+        public async Task<int> ContarPorCategoria(Guid categoriaId)
+        {
+            const string sql = "SELECT COUNT(1) FROM core.Beneficio WHERE CategoriaId = @categoriaId";
+            return await _dapperWrapper.ExecuteScalarAsync<int>(_dbConnection, sql, new { categoriaId });
+        }
         #endregion
 
         #region Helpers
@@ -137,5 +193,10 @@ namespace DA
                 throw new Exception("No se encontro el beneficio");
         }
         #endregion
+
+        private class BeneficioConTotal : BeneficioResponse
+        {
+            public int Total { get; set; }
+        }
     }
 }
