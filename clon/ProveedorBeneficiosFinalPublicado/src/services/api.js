@@ -1,6 +1,8 @@
 // src/services/api.js
-const CLOUD = "https://hr-beneficios-api-grgmckc5dwdca9dc.canadacentral-01.azurewebsites.net";
-const LOCAL  = "https://localhost:5001";
+
+const CLOUD =
+  "https://hr-beneficios-api-grgmckc5dwdca9dc.canadacentral-01.azurewebsites.net";
+const LOCAL = "https://localhost:5001";
 
 // 🔀 cambia esto a "local" mientras Azure esté en quota exceeded
 const TARGET = "local"; // "cloud" | "local"
@@ -8,16 +10,50 @@ const TARGET = "local"; // "cloud" | "local"
 const API_BASE = (TARGET === "cloud" ? CLOUD : LOCAL).replace(/\/$/, "");
 console.log("[API_BASE]", API_BASE);
 
-// --- tu httpGet de siempre (mejor con logs para depurar) ---
+// ===============================
+// 🔐 TOKEN desde URL (?token=...)
+// ===============================
+const LS_TOKEN_KEY = "hr_prov_token";
+
+function getToken() {
+  const params = new URLSearchParams(window.location.search);
+  const fromUrl = params.get("token");
+  if (fromUrl) {
+    localStorage.setItem(LS_TOKEN_KEY, fromUrl);
+    return fromUrl;
+  }
+  return localStorage.getItem(LS_TOKEN_KEY) || "";
+}
+
+// ✅ headers con token (Bearer)
+function authHeaders(extra = {}) {
+  const token = getToken();
+  return {
+    Accept: "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extra,
+  };
+}
+
+// --- httpGet con auth ---
 async function httpGet(path) {
   const url = `${API_BASE}${path}`;
-  const res = await fetch(url, { method: "GET", headers: { Accept: "application/json" }, mode: "cors" });
+  const res = await fetch(url, {
+    method: "GET",
+    headers: authHeaders(),
+    mode: "cors",
+  });
   const ct = res.headers.get("content-type") || "";
 
   if (res.status === 204) return [];
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    console.error("HTTP GET error:", { url, status: res.status, statusText: res.statusText, body });
+    console.error("HTTP GET error:", {
+      url,
+      status: res.status,
+      statusText: res.statusText,
+      body,
+    });
     throw new Error(`${res.status} ${res.statusText} – ${body}`);
   }
   return ct.includes("application/json") ? res.json() : res.text();
@@ -34,7 +70,8 @@ export const EP = {
   beneficioDisponible: (id) => `/api/Beneficio/${id}/disponible`,
 
   // Filtrado por proveedor (lo usamos para la vista del dashboard)
-  beneficiosPorProveedor: (proveedorId) => `/api/Beneficio/por-proveedor/${proveedorId}`,
+  beneficiosPorProveedor: (proveedorId) =>
+    `/api/Beneficio/por-proveedor/${proveedorId}`,
 
   // === Imágenes del beneficio ===
   beneficioImagenPorBeneficio: (beneficioId) => `/api/BeneficioImagen/${beneficioId}`,
@@ -56,12 +93,12 @@ export const EP = {
   proveedorId: (id) => `/api/Proveedor/${id}`,
 };
 
-// === Funciones HTTP auxiliares ===
+// === Funciones HTTP auxiliares (con auth) ===
 async function httpPost(path, body) {
   const url = `${API_BASE}${path}`;
   const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(body),
     mode: "cors",
   });
@@ -75,7 +112,7 @@ async function httpPut(path, body) {
   const url = `${API_BASE}${path}`;
   const res = await fetch(url, {
     method: "PUT",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(body),
     mode: "cors",
   });
@@ -87,54 +124,57 @@ async function httpPut(path, body) {
 
 async function httpDelete(path) {
   const url = `${API_BASE}${path}`;
-  const res = await fetch(url, { method: "DELETE", headers: { Accept: "application/json" }, mode: "cors" });
+  const res = await fetch(url, {
+    method: "DELETE",
+    headers: authHeaders(),
+    mode: "cors",
+  });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} – ${await res.text()}`);
   return null;
 }
 
 export const Api = {
   // === Beneficios ===
-  // === Beneficios ===
-beneficios: {
-  listar: () => httpGet(EP.beneficios()),
-  obtener: (id) => httpGet(EP.beneficioId(id)),
-  agregar: (payload) => httpPost(EP.beneficios(), payload),
-  editar: (id, payload) => httpPut(EP.beneficioId(id), payload),
-  eliminar: (id) => httpDelete(EP.beneficioId(id)),
+  beneficios: {
+    listar: () => httpGet(EP.beneficios()),
+    obtener: (id) => httpGet(EP.beneficioId(id)),
+    agregar: (payload) => httpPost(EP.beneficios(), payload),
+    editar: (id, payload) => httpPut(EP.beneficioId(id), payload),
+    eliminar: (id) => httpDelete(EP.beneficioId(id)),
 
-  aprobacionesPendientes: () => httpGet(EP.aprobacionesPendientes()),
-  aprobacionesAprobados: () => httpGet(EP.aprobacionesAprobados()),
-  aprobar: (id) => httpPost(EP.beneficioAprobar(id), {}),
-  rechazar: (id) => httpPost(EP.beneficioRechazar(id), {}),
-  cambiarDisponible: (id, disponible) =>
-    httpPut(EP.beneficioDisponible(id), { disponible }),
+    aprobacionesPendientes: () => httpGet(EP.aprobacionesPendientes()),
+    aprobacionesAprobados: () => httpGet(EP.aprobacionesAprobados()),
+    aprobar: (id) => httpPost(EP.beneficioAprobar(id), {}),
+    rechazar: (id) => httpPost(EP.beneficioRechazar(id), {}),
+    cambiarDisponible: (id, disponible) =>
+      httpPut(EP.beneficioDisponible(id), { disponible }),
 
-  // Trae todos y filtra en el front por proveedor (usado en dashboard / portal proveedor)
-  listarPorProveedorFront: async (proveedorId) => {
-    const all = await httpGet(EP.beneficios());
-    console.log("[Api] beneficios (ALL):", all);
+    // Trae todos y filtra en el front por proveedor (usado en dashboard / portal proveedor)
+    listarPorProveedorFront: async (proveedorId) => {
+      const all = await httpGet(EP.beneficios());
+      console.log("[Api] beneficios (ALL):", all);
 
-    const norm = (v) => String(v || "").toLowerCase();
+      const norm = (v) => String(v || "").toLowerCase();
 
-    const filtrados = (all || []).filter((x) => {
-      // soporta ProveedorId (Pascal) y proveedorId (camel)
-      const idModelo = x.proveedorId ?? x.ProveedorId;
-      return norm(idModelo) === norm(proveedorId);
-    });
+      const filtrados = (all || []).filter((x) => {
+        // soporta ProveedorId (Pascal) y proveedorId (camel)
+        const idModelo = x.proveedorId ?? x.ProveedorId;
+        return norm(idModelo) === norm(proveedorId);
+      });
 
-    console.log("[Api] beneficios filtrados por proveedor:", filtrados);
-    return filtrados;
+      console.log("[Api] beneficios filtrados por proveedor:", filtrados);
+      return filtrados;
+    },
+
+    // (para cuando crees el endpoint en backend)
+    listarPorProveedorAPI: (proveedorId) =>
+      httpGet(EP.beneficiosPorProveedor(proveedorId)),
   },
-
-  // (para cuando crees el endpoint en backend)
-  listarPorProveedorAPI: (proveedorId) =>
-    httpGet(EP.beneficiosPorProveedor(proveedorId)),
-},
-
 
   // === Imágenes de beneficio ===
   imagenes: {
-    listarPorBeneficio: (beneficioId) => httpGet(EP.beneficioImagenPorBeneficio(beneficioId)),
+    listarPorBeneficio: (beneficioId) =>
+      httpGet(EP.beneficioImagenPorBeneficio(beneficioId)),
     detalle: (imagenId) => httpGet(EP.beneficioImagenDetalle(imagenId)),
     crear: (body) => httpPost(EP.beneficioImagenId(""), body),
     editar: (imagenId, body) => httpPut(EP.beneficioImagenId(imagenId), body),
@@ -159,7 +199,7 @@ beneficios: {
     obtener: (id) => httpGet(EP.ubicacionId(id)),
   },
 
-    // === Proveedores ===
+  // === Proveedores ===
   proveedores: {
     listar: () => httpGet(EP.proveedores()),
     obtener: (id) => httpGet(EP.proveedorId(id)),
@@ -168,5 +208,4 @@ beneficios: {
     eliminar: (id) => httpDelete(EP.proveedorId(id)),
     validarLogin: (id) => httpGet(`/api/Proveedor/validar-login/${id}`),
   },
-
 };

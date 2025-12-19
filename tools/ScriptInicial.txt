@@ -1,0 +1,18 @@
+INSERT INTO core.tbAdminUsuario
+(
+    AdminUsuarioId,
+    Usuario,
+    Nombre,
+    Correo,
+    PasswordHash,
+    Activo
+)
+VALUES
+(
+    NEWID(),
+    'admin',
+    'Administrador',
+    'admin@hrbeneficios.local',
+    'PEGA_AQUI_EL_HASH_GENERADO',
+    1
+);
