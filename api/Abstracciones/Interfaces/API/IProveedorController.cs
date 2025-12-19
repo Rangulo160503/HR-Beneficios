@@ -12,8 +12,6 @@ namespace Abstracciones.Interfaces.API
         Task<IActionResult> Eliminar(Guid Id);
         Task<IActionResult> Obtener();
         Task<IActionResult> Obtener(Guid Id);
-        Task<IActionResult> ValidarLogin(Guid Id);
         Task<IActionResult> Login(ProveedorLoginRequest request);
-        Task<IActionResult> ObtenerPerfil();
     }
 }

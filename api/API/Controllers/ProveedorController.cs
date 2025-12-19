@@ -4,10 +4,10 @@ using Abstracciones.Modelos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using System.Security.Claims;
 
 namespace API.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class ProveedorController : ControllerBase, IProveedorController
@@ -23,7 +23,6 @@ namespace API.Controllers
 
         #region Operaciones
         [HttpPost]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Agregar([FromBody] ProveedorRequest proveedor)
         {
             if (string.IsNullOrWhiteSpace(proveedor?.Nombre))
@@ -36,7 +35,6 @@ namespace API.Controllers
         }
 
         [HttpPut("{Id:guid}")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Editar([FromRoute] Guid Id, [FromBody] ProveedorRequest proveedor)
         {
             // Validación de entrada
@@ -61,7 +59,6 @@ namespace API.Controllers
         }
 
         [HttpDelete("{Id:guid}")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Eliminar([FromRoute] Guid Id)
         {
             var actual = await _proveedorFlujo.Obtener(Id);
@@ -79,7 +76,6 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Obtener()
         {
             var resultado = await _proveedorFlujo.Obtener();
@@ -90,7 +86,6 @@ namespace API.Controllers
         }
 
         [HttpGet("{Id:guid}")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Obtener([FromRoute] Guid Id)
         {
             var resultado = await _proveedorFlujo.Obtener(Id);
@@ -98,7 +93,6 @@ namespace API.Controllers
         }
 
         [HttpGet("validar-login/{Id:guid}")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ValidarLogin([FromRoute] Guid Id)
         {
             var existe = await _proveedorFlujo.ExisteProveedor(Id);
@@ -110,7 +104,6 @@ namespace API.Controllers
         }
 
         [HttpPost("login")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Login([FromBody] ProveedorLoginRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Token))
@@ -120,27 +113,6 @@ namespace API.Controllers
 
             if (proveedor == null || proveedor.ProveedorId == Guid.Empty)
                 return Unauthorized(new { ok = false, mensaje = "QR inválido o expirado." });
-
-            return Ok(new
-            {
-                ok = true,
-                proveedor
-            });
-        }
-
-        [HttpGet("portal/perfil")]
-        [Authorize(Roles = "Proveedor")]
-        public async Task<IActionResult> ObtenerPerfil()
-        {
-            var proveedorIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!Guid.TryParse(proveedorIdClaim, out var proveedorId))
-                return Unauthorized(new { ok = false, mensaje = "Proveedor no autenticado." });
-
-            var proveedor = await _proveedorFlujo.Obtener(proveedorId);
-
-            if (proveedor is null)
-                return NotFound(new { ok = false, mensaje = "Proveedor no encontrado." });
 
             return Ok(new
             {
