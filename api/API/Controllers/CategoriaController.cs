@@ -22,6 +22,7 @@ namespace API.Controllers
 
         #region Operaciones
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Agregar([FromBody] CategoriaRequest categoria)
         {
             var id = await _categoriaFlujo.Agregar(categoria);
@@ -50,6 +51,7 @@ namespace API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> Obtener()
         {
             var resultado = await _categoriaFlujo.Obtener();

@@ -23,6 +23,7 @@ namespace API.Controllers
         // POST api/Beneficio
         [HttpPost]
         [RequestSizeLimit(20_000_000)]
+        [AllowAnonymous]
         public async Task<IActionResult> Agregar([FromBody] BeneficioRequest req)
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
@@ -62,6 +63,7 @@ namespace API.Controllers
 
         // GET api/Beneficio
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> Obtener()
         {
             var lista = await _beneficioFlujo.ObtenerAprobados();
@@ -70,6 +72,7 @@ namespace API.Controllers
 
         // GET api/Beneficio/{Id}
         [HttpGet("{Id:guid}")]
+        [AllowAnonymous]
         public async Task<IActionResult> Obtener([FromRoute] Guid Id)
         {
             var item = await _beneficioFlujo.Obtener(Id);

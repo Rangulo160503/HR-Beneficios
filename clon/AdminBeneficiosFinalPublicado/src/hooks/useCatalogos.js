@@ -146,7 +146,7 @@ const getCatId = (r) => {
   async function deleteCategoria(r) {
     const id = getCatId(r);
     if (!id) return;
-    if (!confirm("¿Eliminar categoría?")) return;
+    //if (!confirm("¿Eliminar categoría?")) return;
     await CategoriaApi.remove(id);
     setCats(s => s.filter(x => getCatId(x) !== id));
   }

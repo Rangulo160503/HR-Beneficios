@@ -15,8 +15,15 @@ export default function AdminMain(props) {
     accionesBeneficios,
     cats,
     provs,
+
     addCategoria,
+    renameCategoria,
+    deleteCategoria,
+
     addProveedor,
+    renameProveedor,
+    deleteProveedor,
+
     upsertProveedorLocal,
     showForm,
     setShowForm,
@@ -46,24 +53,27 @@ export default function AdminMain(props) {
 
         {/* CATEGORÍAS */}
         {nav === NAV_ITEMS.CATEGORIAS && (
-          <CategoriasPage
-            cats={cats}
-            addCategoria={addCategoria}
-          />
-        )}
+  <CategoriasPage
+    cats={cats}
+    addCategoria={addCategoria}
+    renameCategoria={renameCategoria}
+    deleteCategoria={deleteCategoria}
+  />
+)}
 
         {/* PROVEEDORES */}
         {nav === NAV_ITEMS.PROVEEDORES && (
           <ProveedoresPage
             provs={provs}
             addProveedor={addProveedor}
+            renameProveedor={renameProveedor}
+            deleteProveedor={deleteProveedor}
             onProveedorUpdated={upsertProveedorLocal}
           />
         )}
+
         {nav === NAV_ITEMS.INFOBOARD && <InfoBoardPage />}
-        {nav === NAV_ITEMS.APROBACIONES && (
-          <AprobacionesPage />
-        )}
+        {nav === NAV_ITEMS.APROBACIONES && <AprobacionesPage />}
       </div>
     </main>
   );

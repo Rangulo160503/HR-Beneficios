@@ -16,19 +16,14 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const {
-        access_token,
-        token_type,
-        expires_in,
-        user: userInfo,
-      } = await adminLogin({ user, pass });
+      const { token, expiresAt, profile } = await adminLogin({ user, pass });
 
-      setAuth({
-        access_token,
-        token_type: token_type || "Bearer",
-        expires_at: Date.now() + Number(expires_in || 0) * 1000,
-        user: userInfo,
-      });
+setAuth({
+  access_token: token,                 // mantenemos el nombre interno para no romper el resto del admin
+  token_type: "Bearer",
+  expires_at: new Date(expiresAt).getTime(),
+  user: profile,
+});
 
       navigate("/admin", { replace: true });
     } catch (err) {

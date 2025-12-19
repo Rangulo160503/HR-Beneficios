@@ -108,7 +108,7 @@ export default function ProveedorHome() {
         {/* Intro */}
         <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4 text-neutral-200">
           <p className="text-sm text-neutral-400">
-            Aquí podrás crear y editar beneficios asociados a tu proveedor. Usa
+            Aquí podrás crear los beneficios asociados. Usa
             el botón superior para abrir el formulario.
           </p>
         </div>

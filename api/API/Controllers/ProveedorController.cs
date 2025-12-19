@@ -76,6 +76,7 @@ namespace API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> Obtener()
         {
             var resultado = await _proveedorFlujo.Obtener();
@@ -86,6 +87,7 @@ namespace API.Controllers
         }
 
         [HttpGet("{Id:guid}")]
+        [AllowAnonymous]
         public async Task<IActionResult> Obtener([FromRoute] Guid Id)
         {
             var resultado = await _proveedorFlujo.Obtener(Id);

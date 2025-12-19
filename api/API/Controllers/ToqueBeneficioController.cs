@@ -21,6 +21,7 @@ namespace API.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Registrar([FromBody] ToqueBeneficioRequest request)
         {
             if (request is null || string.IsNullOrWhiteSpace(request.BeneficioId))

@@ -31,6 +31,8 @@ export default function AdminShell() {
     setShowForm,
     editing,
     setEditing,
+    renameCategoria,
+    deleteCategoria,
   } = useAdminShell();
 
   const handleSelectNav = (key) => {
@@ -102,6 +104,8 @@ export default function AdminShell() {
           cats={cats}
           provs={provs}
           addCategoria={addCategoria}
+          renameCategoria={renameCategoria}
+  deleteCategoria={deleteCategoria}
           addProveedor={addProveedor}
           upsertProveedorLocal={upsertProveedorLocal}
           // formulario
