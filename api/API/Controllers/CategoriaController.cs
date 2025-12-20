@@ -3,7 +3,7 @@ using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Reglas.Excepciones;
+using System.Text.Json.Serialization;
 
 namespace API.Controllers
 {
@@ -13,11 +13,13 @@ namespace API.Controllers
     public class CategoriaController : ControllerBase, ICategoriaController
     {
         private ICategoriaFlujo _categoriaFlujo;
+        private readonly IBeneficioFlujo _beneficioFlujo;
         private ILogger<CategoriaController> _logger;
 
-        public CategoriaController(ICategoriaFlujo categoriaFlujo, ILogger<CategoriaController> logger)
+        public CategoriaController(ICategoriaFlujo categoriaFlujo, IBeneficioFlujo beneficioFlujo, ILogger<CategoriaController> logger)
         {
             _categoriaFlujo = categoriaFlujo;
+            _beneficioFlujo = beneficioFlujo;
             _logger = logger;
         }
 
@@ -52,14 +54,11 @@ namespace API.Controllers
                 await _categoriaFlujo.Eliminar(Id);
                 return NoContent();
             }
-            catch (CategoriaEnUsoException ex)
+            catch (InvalidOperationException ex) when (ex.Message == "CategoriaEnUso")
             {
                 _logger.LogWarning(ex, "Categoría en uso, no se puede eliminar");
-                return Conflict(new CategoriaEnUsoResponse
-                {
-                    CategoriaId = ex.CategoriaId,
-                    Count = ex.BeneficiosCount
-                });
+                var count = await _beneficioFlujo.ContarPorCategoria(Id);
+                return Conflict(new CategoriaEnUsoPayload { Count = count });
             }
         }
 
@@ -92,5 +91,17 @@ namespace API.Controllers
             return resultadoValidacion;
         }
         #endregion
+
+        private record CategoriaEnUsoPayload
+        {
+            [JsonPropertyName("code")]
+            public string Code { get; init; } = "CategoriaEnUso";
+
+            [JsonPropertyName("message")]
+            public string Message { get; init; } = "La categoría tiene beneficios asociados.";
+
+            [JsonPropertyName("count")]
+            public int Count { get; init; }
+        }
     }
 }
