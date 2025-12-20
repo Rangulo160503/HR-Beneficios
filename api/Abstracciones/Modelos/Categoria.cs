@@ -25,18 +25,6 @@ namespace Abstracciones.Modelos
         
     }
 
-    public class CategoriaEnUsoBase
-    {
-        public string Code { get; set; } = "CategoriaEnUso";
-        public string Message { get; set; } = "La categoría tiene beneficios asociados.";
-        public int Count { get; set; }
-        public Guid CategoriaId { get; set; }
-    }
-
-    public class CategoriaEnUsoResponse : CategoriaEnUsoBase
-    {
-    }
-
     public class ReasignarCategoriaBase
     {
         [Required]

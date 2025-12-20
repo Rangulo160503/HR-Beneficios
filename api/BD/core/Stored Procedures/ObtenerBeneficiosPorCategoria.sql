@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE core.ObtenerBeneficiosPorCategoria
+﻿CREATE OR ALTER PROCEDURE core.ObtenerBeneficiosPorCategoria
     @CategoriaId UNIQUEIDENTIFIER,
     @Page INT = 1,
     @PageSize INT = 50,
@@ -12,6 +12,7 @@ BEGIN
 
     DECLARE @Offset INT = (@Page - 1) * @PageSize;
     DECLARE @Pattern NVARCHAR(202) = NULL;
+    DECLARE @Total INT = 0;
 
     IF (@Search IS NOT NULL AND LTRIM(RTRIM(@Search)) <> '')
         SET @Pattern = '%' + LTRIM(RTRIM(@Search)) + '%';
@@ -48,8 +49,10 @@ BEGIN
             p.Nombre LIKE @Pattern
           )
     )
+    SELECT @Total = COUNT(1) FROM base;
+
     SELECT *,
-           Total = COUNT(*) OVER()
+           Total = @Total
     FROM base
     ORDER BY FechaCreacion DESC
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
