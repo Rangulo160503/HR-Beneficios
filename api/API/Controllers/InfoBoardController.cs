@@ -20,7 +20,7 @@ namespace API.Controllers
             _infoBoardFlujo = infoBoardFlujo ?? throw new ArgumentNullException(nameof(infoBoardFlujo));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> Obtener([FromQuery] bool? activo = true, [FromQuery(Name = "q")] string? busqueda = null)
         {
@@ -31,7 +31,7 @@ namespace API.Controllers
 
             return Ok(resultado);
         }
-
+        [AllowAnonymous]
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> Obtener([FromRoute] Guid id)
         {
