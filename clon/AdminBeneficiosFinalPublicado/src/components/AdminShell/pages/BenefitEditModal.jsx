@@ -8,81 +8,101 @@ import {
 const GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const norm = (v) => (v == null ? "" : String(v).trim());
 const mapBenefitId = (r) => {
+  const src = r || {};
   const id =
-    r?.id ??
-    r?.Id ??
-    r?.beneficioId ??
-    r?.BeneficioId ??
-    r?.beneficio?.id ??
-    r?.beneficio?.Id;
+    src?.id ??
+    src?.Id ??
+    src?.beneficioId ??
+    src?.BeneficioId ??
+    src?.beneficio?.id ??
+    src?.beneficio?.Id;
   const fixed = String(id ?? "").trim();
   return {
-    ...r,
+    ...src,
     id: fixed || undefined,
     beneficioId: fixed || undefined,
   };
 };
 
-export default function BenefitEditModal({ open, benefit, onClose, onSaved }) {
-  const [form, setForm] = useState({});
+const buildFormState = (benefit) => ({
+  titulo: benefit?.titulo || "",
+  descripcion: benefit?.descripcion || "",
+  condiciones: benefit?.condiciones || "",
+  proveedorId:
+    benefit?.proveedorId || benefit?.ProveedorId || benefit?.proveedor?.id || "",
+  categoriaId:
+    benefit?.categoriaId || benefit?.CategoriaId || benefit?.categoria?.id || "",
+  precio: benefit?.precioCRC ?? benefit?.precio ?? "",
+  vigenciaInicio: benefit?.vigenciaInicio?.slice?.(0, 10) || "",
+  vigenciaFin: benefit?.vigenciaFin?.slice?.(0, 10) || "",
+  disponible: Boolean(benefit?.disponible ?? true),
+});
+
+export default function BenefitEditModal({ open, benefitId, benefit, onClose, onSaved }) {
+  const [form, setForm] = useState(buildFormState(benefit));
   const [cats, setCats] = useState([]);
   const [provs, setProvs] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
+  const [status, setStatus] = useState("");
+  const [currentBenefit, setCurrentBenefit] = useState(benefit || null);
 
-  const benefitId = useMemo(
-    () => benefit?.beneficioId || benefit?.id || benefit?.Id,
-    [benefit]
+  const normalizedId = useMemo(
+    () => benefitId || benefit?.beneficioId || benefit?.id || benefit?.Id,
+    [benefitId, benefit]
   );
-
-  useEffect(() => {
-    setForm({
-      titulo: benefit?.titulo || "",
-      descripcion: benefit?.descripcion || "",
-      condiciones: benefit?.condiciones || "",
-      proveedorId:
-        benefit?.proveedorId || benefit?.ProveedorId || benefit?.proveedor?.id || "",
-      categoriaId:
-        benefit?.categoriaId || benefit?.CategoriaId || benefit?.categoria?.id || "",
-      precio: benefit?.precioCRC ?? benefit?.precio ?? "",
-      vigenciaInicio: benefit?.vigenciaInicio?.slice?.(0, 10) || "",
-      vigenciaFin: benefit?.vigenciaFin?.slice?.(0, 10) || "",
-      disponible: Boolean(benefit?.disponible ?? true),
-    });
-  }, [benefit]);
 
   useEffect(() => {
     if (!open) return;
     let alive = true;
+    setError("");
+    setStatus("");
+    setFetching(true);
+    const fallback = mapBenefitId(benefit || {});
+    setCurrentBenefit(fallback);
+    setForm(buildFormState(fallback));
     (async () => {
       try {
-        const [c, p] = await Promise.all([
+        const [rawBenefit, c, p] = await Promise.all([
+          normalizedId ? BeneficioApi.get(normalizedId) : Promise.resolve(null),
           CategoriaApi.list(),
           ProveedorApi.list(),
         ]);
         if (!alive) return;
+        const mappedBenefit = rawBenefit ? mapBenefitId(rawBenefit) : fallback;
+        setCurrentBenefit(mappedBenefit);
+        setForm(buildFormState(mappedBenefit));
         setCats(Array.isArray(c) ? c : []);
         setProvs(Array.isArray(p) ? p : []);
       } catch (err) {
-        console.error("No se pudieron cargar catálogos", err);
+        if (!alive) return;
+        console.error("No se pudieron cargar datos para edición", err);
+        setError(err?.message || "No se pudo cargar el beneficio.");
+      } finally {
+        if (alive) setFetching(false);
       }
     })();
     return () => {
       alive = false;
     };
-  }, [open]);
+  }, [open, normalizedId, benefit]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!benefitId) return;
+    if (!normalizedId) {
+      setError("No hay beneficio para editar.");
+      return;
+    }
     const proveedorId = norm(form.proveedorId);
     const categoriaId = norm(form.categoriaId);
     if (!GUID_RE.test(proveedorId) || !GUID_RE.test(categoriaId)) {
       setError("Debe seleccionar proveedor y categoría válidos.");
       return;
     }
-    setLoading(true);
+    setSaving(true);
     setError("");
+    setStatus("");
     try {
       const dto = {
         titulo: norm(form.titulo),
@@ -95,19 +115,21 @@ export default function BenefitEditModal({ open, benefit, onClose, onSaved }) {
         vigenciaFin: form.vigenciaFin || null,
         disponible: Boolean(form.disponible),
       };
-      await BeneficioApi.update(benefitId, dto);
-      const fresh = await BeneficioApi.get(benefitId);
-      onSaved?.(mapBenefitId(fresh));
-      onClose?.();
+      await BeneficioApi.update(normalizedId, dto);
+      const fresh = await BeneficioApi.get(normalizedId);
+      const mapped = mapBenefitId(fresh);
+      onSaved?.(mapped);
+      setStatus("Guardado");
     } catch (err) {
       console.error("No se pudo actualizar", err);
-      setError("No se pudo guardar el beneficio.");
+      setError(err?.message || "No se pudo guardar el beneficio.");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   if (!open) return null;
+  const formDisabled = fetching || saving;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm grid place-items-center px-4">
@@ -115,7 +137,7 @@ export default function BenefitEditModal({ open, benefit, onClose, onSaved }) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-wide text-white/50">Editar beneficio</p>
-            <h2 className="text-xl font-semibold">{benefit?.titulo || "(Sin título)"}</h2>
+            <h2 className="text-xl font-semibold">{currentBenefit?.titulo || "(Sin título)"}</h2>
           </div>
           <button
             onClick={onClose}
@@ -124,6 +146,12 @@ export default function BenefitEditModal({ open, benefit, onClose, onSaved }) {
             Cerrar
           </button>
         </div>
+
+        {fetching && (
+          <div className="text-sm text-white/60 border border-white/10 rounded-xl px-3 py-2">
+            Cargando beneficio...
+          </div>
+        )}
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid md:grid-cols-2 gap-3">
@@ -134,6 +162,7 @@ export default function BenefitEditModal({ open, benefit, onClose, onSaved }) {
                 value={form.titulo || ""}
                 onChange={(e) => setForm((s) => ({ ...s, titulo: e.target.value }))}
                 required
+                disabled={formDisabled}
               />
             </label>
             <label className="space-y-1 text-sm">
@@ -142,6 +171,7 @@ export default function BenefitEditModal({ open, benefit, onClose, onSaved }) {
                 className="w-full rounded-xl bg-neutral-900 border border-white/15 px-3 py-2"
                 value={form.proveedorId || ""}
                 onChange={(e) => setForm((s) => ({ ...s, proveedorId: e.target.value }))}
+                disabled={formDisabled}
               >
                 <option value="">Seleccione</option>
                 {provs.map((p) => (
@@ -157,6 +187,7 @@ export default function BenefitEditModal({ open, benefit, onClose, onSaved }) {
                 className="w-full rounded-xl bg-neutral-900 border border-white/15 px-3 py-2"
                 value={form.categoriaId || ""}
                 onChange={(e) => setForm((s) => ({ ...s, categoriaId: e.target.value }))}
+                disabled={formDisabled}
               >
                 <option value="">Seleccione</option>
                 {cats.map((c) => (
@@ -173,6 +204,7 @@ export default function BenefitEditModal({ open, benefit, onClose, onSaved }) {
                 className="w-full rounded-xl bg-neutral-900 border border-white/15 px-3 py-2"
                 value={form.precio ?? ""}
                 onChange={(e) => setForm((s) => ({ ...s, precio: e.target.value }))}
+                disabled={formDisabled}
               />
             </label>
           </div>
@@ -184,6 +216,7 @@ export default function BenefitEditModal({ open, benefit, onClose, onSaved }) {
               value={form.descripcion || ""}
               rows={3}
               onChange={(e) => setForm((s) => ({ ...s, descripcion: e.target.value }))}
+              disabled={formDisabled}
             />
           </label>
 
@@ -194,6 +227,7 @@ export default function BenefitEditModal({ open, benefit, onClose, onSaved }) {
               value={form.condiciones || ""}
               rows={3}
               onChange={(e) => setForm((s) => ({ ...s, condiciones: e.target.value }))}
+              disabled={formDisabled}
             />
           </label>
 
@@ -205,6 +239,7 @@ export default function BenefitEditModal({ open, benefit, onClose, onSaved }) {
                 className="w-full rounded-xl bg-neutral-900 border border-white/15 px-3 py-2"
                 value={form.vigenciaInicio || ""}
                 onChange={(e) => setForm((s) => ({ ...s, vigenciaInicio: e.target.value }))}
+                disabled={formDisabled}
               />
             </label>
             <label className="space-y-1 text-sm">
@@ -214,6 +249,7 @@ export default function BenefitEditModal({ open, benefit, onClose, onSaved }) {
                 className="w-full rounded-xl bg-neutral-900 border border-white/15 px-3 py-2"
                 value={form.vigenciaFin || ""}
                 onChange={(e) => setForm((s) => ({ ...s, vigenciaFin: e.target.value }))}
+                disabled={formDisabled}
               />
             </label>
           </div>
@@ -223,11 +259,13 @@ export default function BenefitEditModal({ open, benefit, onClose, onSaved }) {
               type="checkbox"
               checked={Boolean(form.disponible)}
               onChange={(e) => setForm((s) => ({ ...s, disponible: e.target.checked }))}
+              disabled={formDisabled}
             />
             <span className="text-white/80">Disponible</span>
           </label>
 
           {error && <p className="text-sm text-red-300">{error}</p>}
+          {status && !error && <p className="text-sm text-emerald-300">{status}</p>}
 
           <div className="flex justify-end gap-2 pt-2">
             <button
@@ -239,10 +277,10 @@ export default function BenefitEditModal({ open, benefit, onClose, onSaved }) {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={saving || fetching}
               className="px-4 py-2 rounded-full bg-emerald-500 text-black font-semibold hover:bg-emerald-400 disabled:opacity-60"
             >
-              {loading ? "Guardando..." : "Guardar"}
+              {saving ? "Guardando..." : "Guardar"}
             </button>
           </div>
         </form>

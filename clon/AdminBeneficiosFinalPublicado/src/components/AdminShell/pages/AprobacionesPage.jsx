@@ -15,7 +15,8 @@ const IconRefresh = (p) => (
 export default function AprobacionesPage() {
   const { items, loading, error, selected, selectedId, setSelectedId, refresh, aprobar, rechazar } = useAprobaciones();
   const [processing, setProcessing] = useState(false);
-  const [editTarget, setEditTarget] = useState(null);
+  const [editingId, setEditingId] = useState("");
+  const [editingOpen, setEditingOpen] = useState(false);
 
   const onAprobar = async () => {
     if (!selected?.id) return;
@@ -36,6 +37,17 @@ export default function AprobacionesPage() {
     } finally {
       setProcessing(false);
     }
+  };
+
+  const openEdit = (id) => {
+    if (!id) return;
+    setEditingId(id);
+    setEditingOpen(true);
+  };
+
+  const closeEdit = () => {
+    setEditingOpen(false);
+    setEditingId("");
   };
 
   const detailRows = useMemo(() => {
@@ -114,7 +126,7 @@ export default function AprobacionesPage() {
                       className="px-2 py-1 rounded-full text-[11px] border border-white/15 hover:bg-white/10"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setEditTarget(b);
+                        openEdit(b.id);
                       }}
                     >
                       Editar
@@ -154,6 +166,13 @@ export default function AprobacionesPage() {
 
               <div className="flex flex-wrap gap-3 pt-2">
                 <button
+                  onClick={() => openEdit(selected?.id)}
+                  disabled={!selected}
+                  className="px-4 py-2 rounded-full border border-white/10 text-sm text-white hover:bg-white/5 disabled:opacity-60"
+                >
+                  Editar
+                </button>
+                <button
                   onClick={onRechazar}
                   disabled={!selected || processing}
                   className="px-4 py-2 rounded-full border border-white/10 text-sm text-white hover:bg-white/5 disabled:opacity-60"
@@ -174,15 +193,17 @@ export default function AprobacionesPage() {
       </div>
 
       <BenefitEditModal
-        open={Boolean(editTarget)}
-        benefit={editTarget}
-        onClose={() => setEditTarget(null)}
+        open={editingOpen}
+        benefitId={editingId}
+        benefit={items.find((b) => b.id === editingId) || selected}
+        onClose={closeEdit}
         onSaved={async (updated) => {
-          setEditTarget(null);
           await refresh();
-          if (updated?.id || updated?.beneficioId) {
-            setSelectedId(updated.id || updated.beneficioId);
+          const updatedId = updated?.id || updated?.beneficioId || editingId;
+          if (updatedId) {
+            setSelectedId(updatedId);
           }
+          closeEdit();
         }}
       />
     </div>
