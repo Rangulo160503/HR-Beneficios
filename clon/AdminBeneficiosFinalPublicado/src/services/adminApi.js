@@ -129,3 +129,22 @@ export const ToqueBeneficioApi = {
       ...o,
     }),
 };
+
+export const InfoBoardApi = {
+  list: ({ activo, search, q } = {}, o = {}) => {
+    const params = new URLSearchParams();
+    const hasActivo = activo !== undefined && activo !== null && activo !== "";
+    if (hasActivo) params.set("activo", String(activo));
+    const searchTerm = (search ?? q)?.toString().trim();
+    if (searchTerm) {
+      params.set("search", searchTerm);
+      params.set("q", searchTerm);
+    }
+    const qs = params.toString();
+    return req(`/api/InfoBoard${qs ? `?${qs}` : ""}`, o);
+  },
+  get: (id, o = {}) => req(`/api/InfoBoard/${id}`, o),
+  create: (dto, o = {}) => req(`/api/InfoBoard`, { method: "POST", json: dto, ...o }),
+  update: (id, dto, o = {}) => req(`/api/InfoBoard/${id}`, { method: "PUT", json: dto, ...o }),
+  remove: (id, o = {}) => req(`/api/InfoBoard/${id}`, { method: "DELETE", ...o }),
+};
