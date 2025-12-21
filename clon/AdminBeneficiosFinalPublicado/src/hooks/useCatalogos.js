@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CategoriaApi, ProveedorApi } from "../services/adminApi";
+import { ApiError, CategoriaApi, ProveedorApi } from "../services/adminApi";
 import { generateAccessToken } from "../utils/badge";
 
 // helpers arriba del hook
@@ -30,6 +30,8 @@ export function useCatalogos() {
   const [provs, setProvs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [categoriaEnUso, setCategoriaEnUso] = useState(null);
+  const [showCategoriaEnUso, setShowCategoriaEnUso] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -147,8 +149,24 @@ const getCatId = (r) => {
     const id = getCatId(r);
     if (!id) return;
     //if (!confirm("¿Eliminar categoría?")) return;
-    await CategoriaApi.remove(id);
-    setCats(s => s.filter(x => getCatId(x) !== id));
+    try {
+      await CategoriaApi.remove(id);
+      setCats(s => s.filter(x => getCatId(x) !== id));
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        const detalle = err.data || {};
+        const categoriaInfo = {
+          ...r,
+          categoriaId: getCatId(r),
+          id: getCatId(r),
+          detalle,
+        };
+        setCategoriaEnUso(categoriaInfo);
+        setShowCategoriaEnUso(true);
+        throw err;
+      }
+      throw err;
+    }
   }
 
   // ===== CRUD Proveedor =====
@@ -214,6 +232,10 @@ const getCatId = (r) => {
 
   return {
     cats, provs, loading, err,
+    categoriaEnUso,
+    showCategoriaEnUso,
+    setCategoriaEnUso,
+    setShowCategoriaEnUso,
     addCategoria, renameCategoria, deleteCategoria,
     addProveedor, renameProveedor, deleteProveedor,
     upsertProveedorLocal,

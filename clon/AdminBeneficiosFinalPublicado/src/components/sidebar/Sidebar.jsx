@@ -117,20 +117,22 @@ export default function Sidebar({
           onClick={() => onChangeNav("infoboard")}
         />
 
-        {/* HR Portal como link externo independiente */}
-        <a
-          href="http://hrportal"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block"
-        >
-          <NavItem
-            label="HR Portal"
-            icon={<IconBuilding className="w-5 h-5" />}
-            active={nav === "hrportal"}
-            collapsed={collapsed}
-          />
-        </a>
+        {/* 
+<a
+  href="http://hrportal"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="block"
+>
+  <NavItem
+    label="HR Portal"
+    icon={<IconBuilding className="w-5 h-5" />}
+    active={nav === "hrportal"}
+    collapsed={collapsed}
+  />
+</a>
+*/}
+
 
         {/* Aprobaciones separado, sin estar dentro del <a> */}
         <NavItem

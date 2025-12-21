@@ -21,6 +21,10 @@ export default function useAdminShell() {
 const {
   cats,
   provs,
+  categoriaEnUso,
+  showCategoriaEnUso,
+  setCategoriaEnUso,
+  setShowCategoriaEnUso,
 
   addCategoria,
   renameCategoria,
@@ -54,6 +58,10 @@ const {
     addCategoria,
     addProveedor,
     upsertProveedorLocal,
+    categoriaEnUso,
+    showCategoriaEnUso,
+    setCategoriaEnUso,
+    setShowCategoriaEnUso,
 
     // formulario crear / editar
     showForm,

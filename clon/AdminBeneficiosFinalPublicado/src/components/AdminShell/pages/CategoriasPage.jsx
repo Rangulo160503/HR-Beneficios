@@ -39,11 +39,14 @@ export default function CategoriasPage({
   Renombrar
 </button>
 
-<button
-  onClick={() => {
-    console.log("deleteCategoria is", deleteCategoria);
-    console.log("row c", c);
-    return deleteCategoria?.(c);
+            <button
+  onClick={async () => {
+    try {
+      await deleteCategoria?.(c);
+    } catch (err) {
+      console.error("No se pudo eliminar la categoría", err);
+      return err;
+    }
   }}
   className="ml-2 px-2 py-1 rounded-full text-xs bg-white/5 hover:bg-red-500/20 text-red-300/90"
 >

@@ -62,4 +62,20 @@ namespace Abstracciones.Modelos
         public int? VouchersEmitidos { get; set; }
         public int? VouchersCanjeados { get; set; }
     }
+
+    public class BeneficioPorCategoriaBase : BeneficioResponse
+    {
+    }
+
+    public class BeneficioPorCategoriaResponse : BeneficioPorCategoriaBase
+    {
+        /// <summary>
+        /// Total de registros en la consulta paginada.
+        /// </summary>
+        public int Total { get; set; }
+    }
+
+    public class BeneficioPorCategoriaDetalle : BeneficioPorCategoriaResponse
+    {
+    }
 }
