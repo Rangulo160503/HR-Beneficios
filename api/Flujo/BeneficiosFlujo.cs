@@ -77,5 +77,10 @@ namespace Flujo
         {
             return await _beneficioDA.ContarPorCategoria(categoriaId);
         }
+
+        public async Task<bool> ValidarTokenBadge(Guid proveedorId, string token)
+        {
+            return await _beneficioDA.ValidarTokenBadge(proveedorId, token);
+        }
     }
 }

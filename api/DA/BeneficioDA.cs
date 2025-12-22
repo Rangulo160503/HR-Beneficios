@@ -183,6 +183,26 @@ namespace DA
             const string sql = "SELECT COUNT(1) FROM core.Beneficio WHERE CategoriaId = @categoriaId";
             return await _dapperWrapper.ExecuteScalarAsync<int>(_dbConnection, sql, new { categoriaId });
         }
+
+        public async Task<bool> ValidarTokenBadge(Guid proveedorId, string token)
+        {
+            const string sql = @"SELECT 1
+FROM core.Proveedor
+WHERE ProveedorId = @ProveedorId
+  AND AccessToken = @Token;";
+
+            var result = await _dapperWrapper.QueryFirstOrDefaultAsync<int>(
+                _dbConnection,
+                sql,
+                new
+                {
+                    ProveedorId = proveedorId,
+                    Token = token
+                }
+            );
+
+            return result == 1;
+        }
         #endregion
 
         #region Helpers
