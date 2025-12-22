@@ -68,7 +68,27 @@ async function req(path, { method = "GET", json, headers, signal } = {}) {
 export const BeneficioApi = {
   list:  (o={}) => req("/api/Beneficio", o),
   get:   (id,o={}) => req(`/api/Beneficio/${id}`, o),
-  create:(dto,o={}) => req("/api/Beneficio", { method:"POST", json:dto, ...o }),
+  create: (dto, o = {}) => {
+  // soporta ambas formas:
+  // 1) BeneficioApi.create(dto, { proveedorId, token })
+  // 2) BeneficioApi.create(dto, { badge: { proveedorId, token } })
+  const proveedorId = o?.proveedorId ?? o?.badge?.proveedorId;
+  const token = o?.token ?? o?.badge?.token;
+
+  const params = new URLSearchParams();
+  if (proveedorId) params.set("proveedorId", proveedorId);
+  if (token) params.set("token", token);
+
+  const path = params.toString()
+    ? `/api/Beneficio?${params.toString()}`
+    : "/api/Beneficio";
+
+  // importante: NO mandamos proveedorId/token en headers/body,
+  // porque el backend los espera por query.
+  const { proveedorId: _p, token: _t, badge: _b, ...rest } = o;
+
+  return req(path, { method: "POST", json: dto, ...rest });
+},
   update:(id,dto,o={}) => req(`/api/Beneficio/${id}`, { method:"PUT", json:dto, ...o }),
   remove:(id,o={}) => req(`/api/Beneficio/${id}`, { method:"DELETE", ...o }),
   listByCategoria: (categoriaId, page = 1, pageSize = 50, search = "", o = {}) => {
