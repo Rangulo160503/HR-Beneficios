@@ -7,7 +7,7 @@ namespace Abstracciones.Interfaces.API
     {
         Task<IActionResult> Obtener();
         Task<IActionResult> Obtener(Guid Id);
-        Task<IActionResult> Agregar(BeneficioRequest beneficio);
+        Task<IActionResult> Agregar(BeneficioRequest beneficio, Guid proveedorId, string token);
         Task<IActionResult> Editar(Guid Id, BeneficioRequest beneficio);
         Task<IActionResult> Eliminar(Guid Id);
         Task<IActionResult> ObtenerPendientes();
