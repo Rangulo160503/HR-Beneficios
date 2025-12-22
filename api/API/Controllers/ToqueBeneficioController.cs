@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class ToqueBeneficioController : ControllerBase, IToqueBeneficioController
@@ -35,6 +34,7 @@ namespace API.Controllers
         }
 
         [HttpGet("analytics/{beneficioId:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ObtenerAnalytics(
             [FromRoute] Guid beneficioId,
             [FromQuery] string? range = "1W",
@@ -45,6 +45,7 @@ namespace API.Controllers
         }
 
         [HttpGet("resumen")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ObtenerResumen([FromQuery] string? range = "1W")
         {
             var resumen = await _toqueBeneficioFlujo.ObtenerResumen(range);
