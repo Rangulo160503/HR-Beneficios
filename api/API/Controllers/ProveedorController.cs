@@ -1,11 +1,13 @@
 ﻿using Abstracciones.Interfaces.API;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 
 namespace API.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class ProveedorController : ControllerBase, IProveedorController
@@ -74,6 +76,7 @@ namespace API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> Obtener()
         {
             var resultado = await _proveedorFlujo.Obtener();
@@ -84,6 +87,7 @@ namespace API.Controllers
         }
 
         [HttpGet("{Id:guid}")]
+        [AllowAnonymous]
         public async Task<IActionResult> Obtener([FromRoute] Guid Id)
         {
             var resultado = await _proveedorFlujo.Obtener(Id);
@@ -99,6 +103,24 @@ namespace API.Controllers
                 return NotFound(new { ok = false, mensaje = "QR inválido o proveedor no encontrado." });
 
             return Ok(new { ok = true, mensaje = "Proveedor válido." });
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] ProveedorLoginRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Token))
+                return BadRequest(new { ok = false, mensaje = "Token inválido." });
+
+            var proveedor = await _proveedorFlujo.ObtenerPorToken(request.Token);
+
+            if (proveedor == null || proveedor.ProveedorId == Guid.Empty)
+                return Unauthorized(new { ok = false, mensaje = "QR inválido o expirado." });
+
+            return Ok(new
+            {
+                ok = true,
+                proveedor
+            });
         }
         #endregion
 

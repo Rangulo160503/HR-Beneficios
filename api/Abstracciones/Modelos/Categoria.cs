@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Abstracciones.Modelos
 {
@@ -22,5 +23,24 @@ namespace Abstracciones.Modelos
     {
         // Datos descriptivos opcionales
         
+    }
+
+    public class ReasignarCategoriaBase
+    {
+        [Required]
+        public Guid FromCategoriaId { get; set; }
+
+        [Required]
+        public Guid ToCategoriaId { get; set; }
+    }
+
+    public class ReasignarCategoriaRequest : ReasignarCategoriaBase
+    {
+        public IEnumerable<Guid>? BeneficioIds { get; set; }
+    }
+
+    public class ReasignarCategoriaResponse : ReasignarCategoriaBase
+    {
+        public int Actualizados { get; set; }
     }
 }

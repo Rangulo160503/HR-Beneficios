@@ -40,7 +40,6 @@ export default function LandingIntro({
     <div className={`landing-root ${visible ? "" : "landing-hidden"}`}>
       {/* Topbar tipo Cash */}
       <div className="landing-topbar">
-        <div className="landing-logo">{LANDING_TEXT.logo}</div>
 
         <div className="landing-actions">
           <button

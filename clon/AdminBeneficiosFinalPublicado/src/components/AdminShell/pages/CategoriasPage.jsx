@@ -1,10 +1,17 @@
 // src/components/AdminShell/pages/CategoriasPage.jsx
-export default function CategoriasPage({ cats = [], addCategoria }) {
+export default function CategoriasPage({
+  cats = [],
+  addCategoria,
+  renameCategoria,
+  deleteCategoria,
+}) {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
         <button
-          onClick={async () => { await addCategoria?.(); }}
+          onClick={async () => {
+            await addCategoria?.();
+          }}
           className="px-3 py-1.5 rounded-full text-xs bg-white/5 hover:bg-white/10 border border-white/10"
         >
           + Nueva
@@ -20,12 +27,32 @@ export default function CategoriasPage({ cats = [], addCategoria }) {
             <span className="flex-1 truncate">
               {c.nombre ?? c.titulo ?? c.Nombre ?? c.Titulo}
             </span>
-            <button className="ml-2 px-2 py-1 rounded-full text-xs bg-white/5 hover:bg-white/10">
-              Renombrar
-            </button>
-            <button className="ml-2 px-2 py-1 rounded-full text-xs bg-white/5 hover:bg-red-500/20 text-red-300/90">
-              Eliminar
-            </button>
+
+            <button
+  onClick={() => {
+    console.log("renameCategoria is", renameCategoria);
+    console.log("row c", c);
+    return renameCategoria?.(c);
+  }}
+  className="ml-2 px-2 py-1 rounded-full text-xs bg-white/5 hover:bg-white/10"
+>
+  Renombrar
+</button>
+
+            <button
+  onClick={async () => {
+    try {
+      await deleteCategoria?.(c);
+    } catch (err) {
+      console.error("No se pudo eliminar la categoría", err);
+      return err;
+    }
+  }}
+  className="ml-2 px-2 py-1 rounded-full text-xs bg-white/5 hover:bg-red-500/20 text-red-300/90"
+>
+  Eliminar
+</button>
+
           </div>
         ))}
 

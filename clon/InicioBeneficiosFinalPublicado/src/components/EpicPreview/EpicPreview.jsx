@@ -26,9 +26,6 @@ export default function EpicPreview({ open, onClose }) {
               <div className="slide-content">
                 <h2>{it.title}</h2>
                 <p>{it.subtitle}</p>
-                <button className="slide-btn" onClick={onClose}>
-                  Explorar
-                </button>
               </div>
             </section>
           ))}

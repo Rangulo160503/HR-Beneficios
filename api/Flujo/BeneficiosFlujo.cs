@@ -62,5 +62,25 @@ namespace Flujo
         {
             return await _beneficioDA.Rechazar(id, usuarioId);
         }
+
+        public async Task<PagedResult<BeneficioResponse>> ObtenerPorCategoria(Guid categoriaId, int page, int pageSize, string? search)
+        {
+            return await _beneficioDA.ObtenerPorCategoria(categoriaId, page, pageSize, search);
+        }
+
+        public async Task<int> ReasignarCategoria(Guid fromCategoriaId, Guid toCategoriaId, IEnumerable<Guid>? beneficioIds)
+        {
+            return await _beneficioDA.ReasignarCategoria(fromCategoriaId, toCategoriaId, beneficioIds);
+        }
+
+        public async Task<int> ContarPorCategoria(Guid categoriaId)
+        {
+            return await _beneficioDA.ContarPorCategoria(categoriaId);
+        }
+
+        public async Task<bool> ValidarTokenBadge(Guid proveedorId, string token)
+        {
+            return await _beneficioDA.ValidarTokenBadge(proveedorId, token);
+        }
     }
 }

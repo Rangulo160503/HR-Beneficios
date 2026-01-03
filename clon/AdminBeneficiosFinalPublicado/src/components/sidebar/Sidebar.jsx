@@ -51,6 +51,13 @@ const IconShield = (p) => (
   </svg>
 );
 
+const IconBoard = (p) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...p}>
+    <rect x="4" y="5" width="16" height="14" rx="2" strokeWidth="1.8" />
+    <path d="M8 9h8M8 13h5" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+
 const LS_SIDEBAR = "admin.sidebar.collapsed";
 
 export default function Sidebar({
@@ -102,20 +109,30 @@ export default function Sidebar({
           onClick={() => onChangeNav("proveedores")}
         />
 
-        {/* HR Portal como link externo independiente */}
-        <a
-          href="http://hrportal"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block"
-        >
-          <NavItem
-            label="HR Portal"
-            icon={<IconBuilding className="w-5 h-5" />}
-            active={nav === "hrportal"}
-            collapsed={collapsed}
-          />
-        </a>
+        <NavItem
+          label="InfoBoard"
+          icon={<IconBoard className="w-5 h-5" />}
+          active={nav === "infoboard"}
+          collapsed={collapsed}
+          onClick={() => onChangeNav("infoboard")}
+        />
+
+        {/* 
+<a
+  href="http://hrportal"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="block"
+>
+  <NavItem
+    label="HR Portal"
+    icon={<IconBuilding className="w-5 h-5" />}
+    active={nav === "hrportal"}
+    collapsed={collapsed}
+  />
+</a>
+*/}
+
 
         {/* Aprobaciones separado, sin estar dentro del <a> */}
         <NavItem

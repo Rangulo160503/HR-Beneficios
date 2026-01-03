@@ -1,6 +1,7 @@
 // src/components/AdminShell/pages/AprobacionesPage.jsx
 import { useMemo, useState } from "react";
 import { useAprobaciones } from "../../../hooks/useAprobaciones";
+import BenefitEditModal from "./BenefitEditModal";
 
 const IconRefresh = (p) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...p}>
@@ -14,6 +15,8 @@ const IconRefresh = (p) => (
 export default function AprobacionesPage() {
   const { items, loading, error, selected, selectedId, setSelectedId, refresh, aprobar, rechazar } = useAprobaciones();
   const [processing, setProcessing] = useState(false);
+  const [editingId, setEditingId] = useState("");
+  const [editingOpen, setEditingOpen] = useState(false);
 
   const onAprobar = async () => {
     if (!selected?.id) return;
@@ -34,6 +37,17 @@ export default function AprobacionesPage() {
     } finally {
       setProcessing(false);
     }
+  };
+
+  const openEdit = (id) => {
+    if (!id) return;
+    setEditingId(id);
+    setEditingOpen(true);
+  };
+
+  const closeEdit = () => {
+    setEditingOpen(false);
+    setEditingId("");
   };
 
   const detailRows = useMemo(() => {
@@ -107,6 +121,17 @@ export default function AprobacionesPage() {
                   <p className="text-[10px] text-white/40 mt-1">
                     Creado: {b.fechaCreacion?.slice?.(0, 10) || "—"}
                   </p>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      className="px-2 py-1 rounded-full text-[11px] border border-white/15 hover:bg-white/10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEdit(b.id);
+                      }}
+                    >
+                      Editar
+                    </button>
+                  </div>
                 </li>
               );
             })}
@@ -141,6 +166,13 @@ export default function AprobacionesPage() {
 
               <div className="flex flex-wrap gap-3 pt-2">
                 <button
+                  onClick={() => openEdit(selected?.id)}
+                  disabled={!selected}
+                  className="px-4 py-2 rounded-full border border-white/10 text-sm text-white hover:bg-white/5 disabled:opacity-60"
+                >
+                  Editar
+                </button>
+                <button
                   onClick={onRechazar}
                   disabled={!selected || processing}
                   className="px-4 py-2 rounded-full border border-white/10 text-sm text-white hover:bg-white/5 disabled:opacity-60"
@@ -159,6 +191,21 @@ export default function AprobacionesPage() {
           )}
         </section>
       </div>
+
+      <BenefitEditModal
+        open={editingOpen}
+        benefitId={editingId}
+        benefit={items.find((b) => b.id === editingId) || selected}
+        onClose={closeEdit}
+        onSaved={async (updated) => {
+          await refresh();
+          const updatedId = updated?.id || updated?.beneficioId || editingId;
+          if (updatedId) {
+            setSelectedId(updatedId);
+          }
+          closeEdit();
+        }}
+      />
     </div>
   );
 }

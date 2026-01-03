@@ -59,12 +59,14 @@
     <Folder Include="core\" />
     <Folder Include="core\Tables\" />
     <Folder Include="core\Stored Procedures\" />
+    <Folder Include="core\Seed\" />
     <Folder Include="Security\" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="core\Tables\Proveedor.sql" />
     <Build Include="core\Tables\Categoria.sql" />
     <Build Include="core\Tables\Beneficio.sql" />
+    <Build Include="core\Tables\AdminUsuario.sql" />
     <Build Include="core\Stored Procedures\AgregarBeneficio.sql" />
     <Build Include="core\Stored Procedures\AgregarCategoria.sql" />
     <Build Include="core\Stored Procedures\EditarBeneficio.sql" />
@@ -78,6 +80,7 @@
     <Build Include="Security\core.sql" />
     <Build Include="core\Stored Procedures\ObtenerProveedores.sql" />
     <Build Include="core\Stored Procedures\ObtenerProveedor.sql" />
+    <Build Include="core\Stored Procedures\ObtenerProveedorPorToken.sql" />
     <Build Include="core\Stored Procedures\EliminarProveedor.sql" />
     <Build Include="core\Stored Procedures\EditarProveedor.sql" />
     <Build Include="core\Stored Procedures\AgregarProveedor.sql" />
@@ -111,5 +114,18 @@
     <Build Include="core\Stored Procedures\ObtenerBeneficiosAprobados.sql" />
     <Build Include="core\Stored Procedures\ExisteProveedor.sql" />
     <Build Include="core\Stored Procedures\AprobarBeneficio.sql" />
+    <Build Include="core\Tables\InfoBoardItem.sql" />
+    <Build Include="core\Stored Procedures\InfoBoardItem_ObtenerPorId.sql" />
+    <Build Include="core\Stored Procedures\InfoBoardItem_Listar.sql" />
+    <Build Include="core\Stored Procedures\InfoBoardItem_Eliminar.sql" />
+    <Build Include="core\Stored Procedures\InfoBoardItem_Editar.sql" />
+    <Build Include="core\Stored Procedures\InfoBoardItem_Agregar.sql" />
+    <Build Include="core\Tables\ToqueBeneficio.sql" />
+    <Build Include="core\Stored Procedures\AdminUsuario_Login.sql" />
+    <Build Include="core\Stored Procedures\AdminUsuario_Crear.sql" />
+    <Build Include="core\Stored Procedures\AdminUsuario_ActualizarUltimoLogin.sql" />
+    <Build Include="core\Stored Procedures\ReasignarBeneficiosCategoria_1.sql" />
+    <Build Include="core\Stored Procedures\ReasignarBeneficiosCategoria_1.sql" />
+    <Build Include="core\Stored Procedures\ObtenerBeneficiosPorCategoria_1.sql" />
   </ItemGroup>
 </Project>

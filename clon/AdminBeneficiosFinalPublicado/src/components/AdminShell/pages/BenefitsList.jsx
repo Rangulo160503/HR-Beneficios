@@ -3,6 +3,7 @@ export default function BenefitsList({
   items,
   selectedId,
   onSelect,
+  onEdit,
   loading,
   error,
   onRetry,
@@ -80,15 +81,16 @@ export default function BenefitsList({
         {!loading &&
           !error &&
           items.map((b) => {
-            const isActive = b.id === selectedId;
+            const itemId = b?.beneficioId ?? b?.id;
+            const isActive = itemId === selectedId;
 
             return (
               <li
-                key={b.id}
+                key={itemId}
                 className={`flex items-center px-4 py-3 gap-3 cursor-pointer ${
                   isActive ? "bg-white/5" : "hover:bg-white/5/60"
                 }`}
-                onClick={() => onSelect?.(b)}
+                onClick={() => onSelect?.({ ...b, id: itemId, beneficioId: itemId })}
               >
                 {/* mini imagen */}
                 <div className="w-10 h-10 rounded-md bg-white/10 overflow-hidden flex-shrink-0" />
@@ -114,6 +116,15 @@ export default function BenefitsList({
                     toques
                   </p>
                 </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit?.({ ...b, id: itemId, beneficioId: itemId });
+                  }}
+                  className="ml-2 px-3 py-1.5 rounded-full text-[11px] border border-white/15 hover:bg-white/10"
+                >
+                  Editar
+                </button>
               </li>
             );
           })}

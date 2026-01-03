@@ -1,7 +1,13 @@
 # 📚 Modelo de Datos – Beneficios-PR
 
-Este proyecto contiene la base de datos y módulos para la gestión de beneficios.  
+Este proyecto contiene la base de datos y módulos para la gestión de beneficios.
 A continuación se muestra el diagrama entidad–relación (ERD) en **Mermaid**:
+
+## Admin local
+
+- El password real del usuario `admin` lo define cada desarrollador en su entorno local y se reemplaza en `BD/core/seed_admin_local.sql` con un hash bcrypt.
+- El hash bcrypt es unidireccional y no puede revertirse a texto plano; conservar el secreto del password original queda a cargo del desarrollador.
+- Para resetear el admin local se puede eliminar la fila con `Usuario='admin'` en `core.tbAdminUsuario` y volver a ejecutar el seed.
 
 ```mermaid
 erDiagram

@@ -2,12 +2,23 @@
 export default function BenefitDetailPanel({
   benefit,
   touchesSeries,
+  touchesAnalytics,
+  range = "1W",
+  onRangeChange,
+  touchTotal = 0,
+  touchError,
+  touchLoading = false,
+  onRetryTouches,
   mode = "desktop",
   visible = true,
   onClose,
   loading = false,
 }) {
   const isMobileSheet = mode === "mobile-sheet";
+  const analytics = touchesAnalytics || {};
+  const series = Array.isArray(analytics.series) && analytics.series.length > 0
+    ? analytics.series
+    : touchesSeries;
 
   // En desktop: si no hay beneficio y no está cargando, mensaje normal
   if (!benefit && !isMobileSheet && !loading) {
@@ -29,8 +40,104 @@ export default function BenefitDetailPanel({
     ? "fixed inset-x-0 bottom-0 max-h-[70vh] px-4 pt-3 pb-6 z-40 backdrop-blur-md md:hidden"
     : "px-4 py-4";
 
+  const activeRange = range || "1W";
   const totalToques =
-    touchesSeries?.reduce((ac, p) => ac + (p.touches ?? 0), 0) ?? 0;
+    analytics.total ??
+    analytics.Total ??
+    touchTotal ??
+    touchesSeries?.reduce((ac, p) => ac + (p.count ?? p.Count ?? 0), 0) ?? 0;
+
+  const kpis = analytics.kpis || analytics.Kpis || {};
+  const delta = analytics.delta ?? analytics.Delta;
+  const deltaPct = analytics.deltaPct ?? analytics.DeltaPct;
+  const counts = series?.map((p) => p.count ?? p.Count ?? p.total ?? p.Total ?? 0) ?? [0];
+  const maxCount = Math.max(...counts, 0);
+  const scaleMax = Math.max(maxCount, 1000);
+  const barWidth = series?.length <= 8 ? 28 : series?.length <= 14 ? 20 : 16;
+  const gap = series?.length <= 8 ? "gap-4" : series?.length <= 20 ? "gap-3" : "gap-2";
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((fraction) =>
+    Math.round(scaleMax * fraction)
+  );
+
+  const renderSeries = () => {
+    if (touchLoading) {
+      return <div className="animate-pulse h-full bg-white/5 rounded-2xl" />;
+    }
+
+    if (touchError) {
+      return (
+        <div className="h-full rounded-2xl bg-red-900/20 border border-red-500/30 flex flex-col items-center justify-center gap-2 text-xs">
+          <p className="text-red-100">No se pudieron cargar los toques.</p>
+          <button
+            type="button"
+            className="px-3 py-1 rounded-full bg-white/10 text-white/80 border border-white/20"
+            onClick={onRetryTouches}
+          >
+            Reintentar
+          </button>
+        </div>
+      );
+    }
+
+    if (!series || series.length === 0) {
+      return (
+        <div className="h-full rounded-2xl bg-white/5 flex items-center justify-center text-xs text-white/60">
+          Sin datos en el rango seleccionado.
+        </div>
+      );
+    }
+
+    return (
+      <div className={`h-full rounded-2xl bg-emerald-950/30 px-4 py-3 overflow-hidden`}>
+        <div className="text-[10px] text-white/60 mb-1 flex justify-between">
+          <span>Escala 0 - {scaleMax}</span>
+          <span>Objetivo: 1000 usuarios</span>
+        </div>
+
+        <div className="h-[85%] flex items-end gap-3">
+          <div className="flex flex-col justify-between text-[10px] text-white/50 pr-3 h-full">
+            {ticks
+              .slice()
+              .reverse()
+              .map((tick) => (
+                <div key={tick} className="flex items-center gap-2">
+                  <span className="w-9 text-right">{tick}</span>
+                  <div className="h-px flex-1 bg-white/10" />
+                </div>
+              ))}
+          </div>
+
+          <div className={`flex items-end ${gap} overflow-x-auto flex-1 pb-2`}>
+            {series.map((p, idx) => {
+              const pointCount = p.count ?? p.Count ?? p.total ?? p.Total ?? 0;
+              const relative = scaleMax > 0 ? (pointCount / scaleMax) * 100 : 0;
+              const altura = Math.max(relative, pointCount > 0 ? 12 : 4);
+              const etiqueta = p.label || p.Label || p.iso || p.Iso || idx;
+              const label = typeof etiqueta === "string" ? etiqueta : String(etiqueta ?? "");
+
+              return (
+                <div
+                  key={`${label}-${idx}`}
+                  className="flex flex-col items-center gap-1 text-[11px] text-white/80"
+                >
+                  <div
+                    className="rounded-md bg-emerald-400/90 shadow-lg shadow-emerald-500/40"
+                    style={{
+                      height: `${Math.min(altura, 100)}%`,
+                      minHeight: "14px",
+                      width: `${barWidth}px`,
+                    }}
+                    title={`${label}: ${pointCount}`}
+                  />
+                  <span className="whitespace-nowrap">{label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <section className={`${baseClasses} ${mobileSheetClasses}`}>
@@ -89,21 +196,36 @@ export default function BenefitDetailPanel({
 
           {/* Tabs periodo */}
           <div className="flex items-center gap-2 text-[11px] mb-3">
-            <button className="px-3 py-1 rounded-full bg-white text-black font-medium">
-              1W
-            </button>
-            <button className="px-3 py-1 rounded-full bg-white/5 text-white/80">
-              1M
-            </button>
-            <button className="px-3 py-1 rounded-full bg-white/5 text-white/80">
-              YTD
-            </button>
+            {["1W", "1M", "YTD"].map((opt) => (
+              <button
+                key={opt}
+                className={`px-3 py-1 rounded-full ${
+                  activeRange === opt
+                    ? "bg-white text-black font-medium"
+                    : "bg-white/5 text-white/80"
+                }`}
+                onClick={() => onRangeChange?.(opt)}
+              >
+                {opt}
+              </button>
+            ))}
           </div>
 
           {/* Área gráfico */}
-          <div className="h-40 md:h-56 rounded-2xl bg-emerald-900/30 mb-3">
-            {/* luego irá el gráfico real */}
+          <div className="grid grid-cols-3 gap-2 text-[11px] mb-3">
+            {[
+              { label: "Hoy", value: kpis.today ?? kpis.Today },
+              { label: "Últimos 7 días", value: kpis.last7d ?? kpis.Last7d },
+              { label: "YTD", value: kpis.ytd ?? kpis.Ytd },
+            ].map((kpi) => (
+              <div key={kpi.label} className="rounded-xl bg-white/5 px-3 py-2">
+                <p className="text-white/50">{kpi.label}</p>
+                <p className="text-sm font-semibold">{kpi.value ?? 0}</p>
+              </div>
+            ))}
           </div>
+
+          <div className="h-40 md:h-56 mb-3">{renderSeries()}</div>
 
           {/* Stats */}
           <div className="grid grid-cols-2 gap-3 text-[11px]">
@@ -113,7 +235,13 @@ export default function BenefitDetailPanel({
             </div>
             <div>
               <p className="text-white/40">Último período</p>
-              <p className="text-sm font-semibold">—</p>
+              <p className="text-sm font-semibold">
+                {delta == null
+                  ? "—"
+                  : `${delta > 0 ? "+" : ""}${delta}${
+                      deltaPct == null ? "" : ` (${deltaPct}%)`
+                    }`}
+              </p>
             </div>
           </div>
         </>

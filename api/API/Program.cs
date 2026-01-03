@@ -1,11 +1,19 @@
 ﻿using Abstracciones.Interfaces.DA;
+using Abstracciones.Interfaces.DA;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Interfaces.Reglas;
 using Abstracciones.Interfaces.Servicios;
+using Abstracciones.Modelos.Servicios;
 using DA;
 using Flujo;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Reglas;
 using Servicios;
+using System.Collections.Generic;
+using System.Security.Claims;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +40,48 @@ bool detailedErrors =
 builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "HR-Beneficios API", Version = "v1" });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header usando el esquema Bearer. Ejemplo: 'Bearer {token}'",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+});
+
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
+    ?? throw new InvalidOperationException("JwtSettings no está configurado correctamente");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
+            ClockSkew = TimeSpan.Zero,
+            NameClaimType = ClaimTypes.Name,
+            RoleClaimType = ClaimTypes.Role
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+});
 
 /* =========================
  * CORS
@@ -62,6 +111,7 @@ builder.Services.AddScoped<IRepositorioDapper, DA.Repositorios.RepositorioDapper
 builder.Services.AddScoped<IBeneficioDA, BeneficioDA>();
 builder.Services.AddScoped<ICategoriaDA, CategoriaDA>();
 builder.Services.AddScoped<IProveedorDA, ProveedorDA>();
+builder.Services.AddScoped<IToqueBeneficioDA, ToqueBeneficioDA>();
 builder.Services.AddScoped<IBeneficioFlujo, BeneficiosFlujo>();
 builder.Services.AddScoped<ICategoriaFlujo, CategoriaFlujo>();
 builder.Services.AddScoped<IProveedorFlujo, ProveedorFlujo>();
@@ -69,6 +119,7 @@ builder.Services.AddScoped<IBeneficiosServicio, BeneficiosServicio>();
 builder.Services.AddScoped<IConfiguracion, Configuracion>();
 builder.Services.AddScoped<IAreaDeCategoriaDA, AreaDeCategoriaDA>();
 builder.Services.AddScoped<IAreaDeCategoriaFlujo, AreaDeCategoriaFlujo>();
+builder.Services.AddScoped<IToqueBeneficioFlujo, ToqueBeneficioFlujo>();
 // ===== Catálogos de filtros (nuevo) =====
 builder.Services.AddScoped<IProductoDA, ProductoDA>();
 builder.Services.AddScoped<IServicioDA, ServicioDA>();
@@ -83,6 +134,13 @@ builder.Services.AddScoped<IUsuarioDA, UsuarioDA>();
 
 builder.Services.AddScoped<IBeneficioImagenDA, BeneficioImagenDA>();
 builder.Services.AddScoped<IBeneficioImagenFlujo, BeneficioImagenFlujo>();
+builder.Services.AddScoped<IInfoBoardDA, InfoBoardDA>();
+builder.Services.AddScoped<IInfoBoardFlujo, InfoBoardFlujo>();
+builder.Services.AddScoped<IRifaParticipacionDA, RifaParticipacionDA>();
+builder.Services.AddScoped<IRifaParticipacionFlujo, RifaParticipacionFlujo>();
+
+builder.Services.AddScoped<IAdminAuthDA, AdminAuthDA>();
+builder.Services.AddScoped<IAdminAuthFlujo, AdminAuthFlujo>();
 
 
 

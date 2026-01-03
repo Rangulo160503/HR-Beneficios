@@ -18,12 +18,25 @@ export default function useAdminShell() {
   const beneficios = beneficiosState?.filtered ?? beneficiosState?.items ?? [];
 
   // Catálogos
-  const {
-    cats,
-    provs,
-    addCategoria,
-    addProveedor,
-  } = useCatalogos();
+const {
+  cats,
+  provs,
+  categoriaEnUso,
+  showCategoriaEnUso,
+  setCategoriaEnUso,
+  setShowCategoriaEnUso,
+
+  addCategoria,
+  renameCategoria,
+  deleteCategoria,
+
+  addProveedor,
+  renameProveedor,
+  deleteProveedor,
+
+  upsertProveedorLocal,
+} = useCatalogos();
+
 
   return {
     // navegación y layout
@@ -44,11 +57,20 @@ export default function useAdminShell() {
     provs,
     addCategoria,
     addProveedor,
+    upsertProveedorLocal,
+    categoriaEnUso,
+    showCategoriaEnUso,
+    setCategoriaEnUso,
+    setShowCategoriaEnUso,
 
     // formulario crear / editar
     showForm,
     setShowForm,
     editing,
     setEditing,
+    renameCategoria,
+    deleteCategoria,
+    renameProveedor,
+    deleteProveedor,
   };
 }

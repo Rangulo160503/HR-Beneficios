@@ -39,7 +39,7 @@ export default function DisplayHeader({
             onClick={() => setFormOpen(true)}
             className="hidden sm:inline-flex h-9 items-center rounded-full border border-white/10 bg-white/5 px-4 text-sm text-white/80 hover:bg-white/10 transition"
           >
-            Contacto
+            Participar en rifa
           </button>
         </div>
       </div>

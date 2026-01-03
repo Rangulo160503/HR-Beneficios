@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { BeneficioApi } from "../../../services/adminApi";
+import { useCallback, useEffect, useState } from "react";
+import { BeneficioApi, ToqueBeneficioApi } from "../../../services/adminApi";
 import BenefitsList from "./BenefitsList";
 import BenefitDetailPanel from "./BenefitDetailPanel";
 import FullForm from "../../beneficio/FullForm";
+import BenefitEditModal from "./BenefitEditModal";
 
 export default function DashboardBeneficios({
   state,
@@ -16,12 +17,21 @@ export default function DashboardBeneficios({
   setShowForm,
   editing,
   setEditing,
-  statsPorBeneficio,
 }) {
   const [selectedBenefit, setSelectedBenefit] = useState(null);
   const [showDetailMobile, setShowDetailMobile] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState();
+  const [range, setRange] = useState("1W");
+  const [touchTotal, setTouchTotal] = useState(0);
+  const [touchSeries, setTouchSeries] = useState([]);
+  const [touchAnalytics, setTouchAnalytics] = useState(null);
+  const [touchSummary, setTouchSummary] = useState({});
+  const [loadingTouches, setLoadingTouches] = useState(false);
+  const [touchError, setTouchError] = useState(null);
+  const [editTarget, setEditTarget] = useState(null);
+
+  const selectedId = selectedBenefit?.beneficioId || selectedBenefit?.id;
 
   
   const isLoading = Boolean(state?.loading || localLoading);
@@ -29,7 +39,10 @@ export default function DashboardBeneficios({
     localError !== undefined ? Boolean(localError) : Boolean(state?.err);
 
   const handleSelect = (benefit) => {
-    setSelectedBenefit(benefit);
+    if (!benefit) return;
+    const normalized = mapBenefitId(benefit);
+    setSelectedBenefit(normalized);
+    setRange("1W");
     setShowDetailMobile(true);
   };
 
@@ -47,6 +60,22 @@ export default function DashboardBeneficios({
     await accionesBeneficios.save(dto, editing);
     setShowForm?.(false);
     setEditing?.(null);
+  };
+
+  const handleEditSaved = (updated) => {
+    if (!updated) return;
+    const normalized = mapBenefitId(updated);
+    accionesBeneficios?.setItems?.((prev = []) =>
+      prev.map((b) =>
+        mapBenefitId(b).beneficioId === normalized.beneficioId ? normalized : b
+      )
+    );
+    setSelectedBenefit((prev) => {
+      if (!prev) return prev;
+      return mapBenefitId(prev).beneficioId === normalized.beneficioId
+        ? { ...prev, ...normalized }
+        : prev;
+    });
   };
 
 
@@ -75,6 +104,7 @@ export default function DashboardBeneficios({
       const data = await BeneficioApi.list();
       const normalized = Array.isArray(data) ? data.map(mapBenefitId) : [];
       accionesBeneficios?.setItems?.(normalized);
+      await cargarResumen(normalized);
       setLocalError(false);
     } catch (err) {
       setLocalError(err || true);
@@ -83,10 +113,72 @@ export default function DashboardBeneficios({
     }
   };
 
-  const touchesSeries =
-    selectedBenefit && statsPorBeneficio
-      ? statsPorBeneficio[selectedBenefit.id] || []
-      : [];
+  const cargarAnalytics = useCallback(async () => {
+    if (!selectedId) {
+      setTouchSeries([]);
+      setTouchTotal(0);
+      setTouchAnalytics(null);
+      return;
+    }
+
+    setLoadingTouches(true);
+    setTouchError(null);
+
+    try {
+      const data = await ToqueBeneficioApi.analytics(selectedId, range);
+      setTouchTotal(data?.total ?? 0);
+      setTouchSeries(Array.isArray(data?.series) ? data.series : []);
+      setTouchAnalytics(data || null);
+    } catch (err) {
+      setTouchError(err || true);
+      setTouchTotal(0);
+      setTouchSeries([]);
+      setTouchAnalytics(null);
+    } finally {
+      setLoadingTouches(false);
+    }
+  }, [range, selectedId]);
+
+  const cargarResumen = useCallback(
+    async (benefitsSnapshot) => {
+      try {
+        const data = await ToqueBeneficioApi.resumen(range);
+        const arr = Array.isArray(data)
+          ? data
+          : Object.entries(data || {}).map(([beneficioId, count]) => ({
+              beneficioId,
+              count,
+            }));
+
+        const map = arr.reduce((ac, curr) => {
+          if (!curr?.beneficioId) return ac;
+          ac[String(curr.beneficioId).trim()] = curr?.count ?? 0;
+          return ac;
+        }, {});
+
+        setTouchSummary(map);
+        accionesBeneficios?.setItems?.((prev = benefitsSnapshot || []) => {
+          const base = benefitsSnapshot || prev;
+          return base.map((b) => {
+            const normalized = mapBenefitId(b);
+            const count = map[normalized.beneficioId] ?? 0;
+            return { ...b, totalToques: count };
+          });
+        });
+      } catch (err) {
+        console.error("No se pudo cargar el resumen de toques", err);
+      }
+    },
+    [accionesBeneficios, range]
+  );
+
+  useEffect(() => {
+    cargarAnalytics();
+  }, [cargarAnalytics]);
+
+  useEffect(() => {
+    cargarResumen();
+  }, [cargarResumen]);
 
   return (
     <>
@@ -104,8 +196,9 @@ export default function DashboardBeneficios({
       <div className="grid md:grid-cols-[minmax(0,280px)_minmax(0,1fr)] gap-4">
         <BenefitsList
           items={benefits}
-          selectedId={selectedBenefit?.id}
+          selectedId={selectedId}
           onSelect={handleSelect}
+          onEdit={(b) => setEditTarget(mapBenefitId(b))}
           loading={isLoading}
           error={hasError}
           onRetry={cargarBeneficios}
@@ -114,7 +207,14 @@ export default function DashboardBeneficios({
         <div className="hidden md:block">
           <BenefitDetailPanel
             benefit={selectedBenefit}
-            touchesSeries={touchesSeries}
+            touchesSeries={touchSeries}
+            touchesAnalytics={touchAnalytics}
+            range={range}
+            onRangeChange={setRange}
+            touchTotal={touchTotal}
+            touchError={touchError}
+            touchLoading={loadingTouches}
+            onRetryTouches={cargarAnalytics}
             mode="desktop"
             loading={isLoading}
           />
@@ -125,7 +225,14 @@ export default function DashboardBeneficios({
        <div className="md:hidden">
         <BenefitDetailPanel
           benefit={selectedBenefit}
-          touchesSeries={touchesSeries}
+          touchesSeries={touchSeries}
+          touchesAnalytics={touchAnalytics}
+          range={range}
+          onRangeChange={setRange}
+          touchTotal={touchTotal}
+          touchError={touchError}
+          touchLoading={loadingTouches}
+          onRetryTouches={cargarAnalytics}
           mode="mobile-sheet"
           visible={showDetailMobile}
           onClose={handleCloseDetail}
@@ -148,6 +255,13 @@ export default function DashboardBeneficios({
           onSave={handleSave}
         />
       )}
+
+      <BenefitEditModal
+        open={Boolean(editTarget)}
+        benefit={editTarget}
+        onClose={() => setEditTarget(null)}
+        onSaved={handleEditSaved}
+      />
     </>
   );
 }
