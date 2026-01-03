@@ -33,7 +33,9 @@ namespace DA
                     b.VigenciaFin,
                     Imagen = b.Imagen,
                     b.ProveedorId,
-                    b.CategoriaId
+                    b.CategoriaId,
+                    Estado = (int)EstadoBeneficio.Pendiente,
+                    FechaCreacion = DateTime.UtcNow
                     // ⬅️ sin contadores
                 },
                 null, null, CommandType.StoredProcedure
@@ -83,6 +85,24 @@ namespace DA
             return rows;
         }
 
+        public async Task<IEnumerable<BeneficioResponse>> ObtenerAprobados()
+        {
+            const string sp = "core.ObtenerBeneficiosAprobados";
+            var rows = await _dapperWrapper.QueryAsync<BeneficioResponse>(
+                _dbConnection, sp, null, null, null, CommandType.StoredProcedure
+            );
+            return rows;
+        }
+
+        public async Task<IEnumerable<BeneficioResponse>> ObtenerPendientes()
+        {
+            const string sp = "core.ObtenerBeneficiosPendientes";
+            var rows = await _dapperWrapper.QueryAsync<BeneficioResponse>(
+                _dbConnection, sp, null, null, null, CommandType.StoredProcedure
+            );
+            return rows;
+        }
+
         public async Task<BeneficioDetalle> Obtener(Guid Id)
         {
             const string sp = "core.ObtenerBeneficio";
@@ -90,6 +110,98 @@ namespace DA
                 _dbConnection, sp, new { Id }, null, null, CommandType.StoredProcedure
             );
             return rows.FirstOrDefault() ?? new BeneficioDetalle();
+        }
+
+        public async Task<Guid> Aprobar(Guid Id, Guid? usuarioId)
+        {
+            const string sp = "core.AprobarBeneficio";
+            return await _dapperWrapper.ExecuteScalarAsync<Guid>(
+                _dbConnection, sp, new { Id, usuarioId }, null, null, CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<Guid> Rechazar(Guid Id, Guid? usuarioId)
+        {
+            const string sp = "core.RechazarBeneficio";
+            return await _dapperWrapper.ExecuteScalarAsync<Guid>(
+                _dbConnection, sp, new { Id, usuarioId }, null, null, CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<PagedResult<BeneficioResponse>> ObtenerPorCategoria(Guid categoriaId, int page, int pageSize, string? search)
+        {
+            const string sp = "core.ObtenerBeneficiosPorCategoria";
+
+            var rows = await _dapperWrapper.QueryAsync<BeneficioPorCategoriaResponse>(
+                _dbConnection,
+                sp,
+                new
+                {
+                    CategoriaId = categoriaId,
+                    Page = page,
+                    PageSize = pageSize,
+                    Search = search
+                },
+                commandType: CommandType.StoredProcedure
+            );
+
+            var lista = rows?.ToList() ?? new List<BeneficioPorCategoriaResponse>();
+            var total = lista.FirstOrDefault()?.Total ?? 0;
+
+            return new PagedResult<BeneficioResponse>
+            {
+                Items = lista.Cast<BeneficioResponse>().ToList(),
+                Page = page,
+                PageSize = pageSize,
+                Total = total
+            };
+        }
+
+        public async Task<int> ReasignarCategoria(Guid fromCategoriaId, Guid toCategoriaId, IEnumerable<Guid>? beneficioIds)
+        {
+            const string sp = "core.ReasignarBeneficiosCategoria";
+            var ids = beneficioIds?.Where(id => id != Guid.Empty).ToArray() ?? Array.Empty<Guid>();
+            var idList = ids.Length > 0 ? string.Join(",", ids) : null;
+
+            var updated = await _dapperWrapper.ExecuteScalarAsync<int>(
+                _dbConnection,
+                sp,
+                new
+                {
+                    FromCategoriaId = fromCategoriaId,
+                    ToCategoriaId = toCategoriaId,
+                    BeneficioIds = idList
+                },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return updated;
+        }
+
+        public async Task<int> ContarPorCategoria(Guid categoriaId)
+        {
+            const string sql = "SELECT COUNT(1) FROM core.Beneficio WHERE CategoriaId = @categoriaId";
+            return await _dapperWrapper.ExecuteScalarAsync<int>(_dbConnection, sql, new { categoriaId });
+        }
+
+        public async Task<bool> ValidarTokenBadge(Guid proveedorId, string token)
+        {
+            const string sql = @"SELECT 1
+FROM core.Proveedor
+WHERE ProveedorId = @ProveedorId
+  AND AccessToken = @Token;";
+
+            var result = await _dapperWrapper.QueryFirstOrDefaultAsync<int>(
+                _dbConnection,
+                sql,
+                new
+                {
+                    ProveedorId = proveedorId,
+                    Token = token
+                }
+            );
+
+            return result == 1;
         }
         #endregion
 
@@ -101,5 +213,6 @@ namespace DA
                 throw new Exception("No se encontro el beneficio");
         }
         #endregion
+
     }
 }

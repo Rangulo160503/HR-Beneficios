@@ -7,10 +7,12 @@ namespace Flujo
     public class CategoriaFlujo : ICategoriaFlujo
     {
         private readonly ICategoriaDA _categoriaDA;
+        private readonly IBeneficioFlujo _beneficioFlujo;
 
-        public CategoriaFlujo(ICategoriaDA categoriaDA)
+        public CategoriaFlujo(ICategoriaDA categoriaDA, IBeneficioFlujo beneficioFlujo)
         {
             _categoriaDA = categoriaDA ?? throw new ArgumentNullException(nameof(categoriaDA));
+            _beneficioFlujo = beneficioFlujo ?? throw new ArgumentNullException(nameof(beneficioFlujo));
         }
 
         public async Task<IEnumerable<CategoriaResponse>> Obtener()
@@ -39,6 +41,10 @@ namespace Flujo
 
         public async Task<Guid> Eliminar(Guid id)
         {
+            var asociados = await _beneficioFlujo.ContarPorCategoria(id);
+            if (asociados > 0)
+                throw new InvalidOperationException("CategoriaEnUso");
+
             var result = await _categoriaDA.Eliminar(id);
             return result;
         }

@@ -1,25 +1,31 @@
 ﻿using Abstracciones.Interfaces.API;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Serialization;
 
 namespace API.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class CategoriaController : ControllerBase, ICategoriaController
     {
         private ICategoriaFlujo _categoriaFlujo;
+        private readonly IBeneficioFlujo _beneficioFlujo;
         private ILogger<CategoriaController> _logger;
 
-        public CategoriaController(ICategoriaFlujo categoriaFlujo, ILogger<CategoriaController> logger)
+        public CategoriaController(ICategoriaFlujo categoriaFlujo, IBeneficioFlujo beneficioFlujo, ILogger<CategoriaController> logger)
         {
             _categoriaFlujo = categoriaFlujo;
+            _beneficioFlujo = beneficioFlujo;
             _logger = logger;
         }
 
         #region Operaciones
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Agregar([FromBody] CategoriaRequest categoria)
         {
             var id = await _categoriaFlujo.Agregar(categoria);
@@ -43,11 +49,21 @@ namespace API.Controllers
             if (!await VerificarCategoriaExiste(Id))
                 return NotFound("La categoría no existe");
 
-            var resultado = await _categoriaFlujo.Eliminar(Id);
-            return NoContent();
+            try
+            {
+                await _categoriaFlujo.Eliminar(Id);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "CategoriaEnUso")
+            {
+                _logger.LogWarning(ex, "Categoría en uso, no se puede eliminar");
+                var count = await _beneficioFlujo.ContarPorCategoria(Id);
+                return Conflict(new CategoriaEnUsoPayload { Count = count });
+            }
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> Obtener()
         {
             var resultado = await _categoriaFlujo.Obtener();
@@ -70,10 +86,22 @@ namespace API.Controllers
         {
             var resultadoValidacion = false;
             var resultadoCategoriaExiste = await _categoriaFlujo.Obtener(Id);
-            if (resultadoCategoriaExiste != null)
+            if (resultadoCategoriaExiste != null && resultadoCategoriaExiste.CategoriaId != Guid.Empty)
                 resultadoValidacion = true;
             return resultadoValidacion;
         }
         #endregion
+
+        private record CategoriaEnUsoPayload
+        {
+            [JsonPropertyName("code")]
+            public string Code { get; init; } = "CategoriaEnUso";
+
+            [JsonPropertyName("message")]
+            public string Message { get; init; } = "La categoría tiene beneficios asociados.";
+
+            [JsonPropertyName("count")]
+            public int Count { get; init; }
+        }
     }
 }

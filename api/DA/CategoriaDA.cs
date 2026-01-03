@@ -50,6 +50,7 @@ namespace DA
         public async Task<Guid> Eliminar(Guid Id)
         {
             await verficarCategoriaExiste(Id);
+
             const string sp = "core.EliminarCategoria";
             var id = await _dapperWrapper.ExecuteScalarAsync<Guid>(
                 _dbConnection, sp, new { Id },

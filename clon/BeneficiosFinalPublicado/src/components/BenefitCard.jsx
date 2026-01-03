@@ -8,12 +8,31 @@ const imgCache = new Map();
 export default function BenefitCard({ item, onClick }) {
   const ref = useRef(null);
   const [imgSrc, setImgSrc] = useState(() => safeSrc(item.imagen));
+  const beneficioId =
+    item.beneficioId ?? item.id ?? item.BeneficioId ?? item.Id ?? null;
+
+  const registrarToque = async () => {
+    if (!beneficioId) return;
+    try {
+      await Api.toqueBeneficio.registrar(beneficioId, "public-card");
+    } catch (err) {
+      console.warn("No se pudo registrar el toque", err);
+    }
+  };
+
+  const registrarToqueUnico = async (event) => {
+    if (event?.nativeEvent) {
+      if (event.nativeEvent.__toqueRegistrado) return;
+      event.nativeEvent.__toqueRegistrado = true;
+    }
+    await registrarToque();
+  };
 
   useEffect(() => {
     if (!ref.current) return;
     if (imgSrc && imgSrc !== EMBED_PLACEHOLDER) return;
 
-    const id = item.id ?? item.beneficioId ?? item.BeneficioId ?? item.Id;
+    const id = beneficioId;
     if (!id) return;
 
     if (imgCache.has(id)) {
@@ -46,11 +65,22 @@ export default function BenefitCard({ item, onClick }) {
     return () => io.disconnect();
   }, [item, imgSrc]);
 
+  const handleClick = (event) => {
+    onClick?.(event);
+  };
+
+  const handleInnerAction = (event) => {
+    event?.stopPropagation?.();
+    registrarToqueUnico(event);
+    onClick?.(event);
+  };
+
   return (
     <div
       ref={ref}
       className="rounded-2xl bg-neutral-900 border border-white/10 p-3 cursor-pointer hover:bg-white/5 transition"
-      onClick={onClick}
+      onClick={handleClick}
+      onClickCapture={registrarToqueUnico}
     >
       {/* Imagen + badges */}
       <div className="w-full aspect-[4/3] rounded-xl bg-white/10 overflow-hidden relative">
@@ -71,9 +101,13 @@ export default function BenefitCard({ item, onClick }) {
 
         {/* Descuento (si existe) */}
         {item.descuento && (
-          <span className="absolute right-2 top-2 rounded-full bg-emerald-500 text-black text-[11px] px-2 py-0.5 font-semibold">
+          <button
+            type="button"
+            className="absolute right-2 top-2 rounded-full bg-emerald-500 text-black text-[11px] px-2 py-0.5 font-semibold"
+            onClick={handleInnerAction}
+          >
             {item.descuento}
-          </span>
+          </button>
         )}
       </div>
 

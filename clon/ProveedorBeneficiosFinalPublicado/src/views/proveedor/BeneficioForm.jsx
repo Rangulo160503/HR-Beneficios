@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Api } from "../../services/api";
 
 export default function BeneficioForm({ mode }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const baseInput =
+    "w-full rounded-xl bg-neutral-900/70 border border-white/15 px-3.5 py-2.5 text-sm md:text-base " +
+    "placeholder:text-white/40 text-white " +
+    "focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400 " +
+    "transition-colors duration-150";
 
   // Valores por defecto (ajusta proveedorId/categoriaId reales)
   const [form, setForm] = useState({
@@ -102,87 +107,168 @@ export default function BeneficioForm({ mode }) {
   if (loading) return <div className="p-6 text-zinc-200">Cargando…</div>;
 
   return (
-    <div className="p-6 text-zinc-200">
-      <div className="mb-4 flex items-center gap-4">
-        <Link to="/beneficios" className="text-emerald-400 hover:underline">← Volver</Link>
-        <h1 className="text-xl font-semibold">{isEdit ? "Editar beneficio" : "Nuevo beneficio"}</h1>
-      </div>
-
-      <form onSubmit={onSubmit} className="grid md:grid-cols-2 gap-6">
-        <div className="space-y-3">
-          <label className="block">
-            <span className="text-sm text-zinc-400">Título</span>
-            <input name="titulo" value={form.titulo} onChange={onChange}
-              className="w-full mt-1 rounded border border-zinc-700 bg-zinc-900/50 px-3 py-2" required />
-          </label>
-
-          <label className="block">
-            <span className="text-sm text-zinc-400">Descripción</span>
-            <textarea name="descripcion" value={form.descripcion} onChange={onChange} rows={4}
-              className="w-full mt-1 rounded border border-zinc-700 bg-zinc-900/50 px-3 py-2" />
-          </label>
-
-          <label className="block">
-            <span className="text-sm text-zinc-400">Condiciones</span>
-            <textarea name="condiciones" value={form.condiciones} onChange={onChange} rows={3}
-              className="w-full mt-1 rounded border border-zinc-700 bg-zinc-900/50 px-3 py-2" />
-          </label>
-        </div>
-
-        <div className="space-y-3">
-          <label className="block">
-            <span className="text-sm text-zinc-400">Precio (CRC)</span>
-            <input type="number" name="precioCRC" value={form.precioCRC} onChange={onChange}
-              className="w-full mt-1 rounded border border-zinc-700 bg-zinc-900/50 px-3 py-2" />
-          </label>
-
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="text-sm text-zinc-400">Vigencia inicio</span>
-              <input type="date" name="vigenciaInicio" value={form.vigenciaInicio} onChange={onChange}
-                className="w-full mt-1 rounded border border-zinc-700 bg-zinc-900/50 px-3 py-2" />
-            </label>
-            <label className="block">
-              <span className="text-sm text-zinc-400">Vigencia fin</span>
-              <input type="date" name="vigenciaFin" value={form.vigenciaFin} onChange={onChange}
-                className="w-full mt-1 rounded border border-zinc-700 bg-zinc-900/50 px-3 py-2" />
-            </label>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="text-sm text-zinc-400">ProveedorId</span>
-              <input name="proveedorId" value={form.proveedorId} onChange={onChange}
-                className="w-full mt-1 rounded border border-zinc-700 bg-zinc-900/50 px-3 py-2" />
-            </label>
-            <label className="block">
-              <span className="text-sm text-zinc-400">CategoriaId</span>
-              <input name="categoriaId" value={form.categoriaId} onChange={onChange}
-                className="w-full mt-1 rounded border border-zinc-700 bg-zinc-900/50 px-3 py-2" />
-            </label>
-          </div>
-
-          <label className="block">
-            <span className="text-sm text-zinc-400">Imagen (jpg/png)</span>
-            <input type="file" accept="image/*" onChange={onFile}
-              className="w-full mt-1 text-sm" />
-          </label>
-
-          {form.imagen && (
-            <div className="rounded overflow-hidden border border-zinc-800 bg-zinc-900">
-              <img src={`data:image/jpeg;base64,${form.imagen}`} className="w-full object-cover" />
-            </div>
-          )}
-        </div>
-
-        <div className="md:col-span-2 flex gap-3">
-          <button disabled={saving}
-            className="px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50">
-            {isEdit ? "Guardar cambios" : "Crear beneficio"}
+    <div className="fixed inset-0 z-50 bg-neutral-950/80 backdrop-blur flex items-start justify-center md:items-center">
+      <div className="w-full max-w-[920px] mx-2 my-3 md:my-6 bg-neutral-950 border border-white/10 md:rounded-2xl md:shadow-2xl flex flex-col max-h-[calc(100vh-1.5rem)] md:max-h-[92vh]">
+        <header className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-neutral-950/80 backdrop-blur">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="text-sm md:text-base px-3 py-2 rounded-xl bg-neutral-900/80 border border-white/10 text-white hover:border-white/30 transition"
+          >
+            Cerrar
           </button>
-          <Link to="/beneficios" className="px-4 py-2 rounded bg-zinc-800 text-zinc-100">Cancelar</Link>
+          <div className="flex-1 text-center">
+            <h1 className="text-base md:text-lg font-semibold text-white">
+              {isEdit ? "Editar beneficio" : "Nuevo beneficio"}
+            </h1>
+          </div>
+          <button
+            type="submit"
+            form="benef-form"
+            disabled={saving}
+            className="text-sm md:text-base px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400/30 disabled:opacity-60 disabled:cursor-not-allowed transition"
+          >
+            Guardar
+          </button>
+        </header>
+
+        <div className="overflow-auto max-h-[calc(100svh-56px)] md:max-h-[calc(92vh-56px)]">
+          <form id="benef-form" onSubmit={onSubmit} className="p-4 md:p-6 space-y-4 md:space-y-6">
+            <div className="rounded-2xl bg-neutral-900/80 border border-white/10 shadow-lg shadow-black/40 p-3 md:p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm md:text-base font-semibold text-white">Datos principales</h2>
+              </div>
+              <div className="space-y-3">
+                <label className="block space-y-1">
+                  <span className="text-xs md:text-sm text-white/80">Título</span>
+                  <input
+                    name="titulo"
+                    value={form.titulo}
+                    onChange={onChange}
+                    className={baseInput}
+                    required
+                  />
+                </label>
+
+                <div className="grid md:grid-cols-3 gap-3">
+                  <label className="block space-y-1 md:col-span-2">
+                    <span className="text-xs md:text-sm text-white/80">Precio (CRC)</span>
+                    <input
+                      type="number"
+                      name="precioCRC"
+                      value={form.precioCRC}
+                      onChange={onChange}
+                      className={baseInput}
+                    />
+                  </label>
+                  <label className="block space-y-1">
+                    <span className="text-xs md:text-sm text-white/80">Moneda</span>
+                    <input
+                      value="CRC"
+                      disabled
+                      className={`${baseInput} text-white/70`}
+                    />
+                  </label>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-3">
+                  <label className="block space-y-1">
+                    <span className="text-xs md:text-sm text-white/80">ProveedorId</span>
+                    <input
+                      name="proveedorId"
+                      value={form.proveedorId}
+                      onChange={onChange}
+                      className={baseInput}
+                    />
+                  </label>
+                  <label className="block space-y-1">
+                    <span className="text-xs md:text-sm text-white/80">CategoriaId</span>
+                    <input
+                      name="categoriaId"
+                      value={form.categoriaId}
+                      onChange={onChange}
+                      className={baseInput}
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-neutral-900/80 border border-white/10 shadow-lg shadow-black/40 p-3 md:p-4 space-y-3">
+              <h2 className="text-sm md:text-base font-semibold text-white">Imagen</h2>
+              <label className="block space-y-1">
+                <span className="text-xs md:text-sm text-white/80">Imagen (jpg/png)</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={onFile}
+                  className="text-sm text-white"
+                />
+              </label>
+              <div className="aspect-video bg-neutral-800 rounded-xl grid place-items-center overflow-hidden">
+                {form.imagen ? (
+                  <img
+                    src={`data:image/jpeg;base64,${form.imagen}`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <p className="text-xs md:text-sm text-white/50">Vista previa de la imagen</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+              <div className="rounded-2xl bg-neutral-900/80 border border-white/10 shadow-lg shadow-black/40 p-3 md:p-4 space-y-3">
+                <h2 className="text-sm md:text-base font-semibold text-white">Descripción</h2>
+                <textarea
+                  name="descripcion"
+                  value={form.descripcion}
+                  onChange={onChange}
+                  rows={5}
+                  className={baseInput}
+                />
+              </div>
+
+              <div className="rounded-2xl bg-neutral-900/80 border border-white/10 shadow-lg shadow-black/40 p-3 md:p-4 space-y-3">
+                <h2 className="text-sm md:text-base font-semibold text-white">Condiciones</h2>
+                <textarea
+                  name="condiciones"
+                  value={form.condiciones}
+                  onChange={onChange}
+                  rows={5}
+                  className={baseInput}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-neutral-900/80 border border-white/10 shadow-lg shadow-black/40 p-3 md:p-4 space-y-3">
+              <h2 className="text-sm md:text-base font-semibold text-white">Vigencia</h2>
+              <div className="grid md:grid-cols-2 gap-3">
+                <label className="block space-y-1">
+                  <span className="text-xs md:text-sm text-white/80">Vigencia inicio</span>
+                  <input
+                    type="date"
+                    name="vigenciaInicio"
+                    value={form.vigenciaInicio}
+                    onChange={onChange}
+                    className={baseInput}
+                  />
+                </label>
+                <label className="block space-y-1">
+                  <span className="text-xs md:text-sm text-white/80">Vigencia fin</span>
+                  <input
+                    type="date"
+                    name="vigenciaFin"
+                    value={form.vigenciaFin}
+                    onChange={onChange}
+                    className={baseInput}
+                  />
+                </label>
+              </div>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

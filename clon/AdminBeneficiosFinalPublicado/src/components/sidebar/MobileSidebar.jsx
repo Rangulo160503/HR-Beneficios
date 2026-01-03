@@ -45,6 +45,20 @@ const IconHandshake = (p) => (
   </svg>
 );
 
+const IconShield = (p) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...p}>
+    <path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z" strokeWidth="1.8" />
+    <path d="m9 12 2 2 4-4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const IconBoard = (p) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...p}>
+    <rect x="4" y="5" width="16" height="14" rx="2" strokeWidth="1.8" />
+    <path d="M8 9h8M8 13h5" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+
 /* ================================================== */
 
 export default function MobileSidebar({ open, current, items, onSelect, onClose }) {
@@ -53,7 +67,9 @@ export default function MobileSidebar({ open, current, items, onSelect, onClose 
   useEffect(() => {
     if (!open) return;
 
-    const onKey = (e) => { if (e.key === "Escape") onClose?.(); };
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose?.();
+    };
     document.addEventListener("keydown", onKey);
 
     const prev = document.body.style.overflow;
@@ -83,11 +99,13 @@ export default function MobileSidebar({ open, current, items, onSelect, onClose 
                    bg-neutral-950 border-r border-white/10 shadow-2xl
                    translate-x-0 animate-[slideIn_.18s_ease-out]"
       >
-        {/* header */}
-        <div className="h-14 flex items-center px-4 ">
-          <span className="text-sm font-semibold tracking-wide">
-            HR Beneficios
-          </span>
+        {/* header con logo */}
+        <div className="h-14 flex items-center px-4 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold tracking-wide">
+              Beneficios
+            </span>
+          </div>
 
           <button
             className="ml-auto p-2 rounded-lg hover:bg-white/5"
@@ -119,6 +137,10 @@ export default function MobileSidebar({ open, current, items, onSelect, onClose 
               iconNode = <IconHandshake className="w-5 h-5" />;
             } else if (i.key === "hrportal") {
               iconNode = <IconBuilding className="w-5 h-5" />;
+            } else if (i.key === "aprobaciones") {
+              iconNode = <IconShield className="w-5 h-5" />;
+            } else if (i.key === "infoboard") {
+              iconNode = <IconBoard className="w-5 h-5" />;
             }
 
             const rowClasses = `
@@ -154,6 +176,7 @@ export default function MobileSidebar({ open, current, items, onSelect, onClose 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block"
+                  onClick={onClose}
                 >
                   <div className={rowClasses}>{content}</div>
                 </a>
@@ -164,7 +187,10 @@ export default function MobileSidebar({ open, current, items, onSelect, onClose 
             return (
               <button
                 key={i.key}
-                onClick={() => { onSelect?.(i.key); onClose?.(); }}
+                onClick={() => {
+                  onSelect?.(i.key);
+                  onClose?.();
+                }}
                 className={rowClasses}
               >
                 {content}

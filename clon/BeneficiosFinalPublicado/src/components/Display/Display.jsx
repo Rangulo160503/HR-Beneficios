@@ -70,23 +70,25 @@ export default function Display() {
         categoriasLen={categorias.length}
         proveedoresLen={proveedores.length}
       />
+      {/* Empujar contenido para no quedar detrás del header fijo */}
+<div style={{ height: headerH }} />
 
-      {/* filtros */}
-      <div style={{ height: headerH }} />
-      <div className="fixed left-0 right-0 z-30 mt-[56px] sm:mt-[64px] bg-black/80 backdrop-blur">
-        <DisplayFilters
-          loadingFilters={loadingFilters}
-          categorias={categorias}
-          proveedores={proveedores}
-          catSel={catSel}
-          setCatSel={setCatSel}
-          provSel={provSel}
-          setProvSel={setProvSel}
-        />
-      </div>
+{/* filtros */}
+<div
+  className="sticky z-30 bg-black/80 backdrop-blur
+             top-[0px] sm:top-[0px]"
+>
+  <DisplayFilters
+    loadingFilters={loadingFilters}
+    categorias={categorias}
+    proveedores={proveedores}
+    catSel={catSel}
+    setCatSel={setCatSel}
+    provSel={provSel}
+    setProvSel={setProvSel}
+  />
+</div>
 
-      {/* Spacer extra por filtros */}
-      <div style={{ height: headerH + 88 }} />
 
       <div className="mx-auto w-full max-w-7xl px-3 sm:px-4 py-4">
         {error && (
@@ -115,14 +117,13 @@ export default function Display() {
       <FormModal
         isOpen={formOpen}
         onClose={() => setFormOpen(false)}
-        postUrl={`${import.meta.env.VITE_API_URL}/api/Contacto`}
-        onSubmitted={(resp) => console.log("Contacto enviado:", resp)}
+        onSubmitted={(resp) => console.log("Participación enviada:", resp)}
       />
 
       {!formOpen && (
         <button
           onClick={() => setFormOpen(true)}
-          aria-label="Contacto"
+          aria-label="Participar en rifa"
           className="sm:hidden fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-cyan-600 shadow-lg shadow-cyan-900/30 hover:bg-cyan-500 active:scale-95 transition"
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0)" }}
         >

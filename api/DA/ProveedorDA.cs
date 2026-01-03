@@ -29,7 +29,8 @@ namespace DA
                     proveedor.Correo,
                     proveedor.Telefono,
                     proveedor.Imagen,
-                    proveedor.Direccion
+                    proveedor.Direccion,
+                    proveedor.AccessToken
                 },
                 null, null, CommandType.StoredProcedure
             );
@@ -48,7 +49,8 @@ namespace DA
                     proveedor.Correo,
                     proveedor.Telefono,
                     proveedor.Imagen,
-                    proveedor.Direccion
+                    proveedor.Direccion,
+                    proveedor.AccessToken
                 },
                 null, null, CommandType.StoredProcedure
             );
@@ -83,6 +85,40 @@ namespace DA
             );
             return rows.FirstOrDefault() ?? new ProveedorDetalle();
         }
+
+        public async Task<ProveedorDetalle?> ObtenerPorToken(string token)
+        {
+            const string sp = "core.ObtenerProveedorPorToken";
+            var rows = await _dapperWrapper.QueryAsync<ProveedorDetalle>(
+                _dbConnection,
+                sp,
+                new { AccessToken = token },
+                null,
+                null,
+                CommandType.StoredProcedure
+            );
+
+            return rows.FirstOrDefault();
+        }
+
+        public async Task<bool> ExisteProveedor(Guid id)
+        {
+            const string sp = "core.ExisteProveedor";
+
+            var rows = await _dapperWrapper.QueryAsync<int>(
+                _dbConnection,
+                sp,
+                new { Id = id },
+                null,
+                null,
+                CommandType.StoredProcedure
+            );
+
+            int valor = rows.FirstOrDefault();
+            return valor == 1;
+        }
+
+
         #endregion
 
         #region Helpers

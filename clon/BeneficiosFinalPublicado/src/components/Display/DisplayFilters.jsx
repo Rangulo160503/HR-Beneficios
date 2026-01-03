@@ -16,9 +16,9 @@ export default function DisplayFilters({
       <div className="mx-auto w-full max-w-7xl px-4">
         {/* Categorías */}
         {loadingFilters ? (
-          <div className="w-full py-2">
+          <div className="w-full">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 px-1 -mx-1">
-              {Array.from({ length: 10 }).map((_, i) => (
+              {Array.from({ length: 11 }).map((_, i) => (
                 <span
                   key={`cat-skel-${i}`}
                   aria-hidden="true"
@@ -43,9 +43,9 @@ export default function DisplayFilters({
 
         {/* Proveedores */}
         {loadingFilters ? (
-          <div className="w-full py-2">
+          <div className="w-full">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 px-1 -mx-1">
-              {Array.from({ length: 10 }).map((_, i) => (
+              {Array.from({ length: 11 }).map((_, i) => (
                 <span
                   key={`prov-skel-${i}`}
                   aria-hidden="true"

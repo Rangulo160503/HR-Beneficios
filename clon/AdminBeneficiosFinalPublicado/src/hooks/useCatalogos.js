@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { CategoriaApi, ProveedorApi } from "../services/adminApi";
+import { ApiError, CategoriaApi, ProveedorApi } from "../services/adminApi";
+import { generateAccessToken } from "../utils/badge";
 
 // helpers arriba del hook
 const norm   = (v) => (v == null ? "" : String(v).trim());
@@ -10,6 +11,7 @@ const getCatId  = (r) => normId(
   r?.categoria?.id ?? r?.categoria?.Id
 );
 const getProvId = (p) => normId(p?.id ?? p?.proveedorId ?? p?.ProveedorId ?? p?.ID);
+const getToken = (p) => normId(p?.accessToken ?? "");
 
 const dedupeById = (arr, getId) => {
   const seen = new Set();
@@ -28,6 +30,8 @@ export function useCatalogos() {
   const [provs, setProvs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [categoriaEnUso, setCategoriaEnUso] = useState(null);
+  const [showCategoriaEnUso, setShowCategoriaEnUso] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -55,8 +59,9 @@ export function useCatalogos() {
           .map(p => {
             const id = getProvId(p);
             const nombre = norm(p?.nombre ?? p?.Nombre ?? p?.titulo ?? p?.Titulo);
+            const accessToken = getToken(p);
             if (!id || !nombre) return null;
-            return { ...p, id, proveedorId: id, nombre };
+            return { ...p, id, proveedorId: id, nombre, accessToken };
           })
           .filter(Boolean);
         const P = dedupeById(P1, getProvId);
@@ -143,9 +148,25 @@ const getCatId = (r) => {
   async function deleteCategoria(r) {
     const id = getCatId(r);
     if (!id) return;
-    if (!confirm("¿Eliminar categoría?")) return;
-    await CategoriaApi.remove(id);
-    setCats(s => s.filter(x => getCatId(x) !== id));
+    //if (!confirm("¿Eliminar categoría?")) return;
+    try {
+      await CategoriaApi.remove(id);
+      setCats(s => s.filter(x => getCatId(x) !== id));
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        const detalle = err.data || {};
+        const categoriaInfo = {
+          ...r,
+          categoriaId: getCatId(r),
+          id: getCatId(r),
+          detalle,
+        };
+        setCategoriaEnUso(categoriaInfo);
+        setShowCategoriaEnUso(true);
+        throw err;
+      }
+      throw err;
+    }
   }
 
   // ===== CRUD Proveedor =====
@@ -154,14 +175,16 @@ const getCatId = (r) => {
     const nombre = norm(v);
     if (!nombre) return;
 
-    const idOrObj = await ProveedorApi.create({ nombre });
+    const accessToken = generateAccessToken();
+    const idOrObj = await ProveedorApi.create({ nombre, accessToken });
     const id = typeof idOrObj === "string" ? idOrObj : getProvId(idOrObj);
     const createdRaw = id ? await ProveedorApi.get(id) : idOrObj;
 
     const nodo = (() => {
       const rid = getProvId(createdRaw) || normId(id);
       const nom = norm(createdRaw?.nombre ?? nombre);
-      return { ...createdRaw, id: rid, proveedorId: rid, nombre: nom };
+      const badge = getToken(createdRaw) || accessToken;
+      return { ...createdRaw, id: rid, proveedorId: rid, nombre: nom, accessToken: badge };
     })();
 
     setProvs(s => dedupeById([nodo, ...s], getProvId));
@@ -183,6 +206,7 @@ const getCatId = (r) => {
       id,
       proveedorId: id,
       nombre: norm(fresh?.nombre ?? nombre),
+      accessToken: getToken(fresh) || getToken(r),
     };
 
     setProvs(s => s.map(x => (getProvId(x) === id ? nodo : x)));
@@ -196,9 +220,24 @@ const getCatId = (r) => {
     setProvs(s => s.filter(x => getProvId(x) !== id));
   }
 
+  const upsertProveedorLocal = (prov) => {
+    if (!prov) return;
+    const enriched = {
+      ...prov,
+      proveedorId: getProvId(prov),
+      accessToken: getToken(prov),
+    };
+    setProvs((s) => dedupeById([enriched, ...s], getProvId));
+  };
+
   return {
     cats, provs, loading, err,
+    categoriaEnUso,
+    showCategoriaEnUso,
+    setCategoriaEnUso,
+    setShowCategoriaEnUso,
     addCategoria, renameCategoria, deleteCategoria,
     addProveedor, renameProveedor, deleteProveedor,
+    upsertProveedorLocal,
   };
 }

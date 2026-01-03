@@ -2,6 +2,12 @@
 
 namespace Abstracciones.Modelos
 {
+    public enum EstadoBeneficio
+    {
+        Pendiente = 0,
+        Aprobado = 1,
+        Rechazado = 2
+    }
     public class BeneficioBase
     {
         [Required, StringLength(200, MinimumLength = 3)]
@@ -40,6 +46,13 @@ namespace Abstracciones.Modelos
         public string? CategoriaNombre { get; set; }
         public Guid ProveedorId { get; set; }
         public Guid CategoriaId { get; set; }
+        // Estado de aprobación del beneficio
+        public EstadoBeneficio Estado { get; set; } = EstadoBeneficio.Pendiente;
+
+        // Tiempos y trazabilidad de aprobación
+        public DateTime FechaCreacion { get; set; }
+        public DateTime? FechaAprobacion { get; set; }
+        public Guid? AprobadoPorUsuarioId { get; set; }
     }
 
     // Queque servido en la mesa → con métricas adicionales
@@ -48,5 +61,21 @@ namespace Abstracciones.Modelos
         public int? VecesSeleccionado { get; set; }
         public int? VouchersEmitidos { get; set; }
         public int? VouchersCanjeados { get; set; }
+    }
+
+    public class BeneficioPorCategoriaBase : BeneficioResponse
+    {
+    }
+
+    public class BeneficioPorCategoriaResponse : BeneficioPorCategoriaBase
+    {
+        /// <summary>
+        /// Total de registros en la consulta paginada.
+        /// </summary>
+        public int Total { get; set; }
+    }
+
+    public class BeneficioPorCategoriaDetalle : BeneficioPorCategoriaResponse
+    {
     }
 }

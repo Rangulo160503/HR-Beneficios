@@ -1,9 +1,9 @@
 // src/services/api.js
-const CLOUD = "https://hr-beneficios-api-xxxx.canadacentral-01.azurewebsites.net";
+const CLOUD = "https://hr-beneficios-api-grgmckc5dwdca9dc.canadacentral-01.azurewebsites.net";
 const LOCAL  = "https://localhost:5001";
 
 // 🔀 cambia esto a "local" mientras Azure esté en quota exceeded
-const TARGET = "local"; // "cloud" | "local"
+const TARGET = "cloud"; // "cloud" | "local"
 
 const API_BASE = (TARGET === "cloud" ? CLOUD : LOCAL).replace(/\/$/, "");
 console.log("[API_BASE]", API_BASE);
@@ -27,6 +27,11 @@ export const EP = {
   // === Beneficios ===
   beneficios: () => `/api/Beneficio`,
   beneficioId: (id) => `/api/Beneficio/${id}`,
+  aprobacionesPendientes: () => `/api/Beneficio/aprobaciones/pendientes`,
+  aprobacionesAprobados: () => `/api/Beneficio/aprobaciones/aprobados`,
+  beneficioAprobar: (id) => `/api/Beneficio/${id}/aprobar`,
+  beneficioRechazar: (id) => `/api/Beneficio/${id}/rechazar`,
+  beneficioDisponible: (id) => `/api/Beneficio/${id}/disponible`,
 
   // Filtrado por proveedor (lo usamos para la vista del dashboard)
   beneficiosPorProveedor: (proveedorId) => `/api/Beneficio/por-proveedor/${proveedorId}`,
@@ -89,22 +94,56 @@ async function httpDelete(path) {
 
 export const Api = {
   // === Beneficios ===
-  beneficios: {
-    listar: () => httpGet(EP.beneficios()),
-    obtener: (id) => httpGet(EP.beneficioId(id)),
-    agregar: (payload) => httpPost(EP.beneficios(), payload),
-    editar: (id, payload) => httpPut(EP.beneficioId(id), payload),
-    eliminar: (id) => httpDelete(EP.beneficioId(id)),
+  // === Beneficios ===
+beneficios: {
+  listar: () => httpGet(EP.beneficios()),
+  obtener: (id) => httpGet(EP.beneficioId(id)),
+  agregar: (payload) => {
+  const params = new URLSearchParams(window.location.search);
+  const proveedorId = params.get("proveedorId");
+  const token = params.get("token");
 
-    // Trae todos y filtra en el front por proveedor (usado en dashboard)
-    listarPorProveedorFront: async (proveedorId) => {
-      const all = await httpGet(EP.beneficios());
-      return (all || []).filter(x => x.proveedorId === proveedorId);
-    },
+  if (!proveedorId || !token) {
+    throw new Error("No hay proveedorId o token en la URL");
+  }
 
-    // (para cuando crees el endpoint en backend)
-    listarPorProveedorAPI: (proveedorId) => httpGet(EP.beneficiosPorProveedor(proveedorId)),
+  return httpPost(
+    `${EP.beneficios()}?proveedorId=${proveedorId}&token=${token}`,
+    payload
+  );
+},
+  editar: (id, payload) => httpPut(EP.beneficioId(id), payload),
+  eliminar: (id) => httpDelete(EP.beneficioId(id)),
+
+  aprobacionesPendientes: () => httpGet(EP.aprobacionesPendientes()),
+  aprobacionesAprobados: () => httpGet(EP.aprobacionesAprobados()),
+  aprobar: (id) => httpPost(EP.beneficioAprobar(id), {}),
+  rechazar: (id) => httpPost(EP.beneficioRechazar(id), {}),
+  cambiarDisponible: (id, disponible) =>
+    httpPut(EP.beneficioDisponible(id), { disponible }),
+
+  // Trae todos y filtra en el front por proveedor (usado en dashboard / portal proveedor)
+  listarPorProveedorFront: async (proveedorId) => {
+    const all = await httpGet(EP.beneficios());
+    console.log("[Api] beneficios (ALL):", all);
+
+    const norm = (v) => String(v || "").toLowerCase();
+
+    const filtrados = (all || []).filter((x) => {
+      // soporta ProveedorId (Pascal) y proveedorId (camel)
+      const idModelo = x.proveedorId ?? x.ProveedorId;
+      return norm(idModelo) === norm(proveedorId);
+    });
+
+    console.log("[Api] beneficios filtrados por proveedor:", filtrados);
+    return filtrados;
   },
+
+  // (para cuando crees el endpoint en backend)
+  listarPorProveedorAPI: (proveedorId) =>
+    httpGet(EP.beneficiosPorProveedor(proveedorId)),
+},
+
 
   // === Imágenes de beneficio ===
   imagenes: {
@@ -133,9 +172,14 @@ export const Api = {
     obtener: (id) => httpGet(EP.ubicacionId(id)),
   },
 
-  // === Proveedores ===
+    // === Proveedores ===
   proveedores: {
     listar: () => httpGet(EP.proveedores()),
     obtener: (id) => httpGet(EP.proveedorId(id)),
+    agregar: (payload) => httpPost(EP.proveedores(), payload),
+    editar: (id, payload) => httpPut(EP.proveedorId(id), payload),
+    eliminar: (id) => httpDelete(EP.proveedorId(id)),
+    validarLogin: (id) => httpGet(`/api/Proveedor/validar-login/${id}`),
   },
+
 };
