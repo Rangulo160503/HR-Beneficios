@@ -23,5 +23,6 @@ namespace Abstracciones.Interfaces.Flujo
         Task<PagedResult<BeneficioResponse>> ObtenerPorCategoria(Guid categoriaId, int page, int pageSize, string? search);
         Task<int> ReasignarCategoria(Guid fromCategoriaId, Guid toCategoriaId, IEnumerable<Guid>? beneficioIds);
         Task<int> ContarPorCategoria(Guid categoriaId);
+        Task<bool> ValidarTokenBadge(Guid proveedorId, string token);
     }
 }

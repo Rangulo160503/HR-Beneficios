@@ -98,7 +98,20 @@ export const Api = {
 beneficios: {
   listar: () => httpGet(EP.beneficios()),
   obtener: (id) => httpGet(EP.beneficioId(id)),
-  agregar: (payload) => httpPost(EP.beneficios(), payload),
+  agregar: (payload) => {
+  const params = new URLSearchParams(window.location.search);
+  const proveedorId = params.get("proveedorId");
+  const token = params.get("token");
+
+  if (!proveedorId || !token) {
+    throw new Error("No hay proveedorId o token en la URL");
+  }
+
+  return httpPost(
+    `${EP.beneficios()}?proveedorId=${proveedorId}&token=${token}`,
+    payload
+  );
+},
   editar: (id, payload) => httpPut(EP.beneficioId(id), payload),
   eliminar: (id) => httpDelete(EP.beneficioId(id)),
 

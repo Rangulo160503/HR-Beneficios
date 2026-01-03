@@ -25,15 +25,23 @@ namespace API.Controllers
         [HttpPost]
         [RequestSizeLimit(20_000_000)]
         [AllowAnonymous]
-        public async Task<IActionResult> Agregar([FromBody] BeneficioRequest req)
+        public async Task<IActionResult> Agregar(
+            [FromBody] BeneficioRequest req,
+            [FromQuery] Guid proveedorId,
+            [FromQuery] string token)
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
 
-            // Validar FKs, etc…
+            var esValido = await _beneficioFlujo.ValidarTokenBadge(proveedorId, token);
+            if (!esValido)
+                return Unauthorized("Token inválido o vencido.");
 
-            // req.Imagen ya viene como byte[] si en JSON te mandan base64
-            var id = await _beneficioFlujo.Agregar(req); // tu flujo/DA inserta Imagen = @Imagen
+            req.ProveedorId = proveedorId;
+
+            var id = await _beneficioFlujo.Agregar(req);
             var creado = await _beneficioFlujo.Obtener(id);
+
             return CreatedAtAction(nameof(Obtener), new { Id = id }, creado);
         }
 

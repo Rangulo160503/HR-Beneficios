@@ -33,7 +33,6 @@ namespace API.Controllers
     ///   "fechaCreacion": "2024-05-10T12:00:00Z"
     /// }
     /// </remarks>
-    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class RifaParticipacionController : ControllerBase, IRifaParticipacionController
