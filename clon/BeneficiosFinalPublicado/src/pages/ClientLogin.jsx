@@ -16,6 +16,7 @@ export default function ClientLogin() {
     clientSessionStore.setSession({
       token: "client-session",
       tsLogin: Date.now(),
+      roles: ["Client"],
     });
     navigate("/", { replace: true });
   };

@@ -49,7 +49,7 @@ export default function AdminShell() {
 
   const handleLogout = () => {
     adminSessionStore.clearSession();
-    navigate("/admin/login", { replace: true });
+    navigate("/login", { replace: true });
   };
 
   useEffect(() => {

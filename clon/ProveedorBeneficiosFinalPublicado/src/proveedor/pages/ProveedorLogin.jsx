@@ -28,7 +28,10 @@ export default function ProveedorLogin() {
         const resp = await Api.proveedores.validarLogin(proveedorId);
 
         if (resp?.ok) {
-          providerSessionStore.setSession({ proveedorId });
+          providerSessionStore.setSession({
+            proveedorId,
+            roles: ["Proveedor"],
+          });
           setEstado("ok");
           setMensaje(resp?.mensaje || "Proveedor válido. Redirigiendo…");
 

@@ -1,14 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import AdminShell from "./AdminShell/AdminShell";
-import ProviderPortal from "../pages/ProviderPortal";
 import NotAuthorized from "./NotAuthorized";
 import {
   SessionStatus,
   validateSessionAndAuthorize,
 } from "../core/flujo/use-cases/ValidateSessionAndAuthorize";
 import { isSessionExpired } from "../core/reglas/session/isSessionExpired";
-import { adminSessionStore, providerSessionStore } from "../core-config/sessionStores";
+import { adminSessionStore } from "../core-config/sessionStores";
 
 const validateAdminSession = (session) => {
   if (!session?.access_token) return false;
@@ -16,31 +15,21 @@ const validateAdminSession = (session) => {
   return true;
 };
 
-const validateProviderSession = (session) =>
-  Boolean(session?.proveedorId && session?.token);
+const selectAdminRoles = (session) =>
+  session?.roles || session?.user?.roles || session?.user?.Roles || [];
 
 export default function Gate() {
-  const location = useLocation();
-  const isAdminRoute = useMemo(
-    () => location.pathname.startsWith("/admin"),
-    [location.pathname]
-  );
   const [status, setStatus] = useState(SessionStatus.OK);
 
   useEffect(() => {
     let active = true;
 
     const checkSession = async () => {
-      const sessionStore = isAdminRoute
-        ? adminSessionStore
-        : providerSessionStore;
-      const sessionValidator = isAdminRoute
-        ? validateAdminSession
-        : validateProviderSession;
-
       const result = await validateSessionAndAuthorize({
-        sessionStore,
-        sessionValidator,
+        sessionStore: adminSessionStore,
+        requiredRoles: ["Admin"],
+        roleSelector: selectAdminRoles,
+        sessionValidator: validateAdminSession,
       });
 
       if (!active) return;
@@ -52,12 +41,10 @@ export default function Gate() {
     return () => {
       active = false;
     };
-  }, [isAdminRoute, location.key]);
+  }, []);
 
   if (status === SessionStatus.SHOW_LOGIN) {
-    return (
-      <Navigate to={isAdminRoute ? "/admin/login" : "/admin/login"} replace />
-    );
+    return <Navigate to="/login" replace />;
   }
 
   if (status === SessionStatus.NOT_AUTHORIZED) {
@@ -74,5 +61,5 @@ export default function Gate() {
     );
   }
 
-  return isAdminRoute ? <AdminShell /> : <ProviderPortal />;
+  return <AdminShell />;
 }
