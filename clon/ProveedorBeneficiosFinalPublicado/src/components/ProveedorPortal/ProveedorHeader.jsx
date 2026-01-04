@@ -1,6 +1,8 @@
 // src/components/ProveedorPortal/ProveedorHeader.jsx
+import { LocalSessionStore } from "../../core/infrastructure/session/LocalSessionStore";
 
 const LS_PROV_SIDEBAR = "hr-prov-sidebar-collapsed";
+const sidebarStore = new LocalSessionStore(LS_PROV_SIDEBAR);
 
 export default function ProveedorHeader({
   collapsed,
@@ -19,9 +21,7 @@ export default function ProveedorHeader({
       <button
         onClick={() => {
           const next = !collapsed;
-          try {
-            localStorage.setItem(LS_PROV_SIDEBAR, next ? "1" : "0");
-          } catch {}
+          sidebarStore.setSession(next ? "1" : "0");
           onToggleCollapsed(next);
         }}
         className="font-semibold text-white/60 hover:text-white text-sm"

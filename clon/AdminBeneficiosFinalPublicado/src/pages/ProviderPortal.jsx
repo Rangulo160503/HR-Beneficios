@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BeneficioApi } from "../services/adminApi";
+import { providerSessionStore } from "../core-config/sessionStores";
 
 export default function ProviderPortal() {
   const navigate = useNavigate();
@@ -8,14 +9,7 @@ export default function ProviderPortal() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const session = useMemo(() => {
-    try {
-      const raw = localStorage.getItem("hr_proveedor_session");
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  }, []);
+  const session = useMemo(() => providerSessionStore.getSession(), []);
 
   useEffect(() => {
     let alive = true;
@@ -48,7 +42,7 @@ export default function ProviderPortal() {
   }, [session?.proveedorId]);
 
   const handleLogout = () => {
-    localStorage.removeItem("hr_proveedor_session");
+    providerSessionStore.clearSession();
     navigate("/login", { replace: true });
   };
 

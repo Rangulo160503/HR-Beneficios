@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Api } from "../../services/api";
+import { providerSessionStore } from "../../core-config/sessionStores";
 
 const guidRegex = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
 
@@ -27,7 +28,7 @@ export default function ProveedorLogin() {
         const resp = await Api.proveedores.validarLogin(proveedorId);
 
         if (resp?.ok) {
-          localStorage.setItem("proveedorId", proveedorId);
+          providerSessionStore.setSession({ proveedorId });
           setEstado("ok");
           setMensaje(resp?.mensaje || "Proveedor válido. Redirigiendo…");
 
