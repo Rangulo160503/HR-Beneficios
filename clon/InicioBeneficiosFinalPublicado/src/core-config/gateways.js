@@ -8,7 +8,6 @@ import { ToqueBeneficioGatewayFetch } from "../core/infrastructure/http/ToqueBen
 import { BeneficioImagenGatewayFetch } from "../core/infrastructure/http/BeneficioImagenGatewayFetch";
 import { RifaParticipacionGatewayFetch } from "../core/infrastructure/http/RifaParticipacionGatewayFetch";
 import { ContactoGatewayFetch } from "../core/infrastructure/http/ContactoGatewayFetch";
-import { AuthGatewayFetch } from "../core/infrastructure/auth/AuthGatewayFetch";
 
 const fetchClient = createFetchClient({
   baseUrl: API_BASE,
@@ -27,8 +26,3 @@ export const toqueBeneficioGateway = new ToqueBeneficioGatewayFetch(fetchClient)
 export const beneficioImagenGateway = new BeneficioImagenGatewayFetch(fetchClient);
 export const rifaParticipacionGateway = new RifaParticipacionGatewayFetch(fetchClient);
 export const contactoGateway = new ContactoGatewayFetch();
-export const authGateway = new AuthGatewayFetch({
-  baseUrl: API_BASE,
-  credentialsPath: "/api/AdminAuth/login",
-  tokenPath: "/api/Proveedor/login",
-});

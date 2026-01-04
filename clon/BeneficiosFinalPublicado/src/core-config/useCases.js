@@ -1,5 +1,4 @@
 import {
-  authGateway,
   beneficioGateway,
   categoriaGateway,
   proveedorGateway,
@@ -7,7 +6,6 @@ import {
   beneficioImagenGateway,
   rifaParticipacionGateway,
 } from "./gateways";
-import { clientSessionStore } from "./sessionStores";
 import { loadBeneficiosList as loadBeneficiosListUseCase } from "../core/flujo/use-cases/LoadBeneficiosList";
 import { loadCategoriasList as loadCategoriasListUseCase } from "../core/flujo/use-cases/LoadCategoriasList";
 import { loadProveedoresList as loadProveedoresListUseCase } from "../core/flujo/use-cases/LoadProveedoresList";
@@ -16,8 +14,6 @@ import { getBenefitCardImage as getBenefitCardImageUseCase } from "../core/flujo
 import { loadBeneficioImagenes as loadBeneficioImagenesUseCase } from "../core/flujo/use-cases/LoadBeneficioImagenes";
 import { registerToqueBeneficio as registerToqueBeneficioUseCase } from "../core/flujo/use-cases/RegisterToqueBeneficio";
 import { createRifaParticipacion as createRifaParticipacionUseCase } from "../core/flujo/use-cases/CreateRifaParticipacion";
-import { loginWithCredentials as loginWithCredentialsUseCase } from "../core/flujo/use-cases/LoginWithCredentials";
-import { loginWithToken as loginWithTokenUseCase } from "../core/flujo/use-cases/LoginWithToken";
 
 export const loadBeneficiosList = (options) =>
   loadBeneficiosListUseCase({ beneficioGateway, options });
@@ -42,22 +38,3 @@ export const registerToqueBeneficio = ({ beneficioId, origen, options }) =>
 
 export const createRifaParticipacion = ({ dto, options }) =>
   createRifaParticipacionUseCase({ rifaParticipacionGateway, dto, options });
-
-export const loginWithCredentials = ({ usuario, password, normalizeSession, options } = {}) =>
-  loginWithCredentialsUseCase({
-    authGateway,
-    sessionStore: clientSessionStore,
-    usuario,
-    password,
-    normalizeSession,
-    options,
-  });
-
-export const loginWithToken = ({ token, normalizeSession, options } = {}) =>
-  loginWithTokenUseCase({
-    authGateway,
-    sessionStore: clientSessionStore,
-    token,
-    normalizeSession,
-    options,
-  });
