@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { BeneficioApi, ToqueBeneficioApi } from "../../../services/adminApi";
 import BenefitsList from "./BenefitsList";
 import BenefitDetailPanel from "./BenefitDetailPanel";
 import FullForm from "../../beneficio/FullForm";
 import BenefitEditModal from "./BenefitEditModal";
+import {
+  loadBeneficiosList,
+  loadToqueAnalytics,
+  loadToqueSummary,
+} from "../../../core-config/useCases";
 
 export default function DashboardBeneficios({
   state,
@@ -40,8 +44,7 @@ export default function DashboardBeneficios({
 
   const handleSelect = (benefit) => {
     if (!benefit) return;
-    const normalized = mapBenefitId(benefit);
-    setSelectedBenefit(normalized);
+    setSelectedBenefit(benefit);
     setRange("1W");
     setShowDetailMobile(true);
   };
@@ -64,36 +67,18 @@ export default function DashboardBeneficios({
 
   const handleEditSaved = (updated) => {
     if (!updated) return;
-    const normalized = mapBenefitId(updated);
+    const normalized = updated;
     accionesBeneficios?.setItems?.((prev = []) =>
       prev.map((b) =>
-        mapBenefitId(b).beneficioId === normalized.beneficioId ? normalized : b
+        b.beneficioId === normalized.beneficioId ? normalized : b
       )
     );
     setSelectedBenefit((prev) => {
       if (!prev) return prev;
-      return mapBenefitId(prev).beneficioId === normalized.beneficioId
+      return prev.beneficioId === normalized.beneficioId
         ? { ...prev, ...normalized }
         : prev;
     });
-  };
-
-
-  const mapBenefitId = (r) => {
-    const id =
-      r?.id ??
-      r?.Id ??
-      r?.beneficioId ??
-      r?.BeneficioId ??
-      r?.beneficio?.id ??
-      r?.beneficio?.Id;
-
-    const fixed = String(id ?? "").trim();
-    return {
-      ...r,
-      id: fixed || undefined,
-      beneficioId: fixed || undefined,
-    };
   };
 
   const cargarBeneficios = async () => {
@@ -101,8 +86,7 @@ export default function DashboardBeneficios({
     setLocalError(false);
 
     try {
-      const data = await BeneficioApi.list();
-      const normalized = Array.isArray(data) ? data.map(mapBenefitId) : [];
+      const normalized = await loadBeneficiosList();
       accionesBeneficios?.setItems?.(normalized);
       await cargarResumen(normalized);
       setLocalError(false);
@@ -125,8 +109,8 @@ export default function DashboardBeneficios({
     setTouchError(null);
 
     try {
-      const data = await ToqueBeneficioApi.analytics(selectedId, range);
-      setTouchTotal(data?.total ?? 0);
+      const data = await loadToqueAnalytics({ beneficioId: selectedId, range });
+      setTouchTotal(data?.total ?? data?.Total ?? 0);
       setTouchSeries(Array.isArray(data?.series) ? data.series : []);
       setTouchAnalytics(data || null);
     } catch (err) {
@@ -142,34 +126,18 @@ export default function DashboardBeneficios({
   const cargarResumen = useCallback(
     async (benefitsSnapshot) => {
       try {
-        const data = await ToqueBeneficioApi.resumen(range);
-        const arr = Array.isArray(data)
-          ? data
-          : Object.entries(data || {}).map(([beneficioId, count]) => ({
-              beneficioId,
-              count,
-            }));
-
-        const map = arr.reduce((ac, curr) => {
-          if (!curr?.beneficioId) return ac;
-          ac[String(curr.beneficioId).trim()] = curr?.count ?? 0;
-          return ac;
-        }, {});
-
-        setTouchSummary(map);
-        accionesBeneficios?.setItems?.((prev = benefitsSnapshot || []) => {
-          const base = benefitsSnapshot || prev;
-          return base.map((b) => {
-            const normalized = mapBenefitId(b);
-            const count = map[normalized.beneficioId] ?? 0;
-            return { ...b, totalToques: count };
-          });
+        const baseBenefits = benefitsSnapshot ?? benefits ?? [];
+        const { summary, beneficios: merged } = await loadToqueSummary({
+          range,
+          beneficios: baseBenefits,
         });
+        setTouchSummary(summary);
+        accionesBeneficios?.setItems?.(merged);
       } catch (err) {
         console.error("No se pudo cargar el resumen de toques", err);
       }
     },
-    [accionesBeneficios, range]
+    [accionesBeneficios, benefits, range]
   );
 
   useEffect(() => {
@@ -198,7 +166,7 @@ export default function DashboardBeneficios({
           items={benefits}
           selectedId={selectedId}
           onSelect={handleSelect}
-          onEdit={(b) => setEditTarget(mapBenefitId(b))}
+          onEdit={(b) => setEditTarget(b)}
           loading={isLoading}
           error={hasError}
           onRetry={cargarBeneficios}
