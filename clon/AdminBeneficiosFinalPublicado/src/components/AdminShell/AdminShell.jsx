@@ -8,6 +8,7 @@ import AdminMain from "./AdminMain";
 import useAdminShell from "./useAdminShell";
 import { MOBILE_ITEMS, NAV_ITEMS } from "./constants";
 import { clearAuth } from "../../utils/adminAuth";
+import { clearSession } from "../../utils/hrSession";
 
 export default function AdminShell() {
   const location = useLocation();
@@ -49,6 +50,7 @@ export default function AdminShell() {
 
   const handleLogout = () => {
     clearAuth();
+    clearSession();
     navigate("/admin/login", { replace: true });
   };
 

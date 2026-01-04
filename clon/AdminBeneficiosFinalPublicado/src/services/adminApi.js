@@ -1,5 +1,6 @@
 // src/services/adminApi.js
 import { clearAuth, getAuth } from "../utils/adminAuth";
+import { clearSession, getSession, isExpired } from "../utils/hrSession";
 import { API_BASE } from "./apiBase";
 
 export class ApiError extends Error {
@@ -13,20 +14,28 @@ export class ApiError extends Error {
 
 export function authHeader() {
   const auth = getAuth();
-  if (!auth?.access_token) return {};
-
-  const expiresAt = Number(auth.expires_at);
-  if (Number.isFinite(expiresAt) && expiresAt <= Date.now()) {
-    clearAuth();
-    return {};
+  if (auth?.access_token) {
+    const expiresAt = Number(auth.expires_at);
+    if (Number.isFinite(expiresAt) && expiresAt <= Date.now()) {
+      clearAuth();
+    } else {
+      const type = auth.token_type || "Bearer";
+      return { Authorization: `${type} ${auth.access_token}`.trim() };
+    }
   }
 
-  const type = auth.token_type || "Bearer";
-  return { Authorization: `${type} ${auth.access_token}`.trim() };
+  // Fallback a la sesión compartida si el admin auth local no está presente.
+  const session = getSession();
+  if (!session?.token || isExpired(session)) {
+    clearSession();
+    return {};
+  }
+  return { Authorization: `Bearer ${session.token}` };
 }
 
 function handleUnauthorized() {
   clearAuth();
+  clearSession();
   if (typeof window !== "undefined") {
     window.location.replace("/admin/login");
   }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BeneficioApi } from "../services/adminApi";
+import { clearSession, getSession } from "../utils/hrSession";
 
 export default function ProviderPortal() {
   const navigate = useNavigate();
@@ -8,19 +9,13 @@ export default function ProviderPortal() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const session = useMemo(() => {
-    try {
-      const raw = localStorage.getItem("hr_proveedor_session");
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  }, []);
+  const session = useMemo(() => getSession(), []);
 
   useEffect(() => {
     let alive = true;
     const fetchBenefits = async () => {
-      if (!session?.proveedorId) return;
+      const proveedorId = session?.subjectId || session?.proveedorId;
+      if (!proveedorId) return;
       try {
         setLoading(true);
         setError("");
@@ -31,7 +26,7 @@ export default function ProviderPortal() {
           (b) =>
             String(
               b?.proveedorId ?? b?.ProveedorId ?? b?.proveedor?.id ?? ""
-            ).trim() === String(session.proveedorId).trim()
+            ).trim() === String(proveedorId).trim()
         );
         setItems(filtered);
       } catch (err) {
@@ -45,10 +40,10 @@ export default function ProviderPortal() {
     return () => {
       alive = false;
     };
-  }, [session?.proveedorId]);
+  }, [session?.proveedorId, session?.subjectId]);
 
   const handleLogout = () => {
-    localStorage.removeItem("hr_proveedor_session");
+    clearSession();
     navigate("/login", { replace: true });
   };
 

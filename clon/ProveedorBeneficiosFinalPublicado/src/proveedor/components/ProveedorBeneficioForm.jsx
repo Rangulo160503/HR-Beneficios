@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BeneficioApi, CategoriaApi } from "../../services/adminApi";
+import { getSession } from "../../utils/hrSession";
 
 export default function ProveedorBeneficioForm({
   initial = null,
@@ -77,7 +78,8 @@ export default function ProveedorBeneficioForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const proveedorId = localStorage.getItem("proveedorId");
+    const session = getSession();
+    const proveedorId = session?.subjectId || session?.proveedorId;
     const guidRegex = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
 
     if (!proveedorId || !guidRegex.test(proveedorId)) {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ProveedorApi } from "../services/adminApi";
+import { setSession } from "../utils/hrSession";
 
 export default function ProviderLogin() {
   const navigate = useNavigate();
@@ -13,13 +14,13 @@ export default function ProviderLogin() {
   useEffect(() => {
     const existing = (() => {
       try {
-        const raw = localStorage.getItem("hr_proveedor_session");
+        const raw = localStorage.getItem("hr_session");
         return raw ? JSON.parse(raw) : null;
       } catch {
         return null;
       }
     })();
-    if (existing?.proveedorId && existing?.token) {
+    if (existing?.role === "Proveedor" && existing?.token) {
       navigate("/", { replace: true });
     }
   }, [navigate]);
@@ -45,13 +46,14 @@ export default function ProviderLogin() {
           proveedor?.nombre || proveedor?.Nombre || proveedor?.titulo || proveedor?.Titulo || "";
         const proveedorId =
           proveedor?.proveedorId || proveedor?.id || proveedor?.ProveedorId || proveedor?.ID;
-        const session = {
-          proveedorId,
-          proveedorNombre: nombre,
+        // Sesión compartida entre apps (clave hr_session).
+        setSession({
           token,
-          tsLogin: Date.now(),
-        };
-        localStorage.setItem("hr_proveedor_session", JSON.stringify(session));
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          role: "Proveedor",
+          subjectId: proveedorId || null,
+          proveedorNombre: nombre || null,
+        });
         navigate("/", { replace: true });
       } catch (err) {
         console.error("Login de proveedor falló", err);

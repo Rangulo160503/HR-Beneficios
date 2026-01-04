@@ -1,7 +1,8 @@
 // src/views/ProveedorHome.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ProveedorBeneficioForm from "../proveedor/components/ProveedorBeneficioForm";
 import { BeneficioApi, ProveedorApi } from "../services/adminApi";
+import { getSession } from "../utils/hrSession";
 
 export default function ProveedorHome() {
   const [showForm, setShowForm] = useState(false);
@@ -10,30 +11,19 @@ export default function ProveedorHome() {
   const [beneficios, setBeneficios] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 1) Resolver proveedorId desde URL o localStorage (esto ya lo tenías, solo lo
-  // dejo integrado aquí para que quede todo en un solo archivo).
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const fromUrl = params.get("proveedorId");
-    const guidRegex = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
+  const sharedSession = useMemo(() => getSession(), []);
 
-    if (fromUrl && guidRegex.test(fromUrl)) {
-      console.log("[Proveedor] proveedorId desde URL:", fromUrl);
-      localStorage.setItem("proveedorId", fromUrl);
-      setProveedorId(fromUrl);
+  // 1) Resolver proveedorId desde la sesión compartida (hr_session).
+  useEffect(() => {
+    const id = sharedSession?.subjectId || sharedSession?.proveedorId || null;
+    if (id) {
+      console.log("[Proveedor] proveedorId desde hr_session:", id);
+      setProveedorId(id);
     } else {
-      const stored = localStorage.getItem("proveedorId");
-      if (stored && guidRegex.test(stored)) {
-        console.log("[Proveedor] usando proveedorId desde localStorage:", stored);
-        setProveedorId(stored);
-      } else {
-        console.warn(
-          "[Proveedor] NO hay proveedorId ni en URL ni en localStorage"
-        );
-        setProveedorId(null);
-      }
+      console.warn("[Proveedor] NO hay proveedorId en hr_session");
+      setProveedorId(null);
     }
-  }, []);
+  }, [sharedSession]);
 
   // 2) Cargar datos del proveedor (nombre) y sus beneficios cuando ya tenemos proveedorId
   useEffect(() => {
