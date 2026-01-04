@@ -11,7 +11,7 @@ Scan scope: `clon/AdminBeneficiosFinalPublicado/src` (`.js/.jsx/.ts/.tsx`).
 - Importers: _none_
 
 ## src/hooks
-- References: 4
+- References: 5
 - Importers:
   - `components/AdminShell/pages/AprobacionesPage.jsx`
   - `components/AdminShell/useAdminShell.js`
@@ -42,7 +42,7 @@ Scan scope: `clon/AdminBeneficiosFinalPublicado/src` (`.js/.jsx/.ts/.tsx`).
   - `services/infoBoardService.js`
 
 ## src/utils
-- References: 5
+- References: 6
 - Importers:
   - `components/AdminShell/pages/ProveedoresPage.jsx`
   - `components/beneficio/FullForm.jsx`
