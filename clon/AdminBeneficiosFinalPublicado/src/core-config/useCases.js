@@ -1,9 +1,11 @@
 import {
+  authGateway,
   beneficioGateway,
   categoriaGateway,
   proveedorGateway,
   toqueBeneficioGateway,
 } from "./gateways";
+import { adminSessionStore } from "./sessionStores";
 import { loadBeneficiosList as loadBeneficiosListUseCase } from "../core/flujo/use-cases/LoadBeneficiosList";
 import { loadCategoriasList as loadCategoriasListUseCase } from "../core/flujo/use-cases/LoadCategoriasList";
 import { loadProveedoresList as loadProveedoresListUseCase } from "../core/flujo/use-cases/LoadProveedoresList";
@@ -13,6 +15,9 @@ import { loadToqueAnalytics as loadToqueAnalyticsUseCase } from "../core/flujo/u
 import { loadToqueSummary as loadToqueSummaryUseCase } from "../core/flujo/use-cases/LoadToqueSummary";
 import { saveBeneficio as saveBeneficioUseCase } from "../core/flujo/use-cases/SaveBeneficio";
 import { deleteBeneficio as deleteBeneficioUseCase } from "../core/flujo/use-cases/DeleteBeneficio";
+import { loginWithCredentials as loginWithCredentialsUseCase } from "../core/flujo/use-cases/LoginWithCredentials";
+import { loginWithToken as loginWithTokenUseCase } from "../core/flujo/use-cases/LoginWithToken";
+import { validateSessionAndAuthorize as validateSessionAndAuthorizeUseCase } from "../core/flujo/use-cases/ValidateSessionAndAuthorize";
 
 export const loadBeneficiosList = () =>
   loadBeneficiosListUseCase({ beneficioGateway });
@@ -48,3 +53,28 @@ export const saveBeneficio = ({ dto, editing }) =>
 
 export const deleteBeneficio = ({ beneficioId }) =>
   deleteBeneficioUseCase({ beneficioGateway, beneficioId });
+
+export const loginWithCredentials = ({ usuario, password, options }) =>
+  loginWithCredentialsUseCase({
+    authGateway,
+    sessionStore: adminSessionStore,
+    usuario,
+    password,
+    defaultRoles: ["Admin"],
+    options,
+  });
+
+export const loginWithToken = ({ token, options }) =>
+  loginWithTokenUseCase({
+    authGateway,
+    sessionStore: adminSessionStore,
+    token,
+    defaultRoles: ["Admin"],
+    options,
+  });
+
+export const validateSessionAndAuthorize = (options) =>
+  validateSessionAndAuthorizeUseCase({
+    sessionStore: adminSessionStore,
+    ...options,
+  });
