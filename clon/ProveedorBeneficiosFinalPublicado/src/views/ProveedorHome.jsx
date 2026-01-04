@@ -1,7 +1,7 @@
 // src/views/ProveedorHome.jsx
 import { useEffect, useState } from "react";
 import ProveedorBeneficioForm from "../proveedor/components/ProveedorBeneficioForm";
-import { BeneficioApi, ProveedorApi } from "../services/adminApi";
+import { getProveedorDetail, loadBeneficiosByProveedor } from "../core-config/useCases";
 import { providerSessionStore } from "../core-config/sessionStores";
 
 export default function ProveedorHome() {
@@ -16,11 +16,12 @@ export default function ProveedorHome() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const fromUrl = params.get("proveedorId");
+    const token = params.get("token");
     const guidRegex = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
 
     if (fromUrl && guidRegex.test(fromUrl)) {
       console.log("[Proveedor] proveedorId desde URL:", fromUrl);
-      providerSessionStore.setSession({ proveedorId: fromUrl });
+      providerSessionStore.setSession({ proveedorId: fromUrl, token });
       setProveedorId(fromUrl);
     } else {
       const storedSession = providerSessionStore.getSession();
@@ -54,7 +55,7 @@ export default function ProveedorHome() {
 
         // Nombre del proveedor para la cabecera
         try {
-          const prov = await ProveedorApi.get(proveedorId);
+          const prov = await getProveedorDetail(proveedorId);
           if (!cancel && prov) {
             setProveedorNombre(prov.nombre || prov.Nombre || "");
           }
@@ -63,7 +64,7 @@ export default function ProveedorHome() {
         }
 
         // Beneficios de este proveedor
-        const data = await BeneficioApi.listByProveedor(proveedorId);
+        const data = await loadBeneficiosByProveedor({ proveedorId });
         console.log("[Proveedor] beneficios recibidos:", data);
 
         if (!cancel) {

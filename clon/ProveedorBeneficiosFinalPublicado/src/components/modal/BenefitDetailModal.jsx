@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Api } from "../../services/api"; // ajusta extensión si tu bundler lo requiere
+import { getBeneficioDetail } from "../../core-config/useCases";
 import { extractImage, safeSrc, EMBED_PLACEHOLDER } from "../../utils/images";
 
 
@@ -39,7 +39,7 @@ useEffect(() => {
   let alive = true;
   (async () => {
     try {
-      const d = await Api.beneficios.obtener(id);
+      const d = await getBeneficioDetail(id);
       if (!alive) return;
       setDetail(d || null);
       setEstado({ loading: false, error: "" });

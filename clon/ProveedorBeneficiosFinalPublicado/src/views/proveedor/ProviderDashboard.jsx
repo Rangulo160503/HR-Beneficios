@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Api } from "../../services/api.js";
+import { deleteBeneficio, loadBeneficiosList } from "../../core-config/useCases";
 import { useNavigate } from "react-router-dom";
 
 export default function ProviderDashboard() {
@@ -27,7 +27,7 @@ export default function ProviderDashboard() {
     (async () => {
       setLoading(true);
       try {
-        const all = await Api.beneficios.listar(); // ← trae todo
+        const all = await loadBeneficiosList(); // ← trae todo
 
         // mapeo con tus nombres de campos reales
         const mapped = (all || []).map((b) => {
@@ -85,7 +85,7 @@ export default function ProviderDashboard() {
   async function onDelete(id) {
   if (!confirm("¿Eliminar este beneficio? Esta acción no se puede deshacer.")) return;
   try {
-    await Api.beneficios.eliminar(id);
+    await deleteBeneficio({ beneficioId: id });
     // Optimista: quita del estado sin recargar
     setBeneficios(prev => prev.filter(x => x.id !== id));
   } catch (e) {
