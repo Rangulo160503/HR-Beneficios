@@ -1,6 +1,6 @@
 // src/components/beneficio/CardBeneficio.jsx
 import React from "react";
-import { useBenefitCardImage } from "../../ui/hooks/useBenefitCardImage";
+import { useBenefitCardImage } from "../../hooks/useBenefitCardImage";
 
 export default function CardBeneficio({ item, onEdit, onDelete }) {
   const { containerRef, src } = useBenefitCardImage(item);
