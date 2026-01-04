@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ProveedorApi } from "../services/adminApi";
+import { providerSessionStore } from "../core-config/sessionStores";
 
 export default function ProviderLogin() {
   const navigate = useNavigate();
@@ -11,14 +12,7 @@ export default function ProviderLogin() {
   const token = useMemo(() => params.get("token")?.trim() || "", [params]);
 
   useEffect(() => {
-    const existing = (() => {
-      try {
-        const raw = localStorage.getItem("hr_proveedor_session");
-        return raw ? JSON.parse(raw) : null;
-      } catch {
-        return null;
-      }
-    })();
+    const existing = providerSessionStore.getSession();
     if (existing?.proveedorId && existing?.token) {
       navigate("/", { replace: true });
     }
@@ -51,7 +45,7 @@ export default function ProviderLogin() {
           token,
           tsLogin: Date.now(),
         };
-        localStorage.setItem("hr_proveedor_session", JSON.stringify(session));
+        providerSessionStore.setSession(session);
         navigate("/", { replace: true });
       } catch (err) {
         console.error("Login de proveedor falló", err);

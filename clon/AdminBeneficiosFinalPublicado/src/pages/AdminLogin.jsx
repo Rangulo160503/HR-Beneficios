@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { adminLogin } from "../services/authApi";
-import { setAuth } from "../utils/adminAuth";
+import { adminSessionStore } from "../core-config/sessionStores";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -18,12 +18,12 @@ export default function AdminLogin() {
     try {
       const { token, expiresAt, profile } = await adminLogin({ user, pass });
 
-setAuth({
-  access_token: token,                 // mantenemos el nombre interno para no romper el resto del admin
-  token_type: "Bearer",
-  expires_at: new Date(expiresAt).getTime(),
-  user: profile,
-});
+      adminSessionStore.setSession({
+        access_token: token, // mantenemos el nombre interno para no romper el resto del admin
+        token_type: "Bearer",
+        expires_at: new Date(expiresAt).getTime(),
+        user: profile,
+      });
 
       navigate("/admin", { replace: true });
     } catch (err) {

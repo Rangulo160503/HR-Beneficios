@@ -1,5 +1,5 @@
 // src/services/adminApi.js
-import { clearAuth, getAuth } from "../utils/adminAuth";
+import { adminSessionStore } from "../core-config/sessionStores";
 import { API_BASE } from "./apiBase";
 
 export class ApiError extends Error {
@@ -12,12 +12,12 @@ export class ApiError extends Error {
 }
 
 export function authHeader() {
-  const auth = getAuth();
+  const auth = adminSessionStore.getSession();
   if (!auth?.access_token) return {};
 
   const expiresAt = Number(auth.expires_at);
   if (Number.isFinite(expiresAt) && expiresAt <= Date.now()) {
-    clearAuth();
+    adminSessionStore.clearSession();
     return {};
   }
 
@@ -26,7 +26,7 @@ export function authHeader() {
 }
 
 function handleUnauthorized() {
-  clearAuth();
+  adminSessionStore.clearSession();
   if (typeof window !== "undefined") {
     window.location.replace("/admin/login");
   }

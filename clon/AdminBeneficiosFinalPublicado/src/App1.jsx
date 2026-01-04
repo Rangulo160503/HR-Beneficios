@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BeneficioApi, CategoriaApi, ProveedorApi } from "./services/adminApi";
 import { Users } from "lucide-react";
+import { LocalSessionStore } from "./core/infrastructure/session/LocalSessionStore";
 
 /* ====== Helpers ====== */
 const money = (v) => (v == null ? "" : Number(v).toLocaleString("es-CR"));
@@ -28,6 +29,7 @@ const keyOf = (prefix, id, label, idx) => {
 
 /* ====== Persistencia sidebar ====== */
 const LS_SIDEBAR = "admin.sidebar.collapsed";
+const sidebarStore = new LocalSessionStore(LS_SIDEBAR);
 
 const HR_PORTAL_IP = "http://10.30.100.94/";
 
@@ -121,15 +123,13 @@ export default function AdminShell() {
 
   // ===== Persistir estado del sidebar =====
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_SIDEBAR);
-      if (raw != null) setCollapsed(raw === "1");
-    } catch {}
+    const raw = sidebarStore.getSession();
+    if (raw != null) setCollapsed(raw === "1");
   }, []);
   const toggleCollapsedAndSave = () => {
     setCollapsed((prev) => {
       const next = !prev;
-      try { localStorage.setItem(LS_SIDEBAR, next ? "1" : "0"); } catch {}
+      sidebarStore.setSession(next ? "1" : "0");
       return next;
     });
   };

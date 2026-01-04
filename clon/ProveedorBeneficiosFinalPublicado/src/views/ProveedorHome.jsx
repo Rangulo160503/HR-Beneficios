@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import ProveedorBeneficioForm from "../proveedor/components/ProveedorBeneficioForm";
 import { BeneficioApi, ProveedorApi } from "../services/adminApi";
+import { providerSessionStore } from "../core-config/sessionStores";
 
 export default function ProveedorHome() {
   const [showForm, setShowForm] = useState(false);
@@ -10,7 +11,7 @@ export default function ProveedorHome() {
   const [beneficios, setBeneficios] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 1) Resolver proveedorId desde URL o localStorage (esto ya lo tenías, solo lo
+  // 1) Resolver proveedorId desde URL o SessionStore (esto ya lo tenías, solo lo
   // dejo integrado aquí para que quede todo en un solo archivo).
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -19,16 +20,19 @@ export default function ProveedorHome() {
 
     if (fromUrl && guidRegex.test(fromUrl)) {
       console.log("[Proveedor] proveedorId desde URL:", fromUrl);
-      localStorage.setItem("proveedorId", fromUrl);
+      providerSessionStore.setSession({ proveedorId: fromUrl });
       setProveedorId(fromUrl);
     } else {
-      const stored = localStorage.getItem("proveedorId");
-      if (stored && guidRegex.test(stored)) {
-        console.log("[Proveedor] usando proveedorId desde localStorage:", stored);
-        setProveedorId(stored);
+      const storedSession = providerSessionStore.getSession();
+      if (storedSession?.proveedorId && guidRegex.test(storedSession.proveedorId)) {
+        console.log(
+          "[Proveedor] usando proveedorId desde SessionStore:",
+          storedSession.proveedorId
+        );
+        setProveedorId(storedSession.proveedorId);
       } else {
         console.warn(
-          "[Proveedor] NO hay proveedorId ni en URL ni en localStorage"
+          "[Proveedor] NO hay proveedorId ni en URL ni en SessionStore"
         );
         setProveedorId(null);
       }
