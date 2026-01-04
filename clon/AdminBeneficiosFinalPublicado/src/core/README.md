@@ -15,6 +15,11 @@ Apps must remain independent. The core must not import React or router libraries
 
 ## Usage
 
+- UI can only call Flow (Flujo) use-cases.
+- Flow depends only on Abstracciones + Reglas.
+- Infrastructure implements Abstracciones and is injected into Flow.
+- UI cannot access HTTP or storage directly.
+
 - Instantiate a `LocalSessionStore` with an app-specific key.
 - Use `validateSessionAndAuthorize` to decide what to render:
   - `OK`
