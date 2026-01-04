@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Api } from "../../services/api";
+import { createBeneficioForProveedor, getBeneficioDetail, updateBeneficio } from "../../core-config/useCases";
+import { providerSessionStore } from "../../core-config/sessionStores";
 
 export default function BeneficioForm({ mode }) {
   const { id } = useParams();
@@ -32,7 +33,7 @@ export default function BeneficioForm({ mode }) {
     let cancel = false;
     (async () => {
       try {
-        const dto = await Api.beneficios.obtener(id);
+        const dto = await getBeneficioDetail(id);
         if (cancel) return;
         setForm({
           titulo: dto.titulo || "",
@@ -86,11 +87,18 @@ export default function BeneficioForm({ mode }) {
       };
 
       if (isEdit) {
-        await Api.beneficios.editar(id, payload);
+        await updateBeneficio({ beneficioId: id, dto: payload });
         alert("Beneficio actualizado");
         navigate(`/beneficios/${id}`);
       } else {
-        const creado = await Api.beneficios.agregar(payload);
+        const session = providerSessionStore.getSession();
+        const proveedorId = session?.proveedorId;
+        const token = session?.token;
+        const creado = await createBeneficioForProveedor({
+          proveedorId,
+          token,
+          dto: payload,
+        });
         // si el API devuelve {id}/Guid, ajusta según tu respuesta
         const nuevoId = creado?.beneficioId || creado?.id || creado;
         alert("Beneficio creado");

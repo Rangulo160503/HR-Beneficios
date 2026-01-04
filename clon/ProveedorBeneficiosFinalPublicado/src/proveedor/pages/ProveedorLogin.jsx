@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Api } from "../../services/api";
+import { validateProveedorLogin } from "../../core-config/useCases";
 import { providerSessionStore } from "../../core-config/sessionStores";
 
 const guidRegex = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
@@ -13,6 +13,7 @@ export default function ProveedorLogin() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const proveedorId = params.get("proveedorId");
+    const token = params.get("token");
 
     if (!proveedorId || !guidRegex.test(proveedorId)) {
       setEstado("error");
@@ -25,11 +26,12 @@ export default function ProveedorLogin() {
     const validarProveedor = async () => {
       try {
         setMensaje("Validando tu código QR…");
-        const resp = await Api.proveedores.validarLogin(proveedorId);
+        const resp = await validateProveedorLogin(proveedorId);
 
         if (resp?.ok) {
           providerSessionStore.setSession({
             proveedorId,
+            token,
             roles: ["Proveedor"],
           });
           setEstado("ok");

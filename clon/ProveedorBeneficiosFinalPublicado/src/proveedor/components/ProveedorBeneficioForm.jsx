@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BeneficioApi, CategoriaApi } from "../../services/adminApi";
+import { createBeneficioForProveedor, loadCategoriasList } from "../../core-config/useCases";
 import { providerSessionStore } from "../../core-config/sessionStores";
 
 export default function ProveedorBeneficioForm({
@@ -29,7 +29,7 @@ export default function ProveedorBeneficioForm({
     let cancel = false;
     (async () => {
       try {
-        const data = await CategoriaApi.list();
+        const data = await loadCategoriasList();
         if (!cancel) setCategorias(data || []);
       } catch (error) {
         console.error("Error cargando categorías", error);
@@ -78,7 +78,9 @@ export default function ProveedorBeneficioForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const proveedorId = providerSessionStore.getSession()?.proveedorId;
+    const session = providerSessionStore.getSession();
+    const proveedorId = session?.proveedorId;
+    const token = session?.token;
     const guidRegex = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
 
     if (!proveedorId || !guidRegex.test(proveedorId)) {
@@ -108,7 +110,7 @@ export default function ProveedorBeneficioForm({
       };
       console.log("[Proveedor] payload a enviar:", payload);
 
-      await BeneficioApi.create(payload);
+      await createBeneficioForProveedor({ proveedorId, token, dto: payload });
       alert(
         "El beneficio fue enviado para aprobación. Un administrador debe aprobarlo antes de que aparezca publicado."
       );
