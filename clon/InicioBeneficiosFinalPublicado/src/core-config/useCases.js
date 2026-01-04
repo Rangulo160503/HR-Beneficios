@@ -1,4 +1,5 @@
 import {
+  authGateway,
   beneficioGateway,
   categoriaGateway,
   proveedorGateway,
@@ -7,6 +8,7 @@ import {
   rifaParticipacionGateway,
   contactoGateway,
 } from "./gateways";
+import { landingSessionStore } from "./sessionStores";
 import { loadBeneficiosList as loadBeneficiosListUseCase } from "../core/flujo/use-cases/LoadBeneficiosList";
 import { loadCategoriasList as loadCategoriasListUseCase } from "../core/flujo/use-cases/LoadCategoriasList";
 import { loadProveedoresList as loadProveedoresListUseCase } from "../core/flujo/use-cases/LoadProveedoresList";
@@ -16,6 +18,8 @@ import { loadBeneficioImagenes as loadBeneficioImagenesUseCase } from "../core/f
 import { registerToqueBeneficio as registerToqueBeneficioUseCase } from "../core/flujo/use-cases/RegisterToqueBeneficio";
 import { createRifaParticipacion as createRifaParticipacionUseCase } from "../core/flujo/use-cases/CreateRifaParticipacion";
 import { submitContacto as submitContactoUseCase } from "../core/flujo/use-cases/SubmitContacto";
+import { loginWithCredentials as loginWithCredentialsUseCase } from "../core/flujo/use-cases/LoginWithCredentials";
+import { loginWithToken as loginWithTokenUseCase } from "../core/flujo/use-cases/LoginWithToken";
 
 export const loadBeneficiosList = (options) =>
   loadBeneficiosListUseCase({ beneficioGateway, options });
@@ -43,3 +47,22 @@ export const createRifaParticipacion = ({ dto, options }) =>
 
 export const submitContacto = ({ url, dto, options }) =>
   submitContactoUseCase({ contactoGateway, url, dto, options });
+
+export const loginWithCredentials = ({ usuario, password, normalizeSession, options } = {}) =>
+  loginWithCredentialsUseCase({
+    authGateway,
+    sessionStore: landingSessionStore,
+    usuario,
+    password,
+    normalizeSession,
+    options,
+  });
+
+export const loginWithToken = ({ token, normalizeSession, options } = {}) =>
+  loginWithTokenUseCase({
+    authGateway,
+    sessionStore: landingSessionStore,
+    token,
+    normalizeSession,
+    options,
+  });

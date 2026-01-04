@@ -25,6 +25,10 @@ export class LocalSessionStore {
     }
   }
 
+  save(session) {
+    this.setSession(session);
+  }
+
   clearSession() {
     if (!this.storage) return;
     try {
