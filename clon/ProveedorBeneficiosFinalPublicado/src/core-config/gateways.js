@@ -5,6 +5,7 @@ import { BeneficioGatewayFetch } from "../core/infrastructure/http/BeneficioGate
 import { CategoriaGatewayFetch } from "../core/infrastructure/http/CategoriaGatewayFetch";
 import { ProveedorGatewayFetch } from "../core/infrastructure/http/ProveedorGatewayFetch";
 import { BeneficioImagenGatewayFetch } from "../core/infrastructure/http/BeneficioImagenGatewayFetch";
+import { AuthGatewayFetch } from "../core/infrastructure/auth/AuthGatewayFetch";
 
 const fetchClient = createFetchClient({
   baseUrl: API_BASE,
@@ -20,3 +21,8 @@ export const beneficioGateway = new BeneficioGatewayFetch(fetchClient);
 export const categoriaGateway = new CategoriaGatewayFetch(fetchClient);
 export const proveedorGateway = new ProveedorGatewayFetch(fetchClient);
 export const beneficioImagenGateway = new BeneficioImagenGatewayFetch(fetchClient);
+export const authGateway = new AuthGatewayFetch({
+  baseUrl: API_BASE,
+  credentialsPath: "/api/AdminAuth/login",
+  tokenPath: "/api/Proveedor/login",
+});
