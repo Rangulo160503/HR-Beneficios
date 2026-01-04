@@ -9,6 +9,8 @@ import {
 import { providerSessionStore } from "../core-config/sessionStores";
 
 const validateProviderSession = (session) => Boolean(session?.proveedorId);
+const selectProviderRoles = (session) =>
+  session?.roles || session?.user?.roles || session?.user?.Roles || [];
 
 export default function Gate() {
   const [status, setStatus] = useState(SessionStatus.OK);
@@ -19,6 +21,8 @@ export default function Gate() {
     const checkSession = async () => {
       const result = await validateSessionAndAuthorize({
         sessionStore: providerSessionStore,
+        requiredRoles: ["Proveedor"],
+        roleSelector: selectProviderRoles,
         sessionValidator: validateProviderSession,
       });
 

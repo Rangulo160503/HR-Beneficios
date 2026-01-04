@@ -31,7 +31,7 @@ import {
   SessionStatus,
 } from "./core/flujo/use-cases/ValidateSessionAndAuthorize";
 
-const sessionStore = new LocalSessionStore("hr_admin_auth");
+const sessionStore = new LocalSessionStore("hr_admin_session");
 
 const result = await validateSessionAndAuthorize({
   sessionStore,

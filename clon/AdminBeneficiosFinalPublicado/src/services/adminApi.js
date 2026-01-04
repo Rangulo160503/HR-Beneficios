@@ -28,7 +28,7 @@ export function authHeader() {
 function handleUnauthorized() {
   adminSessionStore.clearSession();
   if (typeof window !== "undefined") {
-    window.location.replace("/admin/login");
+    window.location.replace("/login");
   }
 }
 

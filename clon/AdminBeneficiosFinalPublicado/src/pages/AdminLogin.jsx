@@ -18,11 +18,14 @@ export default function AdminLogin() {
     try {
       const { token, expiresAt, profile } = await adminLogin({ user, pass });
 
+      const roles = profile?.roles || profile?.Roles || ["Admin"];
+
       adminSessionStore.setSession({
         access_token: token, // mantenemos el nombre interno para no romper el resto del admin
         token_type: "Bearer",
         expires_at: new Date(expiresAt).getTime(),
         user: profile,
+        roles,
       });
 
       navigate("/admin", { replace: true });
