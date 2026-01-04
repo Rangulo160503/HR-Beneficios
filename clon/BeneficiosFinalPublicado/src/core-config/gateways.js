@@ -1,5 +1,6 @@
 import { API_BASE } from "../services/apiBase";
 import { clientSessionStore } from "./sessionStores";
+import { AuthGatewayFetch } from "../core/infrastructure/auth/AuthGatewayFetch";
 import { createFetchClient } from "../core/infrastructure/http/createFetchClient";
 import { BeneficioGatewayFetch } from "../core/infrastructure/http/BeneficioGatewayFetch";
 import { CategoriaGatewayFetch } from "../core/infrastructure/http/CategoriaGatewayFetch";
@@ -24,3 +25,8 @@ export const proveedorGateway = new ProveedorGatewayFetch(fetchClient);
 export const toqueBeneficioGateway = new ToqueBeneficioGatewayFetch(fetchClient);
 export const beneficioImagenGateway = new BeneficioImagenGatewayFetch(fetchClient);
 export const rifaParticipacionGateway = new RifaParticipacionGatewayFetch(fetchClient);
+export const authGateway = new AuthGatewayFetch({
+  baseUrl: API_BASE,
+  credentialsPath: "/api/AdminAuth/login",
+  tokenPath: "/api/Proveedor/login",
+});

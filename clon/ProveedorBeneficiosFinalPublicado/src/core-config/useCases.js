@@ -1,9 +1,11 @@
 import {
+  authGateway,
   beneficioGateway,
   categoriaGateway,
   proveedorGateway,
   beneficioImagenGateway,
 } from "./gateways";
+import { providerSessionStore } from "./sessionStores";
 import { loadBeneficiosList as loadBeneficiosListUseCase } from "../core/flujo/use-cases/LoadBeneficiosList";
 import { loadBeneficiosByProveedor as loadBeneficiosByProveedorUseCase } from "../core/flujo/use-cases/LoadBeneficiosByProveedor";
 import { loadCategoriasList as loadCategoriasListUseCase } from "../core/flujo/use-cases/LoadCategoriasList";
@@ -23,6 +25,9 @@ import { approveBeneficio as approveBeneficioUseCase } from "../core/flujo/use-c
 import { rejectBeneficio as rejectBeneficioUseCase } from "../core/flujo/use-cases/RejectBeneficio";
 import { setBeneficioDisponible as setBeneficioDisponibleUseCase } from "../core/flujo/use-cases/SetBeneficioDisponible";
 import { validateProveedorLogin as validateProveedorLoginUseCase } from "../core/flujo/use-cases/ValidateProveedorLogin";
+import { loginWithCredentials as loginWithCredentialsUseCase } from "../core/flujo/use-cases/LoginWithCredentials";
+import { loginWithToken as loginWithTokenUseCase } from "../core/flujo/use-cases/LoginWithToken";
+import { validateSessionAndAuthorize as validateSessionAndAuthorizeUseCase } from "../core/flujo/use-cases/ValidateSessionAndAuthorize";
 
 export const loadBeneficiosList = (options) =>
   loadBeneficiosListUseCase({ beneficioGateway, options });
@@ -80,3 +85,28 @@ export const setBeneficioDisponible = ({ beneficioId, disponible, options }) =>
 
 export const validateProveedorLogin = (proveedorId, options) =>
   validateProveedorLoginUseCase({ proveedorGateway, proveedorId, options });
+
+export const loginWithCredentials = ({ usuario, password, options }) =>
+  loginWithCredentialsUseCase({
+    authGateway,
+    sessionStore: providerSessionStore,
+    usuario,
+    password,
+    defaultRoles: ["Proveedor"],
+    options,
+  });
+
+export const loginWithToken = ({ token, options }) =>
+  loginWithTokenUseCase({
+    authGateway,
+    sessionStore: providerSessionStore,
+    token,
+    defaultRoles: ["Proveedor"],
+    options,
+  });
+
+export const validateSessionAndAuthorize = (options) =>
+  validateSessionAndAuthorizeUseCase({
+    sessionStore: providerSessionStore,
+    ...options,
+  });
