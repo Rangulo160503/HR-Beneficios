@@ -32,7 +32,6 @@ function RequireAdminSession({ children }) {
   return <RequireAdminAuth>{children}</RequireAdminAuth>;
 }
 
-// ✅ La ruta "/" decide qué hacer (sin redirects escondidos en un guard)
 function ProviderGate() {
   const session = useStoredSession("hr_proveedor_session");
 
@@ -67,7 +66,6 @@ export default function App() {
         {/* Home decide según sesión */}
         <Route path="/" element={<ProviderGate />} />
 
-        {/* ✅ Se mantiene como pediste */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
