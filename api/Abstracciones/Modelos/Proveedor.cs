@@ -38,4 +38,21 @@ namespace Abstracciones.Modelos
     {
         public string Token { get; set; } = string.Empty;
     }
+
+    public class ProveedorLoginResponse
+    {
+        public Guid ProveedorId { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string Role { get; set; } = "Proveedor";
+        public string Access_Token { get; set; } = string.Empty;
+        public string Token_Type { get; set; } = "Bearer";
+        public long Expires_At { get; set; }
+    }
+
+    public class ProveedorSesionResponse
+    {
+        public Guid ProveedorId { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string Role { get; set; } = "Proveedor";
+    }
 }

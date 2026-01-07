@@ -9,7 +9,7 @@ export const SessionStatus = Object.freeze({
 });
 
 const defaultRoleSelector = (session) =>
-  session?.roles || session?.user?.roles || [];
+  session?.roles || session?.user?.roles || (session?.role ? [session.role] : []);
 
 const defaultSessionValidator = (session) => {
   if (!session || typeof session !== "object") return false;
@@ -31,6 +31,7 @@ export async function validateSessionAndAuthorize({
   requiredRoles = [],
   roleSelector = defaultRoleSelector,
   sessionValidator = defaultSessionValidator,
+  sessionVerifier,
 } = {}) {
   try {
     const session = sessionStore?.getSession?.() ?? null;
@@ -42,6 +43,14 @@ export async function validateSessionAndAuthorize({
     const roles = roleSelector(session) || [];
     if (!authorizeRole(roles, requiredRoles)) {
       return { status: SessionStatus.NOT_AUTHORIZED, session };
+    }
+
+    if (sessionVerifier) {
+      const isValid = await sessionVerifier(session);
+      if (!isValid) {
+        sessionStore?.clearSession?.();
+        return { status: SessionStatus.SHOW_LOGIN, session: null };
+      }
     }
 
     return { status: SessionStatus.OK, session };

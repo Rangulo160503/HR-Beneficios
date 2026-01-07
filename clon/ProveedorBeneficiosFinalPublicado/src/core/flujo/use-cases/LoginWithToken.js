@@ -1,19 +1,33 @@
-const normalizeTokenSession = ({ token, response, defaultRoles = [] } = {}) => {
-  const proveedor = response?.proveedor || response?.provider || null;
+const normalizeTokenSession = ({ response, defaultRoles = [] } = {}) => {
   const proveedorId =
-    proveedor?.proveedorId ||
-    proveedor?.ProveedorId ||
-    proveedor?.id ||
-    proveedor?.Id ||
     response?.proveedorId ||
-    response?.ProveedorId;
+    response?.ProveedorId ||
+    response?.proveedor?.proveedorId ||
+    response?.proveedor?.ProveedorId ||
+    response?.provider?.id ||
+    response?.provider?.Id;
 
   if (!proveedorId) return null;
 
+  const accessToken =
+    response?.access_token ||
+    response?.Access_Token ||
+    response?.accessToken ||
+    response?.token ||
+    null;
+
+  if (!accessToken) return null;
+
+  const tokenType = response?.token_type || response?.Token_Type || "Bearer";
+  const role = response?.role || response?.Role || "Proveedor";
+
   return {
-    token,
+    role,
     proveedorId,
-    user: proveedor,
+    proveedorNombre: response?.nombre || response?.Nombre || "",
+    access_token: accessToken,
+    token_type: tokenType,
+    expires_at: response?.expires_at || response?.Expires_At || null,
     roles: defaultRoles,
   };
 };
@@ -36,7 +50,7 @@ export async function loginWithToken({
       return { ok: false, message: response?.mensaje || "Token inválido." };
     }
 
-    const session = normalizeTokenSession({ token, response, defaultRoles });
+    const session = normalizeTokenSession({ response, defaultRoles });
     if (!session) {
       return { ok: false, message: "Token inválido." };
     }

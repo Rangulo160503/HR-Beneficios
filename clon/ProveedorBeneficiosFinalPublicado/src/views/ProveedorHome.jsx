@@ -11,33 +11,10 @@ export default function ProveedorHome() {
   const [beneficios, setBeneficios] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 1) Resolver proveedorId desde URL o SessionStore (esto ya lo tenías, solo lo
-  // dejo integrado aquí para que quede todo en un solo archivo).
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const fromUrl = params.get("proveedorId");
-    const token = params.get("token");
-    const guidRegex = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
-
-    if (fromUrl && guidRegex.test(fromUrl)) {
-      console.log("[Proveedor] proveedorId desde URL:", fromUrl);
-      providerSessionStore.setSession({ proveedorId: fromUrl, token });
-      setProveedorId(fromUrl);
-    } else {
-      const storedSession = providerSessionStore.getSession();
-      if (storedSession?.proveedorId && guidRegex.test(storedSession.proveedorId)) {
-        console.log(
-          "[Proveedor] usando proveedorId desde SessionStore:",
-          storedSession.proveedorId
-        );
-        setProveedorId(storedSession.proveedorId);
-      } else {
-        console.warn(
-          "[Proveedor] NO hay proveedorId ni en URL ni en SessionStore"
-        );
-        setProveedorId(null);
-      }
-    }
+    const storedSession = providerSessionStore.getSession();
+    setProveedorId(storedSession?.proveedorId ?? null);
+    setProveedorNombre(storedSession?.proveedorNombre ?? "");
   }, []);
 
   // 2) Cargar datos del proveedor (nombre) y sus beneficios cuando ya tenemos proveedorId

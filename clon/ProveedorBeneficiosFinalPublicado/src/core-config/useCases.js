@@ -108,5 +108,14 @@ export const loginWithToken = ({ token, options }) =>
 export const validateSessionAndAuthorize = (options) =>
   validateSessionAndAuthorizeUseCase({
     sessionStore: providerSessionStore,
+    sessionVerifier: options?.sessionVerifier
+      ?? (async () => {
+        try {
+          await proveedorGateway.me();
+          return true;
+        } catch (error) {
+          return false;
+        }
+      }),
     ...options,
   });

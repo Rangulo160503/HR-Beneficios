@@ -33,11 +33,29 @@ namespace API.Controllers
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
 
-            var esValido = await _beneficioFlujo.ValidarTokenBadge(proveedorId, token);
-            if (!esValido)
-                return Unauthorized("Token inválido o vencido.");
+            if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Proveedor"))
+            {
+                var claimId = User.FindFirst("proveedorId")?.Value;
+                if (!Guid.TryParse(claimId, out var claimProveedorId))
+                {
+                    return Unauthorized("Token inválido o vencido.");
+                }
 
-            req.ProveedorId = proveedorId;
+                req.ProveedorId = claimProveedorId;
+            }
+            else
+            {
+                if (proveedorId == Guid.Empty || string.IsNullOrWhiteSpace(token))
+                {
+                    return Unauthorized("Token inválido o vencido.");
+                }
+
+                var esValido = await _beneficioFlujo.ValidarTokenBadge(proveedorId, token);
+                if (!esValido)
+                    return Unauthorized("Token inválido o vencido.");
+
+                req.ProveedorId = proveedorId;
+            }
 
             var id = await _beneficioFlujo.Agregar(req);
             var creado = await _beneficioFlujo.Obtener(id);

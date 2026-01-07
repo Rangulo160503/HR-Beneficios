@@ -13,5 +13,6 @@ namespace Abstracciones.Interfaces.API
         Task<IActionResult> Obtener();
         Task<IActionResult> Obtener(Guid Id);
         Task<IActionResult> Login(ProveedorLoginRequest request);
+        Task<IActionResult> Me();
     }
 }

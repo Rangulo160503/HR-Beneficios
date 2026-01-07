@@ -93,10 +93,8 @@ export default function BeneficioForm({ mode }) {
       } else {
         const session = providerSessionStore.getSession();
         const proveedorId = session?.proveedorId;
-        const token = session?.token;
         const creado = await createBeneficioForProveedor({
           proveedorId,
-          token,
           dto: payload,
         });
         // si el API devuelve {id}/Guid, ajusta según tu respuesta

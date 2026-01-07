@@ -4,6 +4,7 @@ import {
   loginWithToken,
   validateSessionAndAuthorize,
 } from "../../core-config/useCases";
+import { isSessionExpired } from "../../core/reglas/session/isSessionExpired";
 
 export default function LoginFormScreen() {
   const navigate = useNavigate();
@@ -14,6 +15,10 @@ export default function LoginFormScreen() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const allowCredentials = false;
+  const selectProviderRoles = (session) =>
+    session?.roles || session?.user?.roles || session?.user?.Roles || (session?.role ? [session.role] : []);
+  const validateProviderSession = (session) =>
+    Boolean(session?.proveedorId && session?.access_token) && !isSessionExpired(session);
 
   useEffect(() => {
     setToken(initialToken);
@@ -25,6 +30,8 @@ export default function LoginFormScreen() {
     const checkSession = async () => {
       const result = await validateSessionAndAuthorize({
         requiredRoles: ["Proveedor"],
+        roleSelector: selectProviderRoles,
+        sessionValidator: validateProviderSession,
       });
 
       if (!active) return;

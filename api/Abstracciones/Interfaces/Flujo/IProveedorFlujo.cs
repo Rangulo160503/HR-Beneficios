@@ -16,5 +16,7 @@ namespace Abstracciones.Interfaces.Flujo
         Task<Guid> Eliminar(Guid Id);
         Task<bool> ExisteProveedor(Guid id);
         Task<ProveedorDetalle?> ObtenerPorToken(string token);
+        Task<ProveedorLoginResponse> LoginPorToken(ProveedorLoginRequest request);
+        Task<ProveedorSesionResponse?> ValidarSesionProveedor(Guid proveedorId);
     }
 }

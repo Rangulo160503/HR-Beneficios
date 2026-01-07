@@ -7,7 +7,7 @@ using Microsoft.Data.SqlClient;
 
 namespace API.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ProveedorController : ControllerBase, IProveedorController
@@ -23,6 +23,7 @@ namespace API.Controllers
 
         #region Operaciones
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Agregar([FromBody] ProveedorRequest proveedor)
         {
             if (string.IsNullOrWhiteSpace(proveedor?.Nombre))
@@ -35,6 +36,7 @@ namespace API.Controllers
         }
 
         [HttpPut("{Id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Editar([FromRoute] Guid Id, [FromBody] ProveedorRequest proveedor)
         {
             // Validación de entrada
@@ -59,6 +61,7 @@ namespace API.Controllers
         }
 
         [HttpDelete("{Id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Eliminar([FromRoute] Guid Id)
         {
             var actual = await _proveedorFlujo.Obtener(Id);
@@ -95,9 +98,16 @@ namespace API.Controllers
         }
 
         [HttpGet("validar-login/{Id:guid}")]
+        [Authorize(Roles = "Proveedor")]
         public async Task<IActionResult> ValidarLogin([FromRoute] Guid Id)
         {
-            var existe = await _proveedorFlujo.ExisteProveedor(Id);
+            var claimId = User.FindFirst("proveedorId")?.Value;
+            if (!Guid.TryParse(claimId, out var proveedorId) || proveedorId != Id)
+            {
+                return Unauthorized(new { ok = false, mensaje = "Token inválido." });
+            }
+
+            var existe = await _proveedorFlujo.ExisteProveedor(proveedorId);
 
             if (!existe)
                 return NotFound(new { ok = false, mensaje = "QR inválido o proveedor no encontrado." });
@@ -106,21 +116,40 @@ namespace API.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] ProveedorLoginRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Token))
                 return BadRequest(new { ok = false, mensaje = "Token inválido." });
 
-            var proveedor = await _proveedorFlujo.ObtenerPorToken(request.Token);
-
-            if (proveedor == null || proveedor.ProveedorId == Guid.Empty)
-                return Unauthorized(new { ok = false, mensaje = "QR inválido o expirado." });
-
-            return Ok(new
+            try
             {
-                ok = true,
-                proveedor
-            });
+                var login = await _proveedorFlujo.LoginPorToken(request);
+                return Ok(login);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new { ok = false, mensaje = "Token inválido." });
+            }
+        }
+
+        [HttpGet("me")]
+        [Authorize(Roles = "Proveedor")]
+        public async Task<IActionResult> Me()
+        {
+            var claimId = User.FindFirst("proveedorId")?.Value;
+            if (!Guid.TryParse(claimId, out var proveedorId))
+            {
+                return Unauthorized(new { ok = false, mensaje = "Token inválido." });
+            }
+
+            var sesion = await _proveedorFlujo.ValidarSesionProveedor(proveedorId);
+            if (sesion is null)
+            {
+                return Unauthorized(new { ok = false, mensaje = "Token inválido." });
+            }
+
+            return Ok(sesion);
         }
         #endregion
 

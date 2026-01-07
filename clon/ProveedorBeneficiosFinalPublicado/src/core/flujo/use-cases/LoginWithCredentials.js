@@ -16,11 +16,11 @@ const normalizeCredentialsSession = (response, defaultRoles = []) => {
 
   return {
     access_token: token,
-    token,
     token_type: response.tokenType || response.token_type || "Bearer",
     expires_at: parseExpiresAt(response.expiresAt || response.expires_at),
     user: profile,
     roles: Array.isArray(roles) ? roles : defaultRoles,
+    role: Array.isArray(roles) && roles.length > 0 ? roles[0] : undefined,
   };
 };
 

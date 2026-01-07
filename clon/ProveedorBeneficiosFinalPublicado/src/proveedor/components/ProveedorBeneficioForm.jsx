@@ -80,7 +80,6 @@ export default function ProveedorBeneficioForm({
 
     const session = providerSessionStore.getSession();
     const proveedorId = session?.proveedorId;
-    const token = session?.token;
     const guidRegex = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
 
     if (!proveedorId || !guidRegex.test(proveedorId)) {
@@ -110,7 +109,7 @@ export default function ProveedorBeneficioForm({
       };
       console.log("[Proveedor] payload a enviar:", payload);
 
-      await createBeneficioForProveedor({ proveedorId, token, dto: payload });
+      await createBeneficioForProveedor({ proveedorId, dto: payload });
       alert(
         "El beneficio fue enviado para aprobación. Un administrador debe aprobarlo antes de que aparezca publicado."
       );

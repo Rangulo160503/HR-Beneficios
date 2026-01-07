@@ -26,4 +26,8 @@ export class ProveedorGatewayFetch {
   validateLogin(id, options = {}) {
     return this.client.request(`/api/Proveedor/validar-login/${id}`, options);
   }
+
+  me(options = {}) {
+    return this.client.request("/api/Proveedor/me", options);
+  }
 }

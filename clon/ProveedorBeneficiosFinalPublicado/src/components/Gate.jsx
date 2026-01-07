@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import ProveedorHome from "../views/ProveedorHome";
 import NotAuthorized from "./NotAuthorized";
 import {
@@ -7,13 +7,18 @@ import {
   validateSessionAndAuthorize,
 } from "../core/flujo/use-cases/ValidateSessionAndAuthorize";
 import { providerSessionStore } from "../core-config/sessionStores";
+import { isSessionExpired } from "../core/reglas/session/isSessionExpired";
 
-const validateProviderSession = (session) => Boolean(session?.proveedorId);
+const validateProviderSession = (session) =>
+  Boolean(session?.proveedorId && session?.access_token) && !isSessionExpired(session);
 const selectProviderRoles = (session) =>
-  session?.roles || session?.user?.roles || session?.user?.Roles || [];
+  session?.roles || session?.user?.roles || session?.user?.Roles || (session?.role ? [session.role] : []);
 
 export default function Gate() {
   const [status, setStatus] = useState(SessionStatus.OK);
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const tokenFromUrl = params.get("token");
 
   useEffect(() => {
     let active = true;
@@ -38,6 +43,11 @@ export default function Gate() {
   }, []);
 
   if (status === SessionStatus.SHOW_LOGIN) {
+    if (tokenFromUrl) {
+      return (
+        <Navigate to={`/login?token=${encodeURIComponent(tokenFromUrl)}`} replace />
+      );
+    }
     return <Navigate to="/login" replace />;
   }
 
