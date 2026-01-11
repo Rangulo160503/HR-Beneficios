@@ -13,8 +13,11 @@ export class ToqueBeneficioGatewayFetch {
   }
 
   resumen(range = "1W", options = {}) {
-    return this.client.request(`/api/ToqueBeneficio/resumen?range=${range}`, options);
-  }
+  console.count("CALL ToqueBeneficio.resumen");
+  console.trace("TRACE ToqueBeneficio.resumen");
+  return this.client.request(`/api/ToqueBeneficio/resumen?range=${range}`, options);
+}
+
 
   registrar(beneficioId, origen, options = {}) {
     return this.client.request("/api/ToqueBeneficio", {

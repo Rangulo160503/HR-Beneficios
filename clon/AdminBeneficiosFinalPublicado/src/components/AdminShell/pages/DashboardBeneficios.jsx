@@ -132,7 +132,27 @@ export default function DashboardBeneficios({
           beneficios: baseBenefits,
         });
         setTouchSummary(summary);
-        accionesBeneficios?.setItems?.(merged);
+
+accionesBeneficios?.setItems?.((prev = []) => {
+  // Si el backend te manda merged con los toques, creamos un mapa por id
+  const byId = new Map((merged ?? []).map(b => [b.beneficioId ?? b.id, b]));
+
+  // Retornamos la misma lista, mismos objetos base, pero parchando solo los campos de toques
+  return prev.map((b) => {
+    const id = b.beneficioId ?? b.id;
+    const next = byId.get(id);
+    if (!next) return b;
+
+    // 👇 Solo copiar lo que afecta “contador”, NO reescribir todo el beneficio
+    return {
+      ...b,
+      toquesTotal: next.toquesTotal ?? next.toques ?? b.toquesTotal,
+      // si hay más métricas, solo esas:
+      // toquesSemana: next.toquesSemana ?? b.toquesSemana,
+      // ultimoToque: next.ultimoToque ?? b.ultimoToque,
+    };
+  });
+});
       } catch (err) {
         console.error("No se pudo cargar el resumen de toques", err);
       }
