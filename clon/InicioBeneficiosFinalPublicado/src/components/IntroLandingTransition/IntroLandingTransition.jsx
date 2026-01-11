@@ -9,48 +9,49 @@ import "./IntroLandingTransition.css";
 const MOTION_DURATION = 900;
 
 export default function IntroLandingTransition({ accessOptions, onOpenPreview }) {
-  const [stage, setStage] = useState("intro");
+  const [stage, setStage] = useState("intro");          // intro | transition | landing
   const [overlayActive, setOverlayActive] = useState(false);
   const [playFlip, setPlayFlip] = useState(false);
   const [backgroundPhase, setBackgroundPhase] = useState("intro");
 
-  const introCardRef = useRef(null);
   const landingCardRef = useRef(null);
   const wrapRef = useRef(null);
 
   useEffect(() => {
     if (stage !== "transition") return;
 
-    const first = introCardRef.current?.getBoundingClientRect();
     const last = landingCardRef.current?.getBoundingClientRect();
-    if (!first || !last) {
+    const wrapEl = wrapRef.current;
+
+    if (!last || !wrapEl) {
       setStage("landing");
       return;
     }
 
-    const dx = first.left - last.left;
-    const dy = first.top - last.top;
-    const sx = first.width / last.width;
-    const sy = first.height / last.height;
-
-    const wrapEl = wrapRef.current;
-    if (!wrapEl) return;
-
+    // 1️⃣ Activamos overlay y fondo
     setOverlayActive(true);
     setBackgroundPhase("fade");
 
+    // 2️⃣ Fijamos tamaño final (estable)
     wrapEl.style.width = `${last.width}px`;
     wrapEl.style.height = `${last.height}px`;
     wrapEl.style.transformOrigin = "top left";
     wrapEl.style.transition = "none";
-    wrapEl.style.transform = `translate(${last.left}px, ${last.top}px) translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
 
+    // 3️⃣ Posición inicial: ARRIBA, fuera de pantalla
+    const startLeft = last.left;
+    const startTop = -last.height - 40;
+
+    wrapEl.style.transform = `translate(${startLeft}px, ${startTop}px)`;
+
+    // 4️⃣ Siguiente frame → bajada animada + flip
     requestAnimationFrame(() => {
       wrapEl.style.transition = `transform ${MOTION_DURATION}ms cubic-bezier(.16,1,.3,1)`;
       wrapEl.style.transform = `translate(${last.left}px, ${last.top}px)`;
       setPlayFlip(true);
     });
 
+    // 5️⃣ Finalizar transición
     const timer = setTimeout(() => {
       setStage("landing");
       setOverlayActive(false);
@@ -73,7 +74,6 @@ export default function IntroLandingTransition({ accessOptions, onOpenPreview })
             setStage("transition");
           }
         }}
-        cardRef={introCardRef}
       />
 
       {stage !== "intro" && (
