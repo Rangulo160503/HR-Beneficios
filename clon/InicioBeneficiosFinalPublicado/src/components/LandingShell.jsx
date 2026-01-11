@@ -2,25 +2,30 @@ import { useState } from "react";
 import IntroLandingTransition from "./IntroLandingTransition/IntroLandingTransition";
 import EpicPreview from "./EpicPreview";
 
+const TARGET = import.meta.env.VITE_PORTAL_TARGET || "local";
+
+const cfg = {
+  local: {
+    colaboradores: import.meta.env.VITE_CLIENT_PORTAL_BASE_LOCAL || "http://localhost:5173",
+    proveedores: import.meta.env.VITE_PROV_PORTAL_BASE_LOCAL || "http://localhost:5173",
+    admin: import.meta.env.VITE_ADMIN_PORTAL_BASE_LOCAL || "http://localhost:5174",
+  },
+  cloud: {
+    colaboradores: import.meta.env.VITE_CLIENT_PORTAL_BASE_CLOUD,
+    proveedores: import.meta.env.VITE_PROV_PORTAL_BASE_CLOUD,
+    admin: import.meta.env.VITE_ADMIN_PORTAL_BASE_CLOUD,
+  },
+};
+
 export default function LandingShell() {
   const [previewOpen, setPreviewOpen] = useState(false);
 
+  const base = cfg[TARGET] ?? cfg.local;
+
   const accessOptions = [
-    {
-      label: "Colaboradores",
-      href:
-        "https://hr-beneficios-web-client-cfdshdfeeyemfmh3.canadacentral-01.azurewebsites.net/",
-    },
-    {
-      label: "Proveedores",
-      href:
-        "https://hr-beneficios-web-proveedor-btgqhgdfaqhzc0gg.canadacentral-01.azurewebsites.net/",
-    },
-    {
-      label: "Administración",
-      href:
-        "https://hr-beneficios-web-admin-dqbwbedkb2duhqbs.canadacentral-01.azurewebsites.net/",
-    },
+    { label: "Colaboradores", href: `${base.colaboradores}/` },
+    { label: "Proveedores", href: `${base.proveedores}/` },
+    { label: "Administración", href: `${base.admin}/admin/login` },
   ];
 
   return (
