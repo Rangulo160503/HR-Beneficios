@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import jsQR from "jsqr";
 import {
   loginWithCredentials,
   loginWithToken,
@@ -73,13 +74,18 @@ export default function LoginFormScreen() {
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState("");
+  const [proveedorId, setProveedorId] = useState("");
   const [error, setError] = useState("");
+  const [qrError, setQrError] = useState("");
   const [loading, setLoading] = useState(false);
   const allowToken = true;
+  const qrFileInputRef = useRef(null);
+  const autoSubmitRef = useRef(false);
 
   const handleModeChange = (nextMode) => {
     setMode(nextMode);
     setError("");
+    setQrError("");
   };
 
   const redirectToPortal = (session) => {
@@ -112,15 +118,22 @@ export default function LoginFormScreen() {
     };
   }, [navigate]);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const executeLogin = async ({
+    mode: modeOverride = mode,
+    token: tokenOverride = token,
+    usuario: usuarioOverride = usuario,
+    password: passwordOverride = password,
+  } = {}) => {
     setError("");
     setLoading(true);
 
     const result =
-      mode === "token"
-        ? await loginWithToken({ token })
-        : await loginWithCredentials({ usuario, password });
+      modeOverride === "token"
+        ? await loginWithToken({ token: tokenOverride })
+        : await loginWithCredentials({
+            usuario: usuarioOverride,
+            password: passwordOverride,
+          });
     if (result?.ok) {
       if (!redirectToPortal(result?.session)) {
         navigate("/", { replace: true });
@@ -130,6 +143,102 @@ export default function LoginFormScreen() {
     }
 
     setLoading(false);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    await executeLogin();
+  };
+
+  const extractTokenFromQr = (qrText) => {
+    if (!qrText) return { token: "", proveedorId: "" };
+
+    try {
+      const url = new URL(qrText);
+      return {
+        token: url.searchParams.get("token") || "",
+        proveedorId: url.searchParams.get("proveedorId") || "",
+      };
+    } catch (error) {
+      return { token: qrText, proveedorId: "" };
+    }
+  };
+
+  const handleQrUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setQrError("");
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        if (!context) {
+          setQrError("No se pudo leer la imagen del QR.");
+          return;
+        }
+
+        canvas.width = image.naturalWidth || image.width;
+        canvas.height = image.naturalHeight || image.height;
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const qrResult = jsQR(imageData.data, canvas.width, canvas.height);
+        const qrText = qrResult?.data?.trim();
+
+        if (!qrText) {
+          setQrError("No se pudo leer el código QR.");
+          canvas.width = 0;
+          canvas.height = 0;
+          return;
+        }
+
+        const { token: extractedToken, proveedorId: extractedProveedorId } =
+          extractTokenFromQr(qrText);
+
+        if (!extractedToken) {
+          setQrError("El QR no contiene un token válido.");
+          canvas.width = 0;
+          canvas.height = 0;
+          return;
+        }
+
+        setToken(extractedToken);
+        setProveedorId(extractedProveedorId);
+        setMode("token");
+        setQrError("");
+
+        if (!autoSubmitRef.current) {
+          autoSubmitRef.current = true;
+          executeLogin({ mode: "token", token: extractedToken });
+        }
+
+        canvas.width = 0;
+        canvas.height = 0;
+        image.src = "";
+      };
+
+      image.onerror = () => {
+        setQrError("No se pudo leer la imagen del QR.");
+      };
+
+      image.src = reader.result;
+    };
+
+    reader.onerror = () => {
+      setQrError("No se pudo leer la imagen del QR.");
+    };
+
+    reader.readAsDataURL(file);
+    event.target.value = "";
+  };
+
+  const handleQrButtonClick = () => {
+    qrFileInputRef.current?.click();
   };
 
   return (
@@ -206,6 +315,23 @@ export default function LoginFormScreen() {
                 required
               />
             </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleQrButtonClick}
+                className="px-3 py-1.5 rounded-full border border-white/15 text-xs font-semibold text-white/70 hover:text-white transition"
+              >
+                Subir QR
+              </button>
+              <input
+                ref={qrFileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/*"
+                className="hidden"
+                onChange={handleQrUpload}
+              />
+            </div>
+            {qrError && <p className="text-sm text-red-300">{qrError}</p>}
           </div>
         )}
 
