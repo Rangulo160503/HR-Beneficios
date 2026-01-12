@@ -219,7 +219,6 @@ export default function LoginFormScreen() {
 
         canvas.width = 0;
         canvas.height = 0;
-        image.src = "";
       };
 
       image.onerror = () => {
