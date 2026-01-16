@@ -27,11 +27,31 @@ namespace API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Agregar(
             [FromBody] BeneficioRequest req,
-            [FromQuery] Guid proveedorId,
-            [FromQuery] string token)
+            [FromQuery] Guid proveedorId = default,
+            [FromQuery] string token = null)
         {
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
+
+            var esAdmin = User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
+
+            // 1) Admin autenticado: NO requiere badge
+            if (esAdmin)
+            {
+                if (req.ProveedorId == Guid.Empty)
+                    return BadRequest("ProveedorId es requerido para crear un beneficio (Admin).");
+
+                var idAdmin = await _beneficioFlujo.Agregar(req);
+                var creadoAdmin = await _beneficioFlujo.Obtener(idAdmin);
+                return CreatedAtAction(nameof(Obtener), new { Id = idAdmin }, creadoAdmin);
+            }
+
+            // 2) Badge (anónimo): requiere proveedorId + token en query
+            if (proveedorId == Guid.Empty)
+                return BadRequest("proveedorId es requerido en query para creación por badge.");
+
+            if (string.IsNullOrWhiteSpace(token))
+                return BadRequest("token es requerido en query para creación por badge.");
 
             var esValido = await _beneficioFlujo.ValidarTokenBadge(proveedorId, token);
             if (!esValido)
@@ -39,11 +59,13 @@ namespace API.Controllers
 
             req.ProveedorId = proveedorId;
 
-            var id = await _beneficioFlujo.Agregar(req);
-            var creado = await _beneficioFlujo.Obtener(id);
+            var idBadge = await _beneficioFlujo.Agregar(req);
+            var creadoBadge = await _beneficioFlujo.Obtener(idBadge);
 
-            return CreatedAtAction(nameof(Obtener), new { Id = id }, creado);
+            return CreatedAtAction(nameof(Obtener), new { Id = idBadge }, creadoBadge);
         }
+
+
 
         // PUT api/Beneficio/{Id}
         [HttpPut("{Id:guid}")]
