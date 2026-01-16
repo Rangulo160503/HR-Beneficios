@@ -10,7 +10,7 @@ import { isSessionExpired } from "../core/reglas/session/isSessionExpired";
 import { adminSessionStore } from "../core-config/sessionStores";
 
 const validateAdminSession = (session) => {
-  if (!session?.access_token) return false;
+  if (!session || typeof session !== "object") return false;
   if (isSessionExpired(session)) return false;
   return true;
 };
@@ -30,6 +30,7 @@ export default function Gate() {
         requiredRoles: ["Admin"],
         roleSelector: selectAdminRoles,
         sessionValidator: validateAdminSession,
+        meEndpoint: "/api/AdminAuth/me",
       });
 
       if (!active) return;

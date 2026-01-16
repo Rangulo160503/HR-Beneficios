@@ -23,10 +23,14 @@ export default function LandingShell() {
   const base = cfg[TARGET] ?? cfg.local;
 
   const accessOptions = [
-    { label: "Colaboradores", href: `${base.colaboradores}/` },
-    { label: "Proveedores", href: `${base.proveedores}/` },
-    { label: "Administración", href: `${base.admin}/admin/login` },
-  ];
+  { label: "Colaboradores", href: `${base.colaboradores}/` },
+  { label: "Proveedores", href: `${base.proveedores}/` },
+  { label: "Administración", href: `${base.admin}/login` },
+];
+
+console.log("✅ TARGET:", TARGET);
+console.log("✅ base:", base);
+console.log("✅ accessOptions:", accessOptions);
 
   return (
     <div className="min-h-screen bg-black text-white">

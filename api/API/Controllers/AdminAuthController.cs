@@ -34,6 +34,14 @@ namespace API.Controllers
                     return Unauthorized(new { message = "Credenciales inválidas" });
                 }
 
+                Response.Cookies.Append("hr_access", result.Token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Path = "/",
+                    Expires = new DateTimeOffset(result.ExpiresAt)
+                });
                 return Ok(result);
             }
             catch (InactiveAdminException ex)

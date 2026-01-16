@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import LandingShell from "./LandingShell";
 import NotAuthorized from "./NotAuthorized";
 import {
@@ -12,6 +12,7 @@ const validateLandingSession = (session) => Boolean(session?.token);
 
 export default function Gate() {
   const [status, setStatus] = useState(SessionStatus.OK);
+  const location = useLocation();
 
   useEffect(() => {
     let active = true;
@@ -27,29 +28,16 @@ export default function Gate() {
     };
 
     checkSession();
-
-    return () => {
-      active = false;
-    };
+    return () => (active = false);
   }, []);
 
-  if (status === SessionStatus.SHOW_LOGIN) {
+  // ✅ En el Landing, /login sí debe mostrar LoginFormScreen (no LandingShell)
+  if (status === SessionStatus.SHOW_LOGIN && location.pathname !== "/login") {
     return <Navigate to="/login" replace />;
   }
 
-  if (status === SessionStatus.NOT_AUTHORIZED) {
-    return <NotAuthorized />;
-  }
-
-  if (status === SessionStatus.ERROR) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
-        <p className="text-sm text-red-300">
-          No se pudo validar la sesión. Intenta nuevamente.
-        </p>
-      </div>
-    );
-  }
+  if (status === SessionStatus.NOT_AUTHORIZED) return <NotAuthorized />;
+  if (status === SessionStatus.ERROR) return <div>Error validando sesión</div>;
 
   return <LandingShell />;
 }
