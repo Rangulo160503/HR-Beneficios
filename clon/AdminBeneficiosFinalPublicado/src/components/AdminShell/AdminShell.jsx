@@ -31,10 +31,6 @@ export default function AdminShell() {
     showCategoriaEnUso,
     setCategoriaEnUso,
     setShowCategoriaEnUso,
-    showForm,
-    setShowForm,
-    editing,
-    setEditing,
     renameCategoria,
     deleteCategoria,
   } = useAdminShell();
@@ -100,7 +96,6 @@ export default function AdminShell() {
         {/* Contenido principal */}
         <AdminMain
           nav={nav}
-          setNav={setNav}
           // beneficios
           state={beneficiosState}
           beneficios={beneficios}
@@ -117,11 +112,6 @@ export default function AdminShell() {
           showCategoriaEnUso={showCategoriaEnUso}
           setCategoriaEnUso={setCategoriaEnUso}
           setShowCategoriaEnUso={setShowCategoriaEnUso}
-          // formulario
-          showForm={showForm}
-          setShowForm={setShowForm}
-          editing={editing}
-          setEditing={setEditing}
         />
 
         {/* Sidebar móvil */}
