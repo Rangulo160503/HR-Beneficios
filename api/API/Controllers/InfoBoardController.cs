@@ -10,7 +10,7 @@ namespace API.Controllers
     [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
-    public class InfoBoardController : ControllerBase, IInfoBoardController
+    public class InfoBoardController : ControllerBase
     {
         private readonly IInfoBoardFlujo _infoBoardFlujo;
         private readonly ILogger<InfoBoardController> _logger;

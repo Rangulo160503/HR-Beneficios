@@ -9,7 +9,7 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProveedorController : ControllerBase, IProveedorController
+    public class ProveedorController : ControllerBase
     {
         private IProveedorFlujo _proveedorFlujo;
         private ILogger<ProveedorController> _logger;

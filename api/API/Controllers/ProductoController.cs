@@ -9,7 +9,7 @@ namespace API.Controllers
     [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductoController : ControllerBase, IProductoController
+    public class ProductoController : ControllerBase
     {
         private readonly IProductoFlujo _flujo;
         private readonly ILogger<ProductoController> _logger;

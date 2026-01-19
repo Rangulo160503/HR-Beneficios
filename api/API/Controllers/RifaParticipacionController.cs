@@ -35,7 +35,7 @@ namespace API.Controllers
     /// </remarks>
     [Route("api/[controller]")]
     [ApiController]
-    public class RifaParticipacionController : ControllerBase, IRifaParticipacionController
+    public class RifaParticipacionController : ControllerBase
     {
         private readonly IRifaParticipacionFlujo _flujo;
         private readonly ILogger<RifaParticipacionController> _logger;

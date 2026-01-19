@@ -9,7 +9,7 @@ namespace API.Controllers
     [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
-    public class UbicacionController : ControllerBase, IUbicacionController
+    public class UbicacionController : ControllerBase
     {
         private readonly IUbicacionFlujo _flujo;
         private readonly ILogger<UbicacionController> _logger;

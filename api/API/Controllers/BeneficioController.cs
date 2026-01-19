@@ -10,7 +10,7 @@ namespace API.Controllers
     [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
-    public class BeneficioController : ControllerBase, IBeneficioController
+    public class BeneficioController : ControllerBase
     {
         private readonly IBeneficioFlujo _beneficioFlujo;
         private readonly ILogger<BeneficioController> _logger;

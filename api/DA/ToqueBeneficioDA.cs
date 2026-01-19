@@ -142,10 +142,15 @@ WHERE BeneficioId = @BeneficioId;
         public async Task<IEnumerable<ToqueBeneficioResumen>> ObtenerResumen(DateTime desde, DateTime hasta)
         {
             const string sql = @"
-SELECT BeneficioId, COUNT(*) AS [Count]
-FROM core.ToqueBeneficio
-WHERE Fecha >= @Desde AND Fecha < @Hasta
-GROUP BY BeneficioId;
+SELECT
+  b.BeneficioId,
+  COUNT(tb.ToqueBeneficioId) AS [Count]
+FROM core.Beneficio b
+LEFT JOIN core.ToqueBeneficio tb
+  ON tb.BeneficioId = b.BeneficioId
+ AND tb.Fecha >= @Desde
+ AND tb.Fecha <  @Hasta
+GROUP BY b.BeneficioId;
 ";
 
             using var connection = _repositorioDapper.ObtenerRepositorio();

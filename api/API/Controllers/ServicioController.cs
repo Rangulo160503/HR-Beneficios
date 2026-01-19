@@ -9,7 +9,7 @@ namespace API.Controllers
     [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
-    public class ServicioController : ControllerBase, IServicioController
+    public class ServicioController : ControllerBase
     {
         private readonly IServicioFlujo _flujo;
         private readonly ILogger<ServicioController> _logger;

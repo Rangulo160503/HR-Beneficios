@@ -10,7 +10,7 @@ namespace API.Controllers
     [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoriaController : ControllerBase, ICategoriaController
+    public class CategoriaController : ControllerBase
     {
         private ICategoriaFlujo _categoriaFlujo;
         private readonly IBeneficioFlujo _beneficioFlujo;
