@@ -110,7 +110,7 @@ async function addCategoria(nombrePrompt) {
   // 5) actualizar estado sin duplicar
   setCats((s) => dedupeById([nodo, ...s], getCatId));
 
-  // 6) devolver el creado (con id) para que FullForm lo seleccione
+  // 6) devolver el creado (con id) para que el formulario lo seleccione
   return nodo;
 }
 

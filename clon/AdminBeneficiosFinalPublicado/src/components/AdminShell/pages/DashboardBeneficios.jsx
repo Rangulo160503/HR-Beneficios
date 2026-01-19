@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import BenefitsList from "./BenefitsList";
 import BenefitDetailPanel from "./BenefitDetailPanel";
-import FullForm from "../../beneficio/FullForm";
 import BenefitEditModal from "./BenefitEditModal";
 import {
   loadBeneficiosList,
@@ -13,14 +12,6 @@ export default function DashboardBeneficios({
   state,
   benefits,
   accionesBeneficios,
-  cats,
-  provs,
-  addCategoria,
-  addProveedor,
-  showForm,
-  setShowForm,
-  editing,
-  setEditing,
 }) {
   const [selectedBenefit, setSelectedBenefit] = useState(null);
   const [showDetailMobile, setShowDetailMobile] = useState(false);
@@ -51,18 +42,6 @@ export default function DashboardBeneficios({
 
   const handleCloseDetail = () => {
     setShowDetailMobile(false);
-  };
-
-  const openNew = () => {
-    setEditing?.(null);
-    setShowForm?.(true);
-  };
-
-  const handleSave = async (dto) => {
-    if (!accionesBeneficios?.save) return;
-    await accionesBeneficios.save(dto, editing);
-    setShowForm?.(false);
-    setEditing?.(null);
   };
 
   const handleEditSaved = (updated) => {
@@ -170,16 +149,6 @@ accionesBeneficios?.setItems?.((prev = []) => {
 
   return (
     <>
-      {/* Botón Nuevo beneficio */}
-      <div className="flex items-center justify-end">
-        <button
-          onClick={openNew}
-          className="px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-xs md:text-sm font-medium"
-        >
-          + Nuevo beneficio
-        </button>
-      </div>
-
       {/* Layout responsive: lista + panel */}
       <div className="grid md:grid-cols-[minmax(0,280px)_minmax(0,1fr)] gap-4">
         <BenefitsList
@@ -227,22 +196,6 @@ accionesBeneficios?.setItems?.((prev = []) => {
           loading={isLoading}
         />
       </div>
-
-      {/* Formulario crear / editar beneficio */}
-      {showForm && (
-        <FullForm
-          initial={editing}
-          provs={provs || []}
-          cats={cats || []}
-          onCancel={() => {
-            setShowForm(false);
-            setEditing(null);
-          }}
-          onCreateCat={async () => await addCategoria?.()}
-          onCreateProv={async () => await addProveedor?.()}
-          onSave={handleSave}
-        />
-      )}
 
       <BenefitEditModal
         open={Boolean(editTarget)}

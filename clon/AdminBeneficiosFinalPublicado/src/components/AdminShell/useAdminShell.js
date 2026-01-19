@@ -9,10 +9,6 @@ export default function useAdminShell() {
   const [collapsed, setCollapsed] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
 
-  // modal crear / editar beneficio
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState(null);
-
   // Beneficios
   const { state: beneficiosState, actions: accionesBeneficios } = useBeneficios();
   const beneficios = beneficiosState?.filtered ?? beneficiosState?.items ?? [];
@@ -63,11 +59,6 @@ const {
     setCategoriaEnUso,
     setShowCategoriaEnUso,
 
-    // formulario crear / editar
-    showForm,
-    setShowForm,
-    editing,
-    setEditing,
     renameCategoria,
     deleteCategoria,
     renameProveedor,

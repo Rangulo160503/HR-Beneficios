@@ -24,7 +24,6 @@ export default function CategoriaEnUsoModal({
   categoria,
   cats = [],
   onReasignar,
-  onEditBenefit,
 }) {
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
@@ -167,12 +166,6 @@ export default function CategoriaEnUsoModal({
                         {b.proveedorNombre || "Proveedor"} · {b.categoriaNombre || "Categoría"}
                       </p>
                     </div>
-                    <button
-                      onClick={() => onEditBenefit?.(b)}
-                      className="px-3 py-1 rounded-full text-xs bg-white/5 hover:bg-white/10"
-                    >
-                      Editar
-                    </button>
                   </div>
                 );
               })}

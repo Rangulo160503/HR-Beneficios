@@ -27,7 +27,6 @@ const getCatId = (r) =>
 export default function AdminMain(props) {
   const {
     nav,
-    setNav,
     state,
     beneficios,
     accionesBeneficios,
@@ -47,10 +46,6 @@ export default function AdminMain(props) {
     deleteProveedor,
 
     upsertProveedorLocal,
-    showForm,
-    setShowForm,
-    editing,
-    setEditing,
   } = props;
 
   const handleReasignar = async ({ fromCategoriaId, toCategoriaId, beneficioIds }) => {
@@ -84,14 +79,6 @@ export default function AdminMain(props) {
     setShowCategoriaEnUso(false);
   };
 
-  const handleEditFromModal = (beneficio) => {
-    setNav?.(NAV_ITEMS.BENEFICIOS);
-    setShowCategoriaEnUso(false);
-    setCategoriaEnUso(null);
-    setEditing?.(beneficio);
-    setShowForm?.(true);
-  };
-
   return (
     <main className="flex-1 overflow-y-auto">
       <div className="pt-4 px-4 md:px-6 space-y-4">
@@ -101,14 +88,6 @@ export default function AdminMain(props) {
             state={state}
             benefits={beneficios}
             accionesBeneficios={accionesBeneficios}
-            cats={cats}
-            provs={provs}
-            addCategoria={addCategoria}
-            addProveedor={addProveedor}
-            showForm={showForm}
-            setShowForm={setShowForm}
-            editing={editing}
-            setEditing={setEditing}
             categoriaEnUso={categoriaEnUso}
             showCategoriaEnUso={showCategoriaEnUso}
             setCategoriaEnUso={setCategoriaEnUso}
@@ -154,7 +133,6 @@ export default function AdminMain(props) {
           setCategoriaEnUso(null);
         }}
         onReasignar={handleReasignar}
-        onEditBenefit={handleEditFromModal}
       />
     </main>
   );
