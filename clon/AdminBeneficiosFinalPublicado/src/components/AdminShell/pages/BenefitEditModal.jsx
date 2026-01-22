@@ -4,6 +4,7 @@ import {
   CategoriaApi,
   ProveedorApi,
 } from "../../../services/adminApi";
+import { formatFechaLargaES } from "../../../utils/dateFormat";
 
 const GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const norm = (v) => (v == null ? "" : String(v).trim());
@@ -241,6 +242,9 @@ export default function BenefitEditModal({ open, benefitId, benefit, onClose, on
                 onChange={(e) => setForm((s) => ({ ...s, vigenciaInicio: e.target.value }))}
                 disabled={formDisabled}
               />
+              <span className="text-xs text-white/50">
+                {form.vigenciaInicio ? formatFechaLargaES(form.vigenciaInicio) : "—"}
+              </span>
             </label>
             <label className="space-y-1 text-sm">
               <span className="text-white/70">Vigencia fin</span>
@@ -251,6 +255,9 @@ export default function BenefitEditModal({ open, benefitId, benefit, onClose, on
                 onChange={(e) => setForm((s) => ({ ...s, vigenciaFin: e.target.value }))}
                 disabled={formDisabled}
               />
+              <span className="text-xs text-white/50">
+                {form.vigenciaFin ? formatFechaLargaES(form.vigenciaFin) : "—"}
+              </span>
             </label>
           </div>
 
