@@ -22,6 +22,9 @@ const guid = () =>
 export default function ProveedoresPage({ provs = [], addProveedor, onProveedorUpdated }) {
   const [processing, setProcessing] = useState({});
   const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editingName, setEditingName] = useState("");
+  const [savingName, setSavingName] = useState({});
   const attempted = useRef(new Set());
 
   const withLinks = useMemo(() => {
@@ -98,6 +101,53 @@ export default function ProveedoresPage({ provs = [], addProveedor, onProveedorU
     await ensureBadge(prov, { regenerateToken: true });
   };
 
+  const handleEdit = (prov) => {
+    const apiId = getProvId(prov) || prov?.id;
+    if (!apiId) return;
+    setEditingId(apiId);
+    setEditingName(prov?.nombre ?? prov?.Nombre ?? "");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditingName("");
+  };
+
+  const handleSaveName = async (prov) => {
+    const apiId = getProvId(prov) || prov?.id;
+    if (!apiId) return;
+    const trimmed = editingName.trim();
+    if (!trimmed) {
+      alert("El nombre no puede estar vacío.");
+      return;
+    }
+    setSavingName((s) => ({ ...s, [apiId]: true }));
+    try {
+      await ProveedorApi.update(apiId, {
+        nombre: trimmed,
+        proveedorId: prov?.proveedorId,
+        accessToken: prov?.accessToken,
+      });
+      const fresh = await ProveedorApi.get(apiId);
+      const normalized = {
+        ...fresh,
+        id: getProvId(fresh) || apiId,
+        proveedorId: getProvId(fresh) || prov?.proveedorId,
+        accessToken: getToken(fresh) || prov?.accessToken,
+        nombre: fresh?.nombre ?? trimmed,
+      };
+      onProveedorUpdated?.(normalized);
+      setEditingId(null);
+      setEditingName("");
+    } finally {
+      setSavingName((s) => {
+        const copy = { ...s };
+        delete copy[apiId];
+        return copy;
+      });
+    }
+  };
+
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
@@ -114,54 +164,95 @@ export default function ProveedoresPage({ provs = [], addProveedor, onProveedorU
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {withLinks.map((p) => (
-          <div
-            key={p.proveedorId || p.id}
-            className="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-3"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1">
-                <p className="text-sm font-semibold">{p.nombre ?? p.Nombre}</p>
-                <p className="text-[11px] text-white/60 break-all">
-                  ID: {p.proveedorId || "Asignando ID..."}
-                </p>
-                <p className="text-[11px] text-white/60 break-all">
-                  Badge: {p.accessToken || "Generando badge..."}
-                </p>
+        {withLinks.map((p) => {
+          const apiId = getProvId(p) || p.id;
+          const isEditing = editingId === apiId;
+          const isSaving = savingName[apiId];
+          return (
+            <div
+              key={p.proveedorId || p.id}
+              className="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-2">
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <input
+                        className="w-full px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-sm"
+                        value={editingName}
+                        onChange={(event) => setEditingName(event.target.value)}
+                        disabled={isSaving}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          className="px-2 py-1 rounded-full text-[11px] bg-white/5 hover:bg-white/10 disabled:opacity-50"
+                          onClick={() => handleSaveName(p)}
+                          disabled={isSaving}
+                        >
+                          {isSaving ? "Guardando..." : "Guardar"}
+                        </button>
+                        <button
+                          className="px-2 py-1 rounded-full text-[11px] bg-white/5 hover:bg-white/10 disabled:opacity-50"
+                          onClick={handleCancelEdit}
+                          disabled={isSaving}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold">{p.nombre ?? p.Nombre}</p>
+                      <button
+                        className="px-2 py-1 rounded-full text-[11px] bg-white/5 hover:bg-white/10 disabled:opacity-50"
+                        onClick={() => handleEdit(p)}
+                        disabled={Boolean(editingId) && !isEditing}
+                      >
+                        Editar
+                      </button>
+                    </div>
+                  )}
+                  <p className="text-[11px] text-white/60 break-all">
+                    ID: {p.proveedorId || "Asignando ID..."}
+                  </p>
+                  <p className="text-[11px] text-white/60 break-all">
+                    Badge: {p.accessToken || "Generando badge..."}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1 items-end">
+                  <button
+                    className="px-2 py-1 rounded-full text-[11px] bg-white/5 hover:bg-white/10 disabled:opacity-50"
+                    onClick={() => handleCopy(p.link)}
+                    disabled={!p.link}
+                  >
+                    Copiar link
+                  </button>
+                  <button
+                    className="px-2 py-1 rounded-full text-[11px] bg-white/5 hover:bg-white/10 disabled:opacity-50"
+                    onClick={() => handleRegenerate(p)}
+                    disabled={processing[getProvId(p)]}
+                  >
+                    Regenerar badge
+                  </button>
+                </div>
               </div>
-              <div className="flex flex-col gap-1 items-end">
-                <button
-                  className="px-2 py-1 rounded-full text-[11px] bg-white/5 hover:bg-white/10 disabled:opacity-50"
-                  onClick={() => handleCopy(p.link)}
-                  disabled={!p.link}
-                >
-                  Copiar link
-                </button>
-                <button
-                  className="px-2 py-1 rounded-full text-[11px] bg-white/5 hover:bg-white/10 disabled:opacity-50"
-                  onClick={() => handleRegenerate(p)}
-                  disabled={processing[getProvId(p)]}
-                >
-                  Regenerar badge
-                </button>
-              </div>
-            </div>
 
-            <div className="bg-white/5 rounded-xl p-2 grid place-items-center">
-              {p.link ? (
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(p.link)}`}
-                  alt={`QR ${p.nombre}`}
-                  className="w-full max-w-[180px] h-auto"
-                />
-              ) : (
-                <p className="text-xs text-white/60">
-                  {processing[getProvId(p)] ? "Generando badge..." : "Sin identificador"}
-                </p>
-              )}
+              <div className="bg-white/5 rounded-xl p-2 grid place-items-center">
+                {p.link ? (
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(p.link)}`}
+                    alt={`QR ${p.nombre}`}
+                    className="w-full max-w-[180px] h-auto"
+                  />
+                ) : (
+                  <p className="text-xs text-white/60">
+                    {processing[getProvId(p)] ? "Generando badge..." : "Sin identificador"}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {provs.length === 0 && (
           <p className="px-4 py-6 text-xs text-white/40 col-span-full">
