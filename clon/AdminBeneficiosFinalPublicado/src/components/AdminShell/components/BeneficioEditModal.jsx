@@ -1,6 +1,7 @@
 // src/components/AdminShell/components/BeneficioEditModal.jsx
 import { useEffect, useMemo, useState } from "react";
 import { AprobacionesApi } from "../services/adminApi";
+import { formatFechaLargaES } from "../../../utils/dateFormat";
 
 export default function BeneficioEditModal({
   open,
@@ -169,6 +170,9 @@ export default function BeneficioEditModal({
                     onChange={(e) => handleChange("vigenciaInicio", e.target.value)}
                     className="w-full rounded-lg bg-neutral-900 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
+                  <p className="text-xs text-white/50">
+                    {form.vigenciaInicio ? formatFechaLargaES(form.vigenciaInicio) : "—"}
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs text-white/60">Vigencia fin</label>
@@ -178,6 +182,9 @@ export default function BeneficioEditModal({
                     onChange={(e) => handleChange("vigenciaFin", e.target.value)}
                     className="w-full rounded-lg bg-neutral-900 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
+                  <p className="text-xs text-white/50">
+                    {form.vigenciaFin ? formatFechaLargaES(form.vigenciaFin) : "—"}
+                  </p>
                 </div>
               </div>
 
