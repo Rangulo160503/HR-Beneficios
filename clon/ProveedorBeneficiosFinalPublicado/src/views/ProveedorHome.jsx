@@ -1,5 +1,5 @@
 // src/views/ProveedorHome.jsx
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ProveedorBeneficioForm from "../proveedor/components/ProveedorBeneficioForm";
 import { BeneficioApi, ProveedorApi } from "../services/adminApi";
 
@@ -8,7 +8,19 @@ export default function ProveedorHome() {
   const [proveedorId, setProveedorId] = useState(null);
   const [proveedorNombre, setProveedorNombre] = useState("");
   const [beneficios, setBeneficios] = useState([]);
+  const [selectedBeneficio, setSelectedBeneficio] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const loadBeneficios = useCallback(async (id) => {
+    const data = await BeneficioApi.listByProveedor(id);
+    console.log("[Proveedor] beneficios recibidos:", data);
+
+    const soloAprobados = (data || []).filter(
+      (b) => b.estado === 1 || b.estado === "Aprobado"
+    );
+
+    setBeneficios(soloAprobados);
+  }, []);
 
   // 1) Resolver proveedorId desde URL o localStorage (esto ya lo tenías, solo lo
   // dejo integrado aquí para que quede todo en un solo archivo).
@@ -59,16 +71,8 @@ export default function ProveedorHome() {
         }
 
         // Beneficios de este proveedor
-        const data = await BeneficioApi.listByProveedor(proveedorId);
-        console.log("[Proveedor] beneficios recibidos:", data);
-
         if (!cancel) {
-          // Opcional: si quieres mostrar solo aprobados (estado === 1)
-          const soloAprobados = (data || []).filter(
-            (b) => b.estado === 1 || b.estado === "Aprobado"
-          );
-
-          setBeneficios(soloAprobados);
+          await loadBeneficios(proveedorId);
         }
       } catch (error) {
         console.error("[Proveedor] Error cargando beneficios:", error);
@@ -81,7 +85,29 @@ export default function ProveedorHome() {
     return () => {
       cancel = true;
     };
-  }, [proveedorId]);
+  }, [proveedorId, loadBeneficios]);
+
+  const handleNuevo = () => {
+    setSelectedBeneficio(null);
+    setShowForm(true);
+  };
+
+  const handleEditar = (beneficio) => {
+    setSelectedBeneficio(beneficio);
+    setShowForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setSelectedBeneficio(null);
+  };
+
+  const handleSaved = async () => {
+    if (proveedorId) {
+      await loadBeneficios(proveedorId);
+    }
+    handleCloseForm();
+  };
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white p-6">
@@ -98,7 +124,7 @@ export default function ProveedorHome() {
           </div>
 
           <button
-            onClick={() => setShowForm(true)}
+            onClick={handleNuevo}
             className="rounded-full px-4 py-2 bg-emerald-500 text-black font-semibold hover:bg-emerald-400"
           >
             Nuevo beneficio
@@ -138,7 +164,7 @@ export default function ProveedorHome() {
     <button
       type="button"
       className="shrink-0 text-xs px-3 py-1 rounded-full border border-neutral-700 text-neutral-200 hover:bg-neutral-800"
-      onClick={() => console.log("Editar beneficio:", b.beneficioId || b.id)}
+      onClick={() => handleEditar(b)}
     >
       Editar
     </button>
@@ -166,9 +192,9 @@ export default function ProveedorHome() {
       {/* Modal de creación/edición */}
       {showForm && (
         <ProveedorBeneficioForm
-          initial={null}
-          onSaved={() => setShowForm(false)}
-          onCancel={() => setShowForm(false)}
+          initial={selectedBeneficio}
+          onSaved={handleSaved}
+          onCancel={handleCloseForm}
         />
       )}
     </div>
