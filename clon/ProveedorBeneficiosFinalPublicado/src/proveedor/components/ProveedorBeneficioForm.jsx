@@ -78,6 +78,9 @@ export default function ProveedorBeneficioForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (saving) return; // prevenir envíos múltiples
+
+    const proveedorId = localStorage.getItem("proveedorId");
     const session = providerSessionStore.getSession();
     const proveedorId = session?.proveedorId;
     const token = session?.token;
