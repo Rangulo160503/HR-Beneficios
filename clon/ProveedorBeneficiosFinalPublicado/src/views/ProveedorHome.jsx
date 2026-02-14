@@ -1,7 +1,8 @@
 // src/views/ProveedorHome.jsx
 import { useCallback, useEffect, useState } from "react";
 import ProveedorBeneficioForm from "../proveedor/components/ProveedorBeneficioForm";
-import { BeneficioApi, ProveedorApi } from "../services/adminApi";
+import { getProveedorDetail, loadBeneficiosByProveedor } from "../core-config/useCases";
+import { providerSessionStore } from "../core-config/sessionStores";
 
 export default function ProveedorHome() {
   const [showForm, setShowForm] = useState(false);
@@ -11,36 +12,29 @@ export default function ProveedorHome() {
   const [selectedBeneficio, setSelectedBeneficio] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const loadBeneficios = useCallback(async (id) => {
-    const data = await BeneficioApi.listByProveedor(id);
-    console.log("[Proveedor] beneficios recibidos:", data);
-
-    const soloAprobados = (data || []).filter(
-      (b) => b.estado === 1 || b.estado === "Aprobado"
-    );
-
-    setBeneficios(soloAprobados);
-  }, []);
-
-  // 1) Resolver proveedorId desde URL o localStorage (esto ya lo tenías, solo lo
+  // 1) Resolver proveedorId desde URL o SessionStore (esto ya lo tenías, solo lo
   // dejo integrado aquí para que quede todo en un solo archivo).
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const fromUrl = params.get("proveedorId");
+    const token = params.get("token");
     const guidRegex = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
 
     if (fromUrl && guidRegex.test(fromUrl)) {
       console.log("[Proveedor] proveedorId desde URL:", fromUrl);
-      localStorage.setItem("proveedorId", fromUrl);
+      providerSessionStore.setSession({ proveedorId: fromUrl, token });
       setProveedorId(fromUrl);
     } else {
-      const stored = localStorage.getItem("proveedorId");
-      if (stored && guidRegex.test(stored)) {
-        console.log("[Proveedor] usando proveedorId desde localStorage:", stored);
-        setProveedorId(stored);
+      const storedSession = providerSessionStore.getSession();
+      if (storedSession?.proveedorId && guidRegex.test(storedSession.proveedorId)) {
+        console.log(
+          "[Proveedor] usando proveedorId desde SessionStore:",
+          storedSession.proveedorId
+        );
+        setProveedorId(storedSession.proveedorId);
       } else {
         console.warn(
-          "[Proveedor] NO hay proveedorId ni en URL ni en localStorage"
+          "[Proveedor] NO hay proveedorId ni en URL ni en SessionStore"
         );
         setProveedorId(null);
       }
@@ -62,7 +56,7 @@ export default function ProveedorHome() {
 
         // Nombre del proveedor para la cabecera
         try {
-          const prov = await ProveedorApi.get(proveedorId);
+          const prov = await getProveedorDetail(proveedorId);
           if (!cancel && prov) {
             setProveedorNombre(prov.nombre || prov.Nombre || "");
           }
@@ -71,6 +65,9 @@ export default function ProveedorHome() {
         }
 
         // Beneficios de este proveedor
+        const data = await loadBeneficiosByProveedor({ proveedorId });
+        console.log("[Proveedor] beneficios recibidos:", data);
+
         if (!cancel) {
           await loadBeneficios(proveedorId);
         }

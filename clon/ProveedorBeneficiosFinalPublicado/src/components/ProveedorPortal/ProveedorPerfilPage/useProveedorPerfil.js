@@ -1,7 +1,7 @@
 // src/components/ProveedorPortal/ProveedorPerfilPage/useProveedorPerfil.js
 
 import { useEffect, useState } from "react";
-import { Api } from "../../../services/api";
+import { loadProveedoresList, updateProveedor } from "../../../core-config/useCases";
 
 export default function useProveedorPerfil() {
   const [perfil, setPerfil] = useState(null);
@@ -15,7 +15,7 @@ export default function useProveedorPerfil() {
 
       // 🔹 Por ahora: tomamos el PRIMER proveedor que devuelva la API
       // (luego, cuando tengas usuario logueado, aquí usarás el proveedorId del usuario)
-      const data = await Api.proveedores.listar();
+      const data = await loadProveedoresList();
       const first = Array.isArray(data) && data.length ? data[0] : null;
       setPerfil(first);
     } catch (err) {
@@ -37,7 +37,7 @@ export default function useProveedorPerfil() {
         throw new Error("No se encontró el Id del proveedor para actualizar.");
       }
 
-      const actualizado = await Api.proveedores.editar(id, model);
+      const actualizado = await updateProveedor({ proveedorId: id, dto: model });
       setPerfil(actualizado);
     } catch (err) {
       console.error("Error guardando perfil proveedor:", err);

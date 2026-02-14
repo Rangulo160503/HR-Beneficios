@@ -1,22 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
-import { BeneficioApi, ToqueBeneficioApi } from "../../../services/adminApi";
 import BenefitsList from "./BenefitsList";
 import BenefitDetailPanel from "./BenefitDetailPanel";
-import FullForm from "../../beneficio/FullForm";
 import BenefitEditModal from "./BenefitEditModal";
+import {
+  loadBeneficiosList,
+  loadToqueAnalytics,
+  loadToqueSummary,
+} from "../../../core-config/useCases";
 
 export default function DashboardBeneficios({
   state,
   benefits,
   accionesBeneficios,
-  cats,
-  provs,
-  addCategoria,
-  addProveedor,
-  showForm,
-  setShowForm,
-  editing,
-  setEditing,
 }) {
   const [selectedBenefit, setSelectedBenefit] = useState(null);
   const [showDetailMobile, setShowDetailMobile] = useState(false);
@@ -40,8 +35,7 @@ export default function DashboardBeneficios({
 
   const handleSelect = (benefit) => {
     if (!benefit) return;
-    const normalized = mapBenefitId(benefit);
-    setSelectedBenefit(normalized);
+    setSelectedBenefit(benefit);
     setRange("1W");
     setShowDetailMobile(true);
   };
@@ -50,50 +44,20 @@ export default function DashboardBeneficios({
     setShowDetailMobile(false);
   };
 
-  const openNew = () => {
-    setEditing?.(null);
-    setShowForm?.(true);
-  };
-
-  const handleSave = async (dto) => {
-    if (!accionesBeneficios?.save) return;
-    await accionesBeneficios.save(dto, editing);
-    setShowForm?.(false);
-    setEditing?.(null);
-  };
-
   const handleEditSaved = (updated) => {
     if (!updated) return;
-    const normalized = mapBenefitId(updated);
+    const normalized = updated;
     accionesBeneficios?.setItems?.((prev = []) =>
       prev.map((b) =>
-        mapBenefitId(b).beneficioId === normalized.beneficioId ? normalized : b
+        b.beneficioId === normalized.beneficioId ? normalized : b
       )
     );
     setSelectedBenefit((prev) => {
       if (!prev) return prev;
-      return mapBenefitId(prev).beneficioId === normalized.beneficioId
+      return prev.beneficioId === normalized.beneficioId
         ? { ...prev, ...normalized }
         : prev;
     });
-  };
-
-
-  const mapBenefitId = (r) => {
-    const id =
-      r?.id ??
-      r?.Id ??
-      r?.beneficioId ??
-      r?.BeneficioId ??
-      r?.beneficio?.id ??
-      r?.beneficio?.Id;
-
-    const fixed = String(id ?? "").trim();
-    return {
-      ...r,
-      id: fixed || undefined,
-      beneficioId: fixed || undefined,
-    };
   };
 
   const cargarBeneficios = async () => {
@@ -101,8 +65,7 @@ export default function DashboardBeneficios({
     setLocalError(false);
 
     try {
-      const data = await BeneficioApi.list();
-      const normalized = Array.isArray(data) ? data.map(mapBenefitId) : [];
+      const normalized = await loadBeneficiosList();
       accionesBeneficios?.setItems?.(normalized);
       await cargarResumen(normalized);
       setLocalError(false);
@@ -125,8 +88,8 @@ export default function DashboardBeneficios({
     setTouchError(null);
 
     try {
-      const data = await ToqueBeneficioApi.analytics(selectedId, range);
-      setTouchTotal(data?.total ?? 0);
+      const data = await loadToqueAnalytics({ beneficioId: selectedId, range });
+      setTouchTotal(data?.total ?? data?.Total ?? 0);
       setTouchSeries(Array.isArray(data?.series) ? data.series : []);
       setTouchAnalytics(data || null);
     } catch (err) {
@@ -142,34 +105,38 @@ export default function DashboardBeneficios({
   const cargarResumen = useCallback(
     async (benefitsSnapshot) => {
       try {
-        const data = await ToqueBeneficioApi.resumen(range);
-        const arr = Array.isArray(data)
-          ? data
-          : Object.entries(data || {}).map(([beneficioId, count]) => ({
-              beneficioId,
-              count,
-            }));
-
-        const map = arr.reduce((ac, curr) => {
-          if (!curr?.beneficioId) return ac;
-          ac[String(curr.beneficioId).trim()] = curr?.count ?? 0;
-          return ac;
-        }, {});
-
-        setTouchSummary(map);
-        accionesBeneficios?.setItems?.((prev = benefitsSnapshot || []) => {
-          const base = benefitsSnapshot || prev;
-          return base.map((b) => {
-            const normalized = mapBenefitId(b);
-            const count = map[normalized.beneficioId] ?? 0;
-            return { ...b, totalToques: count };
-          });
+        const baseBenefits = benefitsSnapshot ?? benefits ?? [];
+        const { summary, beneficios: merged } = await loadToqueSummary({
+          range,
+          beneficios: baseBenefits,
         });
+        setTouchSummary(summary);
+
+accionesBeneficios?.setItems?.((prev = []) => {
+  // Si el backend te manda merged con los toques, creamos un mapa por id
+  const byId = new Map((merged ?? []).map(b => [b.beneficioId ?? b.id, b]));
+
+  // Retornamos la misma lista, mismos objetos base, pero parchando solo los campos de toques
+  return prev.map((b) => {
+    const id = b.beneficioId ?? b.id;
+    const next = byId.get(id);
+    if (!next) return b;
+
+    // 👇 Solo copiar lo que afecta “contador”, NO reescribir todo el beneficio
+    return {
+      ...b,
+      toquesTotal: next.toquesTotal ?? next.toques ?? b.toquesTotal,
+      // si hay más métricas, solo esas:
+      // toquesSemana: next.toquesSemana ?? b.toquesSemana,
+      // ultimoToque: next.ultimoToque ?? b.ultimoToque,
+    };
+  });
+});
       } catch (err) {
         console.error("No se pudo cargar el resumen de toques", err);
       }
     },
-    [accionesBeneficios, range]
+    [accionesBeneficios, benefits, range]
   );
 
   useEffect(() => {
@@ -182,23 +149,13 @@ export default function DashboardBeneficios({
 
   return (
     <>
-      {/* Botón Nuevo beneficio */}
-      <div className="flex items-center justify-end">
-        <button
-          onClick={openNew}
-          className="px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-xs md:text-sm font-medium"
-        >
-          + Nuevo beneficio
-        </button>
-      </div>
-
       {/* Layout responsive: lista + panel */}
       <div className="grid md:grid-cols-[minmax(0,280px)_minmax(0,1fr)] gap-4">
         <BenefitsList
           items={benefits}
           selectedId={selectedId}
           onSelect={handleSelect}
-          onEdit={(b) => setEditTarget(mapBenefitId(b))}
+          onEdit={(b) => setEditTarget(b)}
           loading={isLoading}
           error={hasError}
           onRetry={cargarBeneficios}
@@ -239,22 +196,6 @@ export default function DashboardBeneficios({
           loading={isLoading}
         />
       </div>
-
-      {/* Formulario crear / editar beneficio */}
-      {showForm && (
-        <FullForm
-          initial={editing}
-          provs={provs || []}
-          cats={cats || []}
-          onCancel={() => {
-            setShowForm(false);
-            setEditing(null);
-          }}
-          onCreateCat={async () => await addCategoria?.()}
-          onCreateProv={async () => await addProveedor?.()}
-          onSave={handleSave}
-        />
-      )}
 
       <BenefitEditModal
         open={Boolean(editTarget)}

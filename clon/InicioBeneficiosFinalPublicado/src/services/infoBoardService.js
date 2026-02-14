@@ -1,6 +1,28 @@
-import { httpGet } from "./api";
+// src/services/infoBoardService.js
+import API_BASE from "./apiBase";
 
 const normalize = (v) => (typeof v === "string" ? v.trim() : v ?? "");
+
+async function httpGetJson(path, { signal } = {}) {
+  const url = `${API_BASE}${path}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    signal,
+  });
+
+  if (!res.ok) {
+    // Intentar leer el body para mensaje más útil
+    const text = await res.text().catch(() => "");
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+
+  if (res.status === 204) return null;
+  return res.json();
+}
 
 export async function getInfoBoard({ activo = true, q = "" } = {}) {
   const params = new URLSearchParams();
@@ -11,7 +33,7 @@ export async function getInfoBoard({ activo = true, q = "" } = {}) {
   const path = `/api/InfoBoard${qs ? `?${qs}` : ""}`;
 
   try {
-    const data = await httpGet(path);
+    const data = await httpGetJson(path);
     if (!data) return [];
     return Array.isArray(data) ? data : [data];
   } catch (err) {

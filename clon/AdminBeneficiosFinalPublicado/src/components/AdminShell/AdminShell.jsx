@@ -7,7 +7,7 @@ import AdminHeader from "./AdminHeader";
 import AdminMain from "./AdminMain";
 import useAdminShell from "./useAdminShell";
 import { MOBILE_ITEMS, NAV_ITEMS } from "./constants";
-import { clearAuth } from "../../utils/adminAuth";
+import { adminSessionStore } from "../../core-config/sessionStores";
 
 export default function AdminShell() {
   const location = useLocation();
@@ -31,10 +31,6 @@ export default function AdminShell() {
     showCategoriaEnUso,
     setCategoriaEnUso,
     setShowCategoriaEnUso,
-    showForm,
-    setShowForm,
-    editing,
-    setEditing,
     renameCategoria,
     deleteCategoria,
   } = useAdminShell();
@@ -48,8 +44,8 @@ export default function AdminShell() {
   };
 
   const handleLogout = () => {
-    clearAuth();
-    navigate("/admin/login", { replace: true });
+    adminSessionStore.clearSession();
+    navigate("/login", { replace: true });
   };
 
   useEffect(() => {
@@ -100,7 +96,6 @@ export default function AdminShell() {
         {/* Contenido principal */}
         <AdminMain
           nav={nav}
-          setNav={setNav}
           // beneficios
           state={beneficiosState}
           beneficios={beneficios}
@@ -117,11 +112,6 @@ export default function AdminShell() {
           showCategoriaEnUso={showCategoriaEnUso}
           setCategoriaEnUso={setCategoriaEnUso}
           setShowCategoriaEnUso={setShowCategoriaEnUso}
-          // formulario
-          showForm={showForm}
-          setShowForm={setShowForm}
-          editing={editing}
-          setEditing={setEditing}
         />
 
         {/* Sidebar móvil */}

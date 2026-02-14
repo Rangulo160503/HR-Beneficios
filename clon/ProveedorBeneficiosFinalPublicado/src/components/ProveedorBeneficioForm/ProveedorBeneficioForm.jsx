@@ -1,5 +1,4 @@
 // src/components/ProveedorBeneficioForm/ProveedorBeneficioForm.jsx
-import React from "react";
 import useProveedorBeneficioFormState from "./useProveedorBeneficioFormState";
 import FormHeader from "./FormHeader";
 import SectionDatosPrincipales from "./SectionDatosPrincipales";

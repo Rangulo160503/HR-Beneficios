@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import AprobacionesApi from "../services/adminApi";
+import {
+  approveBeneficio,
+  loadAprobacionesAprobados,
+  loadAprobacionesPendientes,
+  rejectBeneficio,
+  setBeneficioDisponible,
+} from "../../../../core-config/useCases";
 
 function useAprobaciones() {
   const [pendientes, setPendientes] = useState([]);
@@ -13,8 +19,8 @@ function useAprobaciones() {
     setLoading(true);
     try {
       const [pend, apr] = await Promise.all([
-        AprobacionesApi.pendientes(),
-        AprobacionesApi.aprobados(),
+        loadAprobacionesPendientes(),
+        loadAprobacionesAprobados(),
       ]);
 
       setPendientes(pend || []);
@@ -45,7 +51,7 @@ function useAprobaciones() {
   }, [cargar]);
 
   const aprobar = async (id) => {
-    await AprobacionesApi.aprobar(id);
+    await approveBeneficio({ beneficioId: id });
     setPendientes((prev) => {
       const moved = prev.find((b) => b.beneficioId === id);
       const restantes = prev.filter((b) => b.beneficioId !== id);
@@ -63,7 +69,7 @@ function useAprobaciones() {
   };
 
   const rechazar = async (id) => {
-    await AprobacionesApi.rechazar(id);
+    await rejectBeneficio({ beneficioId: id });
     setPendientes((prev) => {
       const restantes = prev.filter((b) => b.beneficioId !== id);
       setSeleccionado((actual) => {
@@ -77,7 +83,7 @@ function useAprobaciones() {
   };
 
   const toggleDisponible = async (id, disponible) => {
-    await AprobacionesApi.toggleDisponible(id, disponible);
+    await setBeneficioDisponible({ beneficioId: id, disponible });
     setAprobados((prev) =>
       prev.map((b) =>
         b.beneficioId === id

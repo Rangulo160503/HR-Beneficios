@@ -1,6 +1,6 @@
 // src/components/FormModal.jsx
 import { useEffect, useRef, useState } from "react";
-import { Api } from "../services/api";
+import { createRifaParticipacion } from "../core-config/useCases";
 import Toast from "./ui/Toast";
 
 export default function FormModal({
@@ -78,7 +78,7 @@ export default function FormModal({
         mensaje: form.mensaje?.trim() || null,
         source: "web",
       };
-      const data = await Api.rifaParticipacion.crear(payload);
+      const data = await createRifaParticipacion({ dto: payload });
       onSubmitted?.(data);
       setToastOpen(true);
       onClose?.();

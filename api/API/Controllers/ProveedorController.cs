@@ -7,10 +7,9 @@ using Microsoft.Data.SqlClient;
 
 namespace API.Controllers
 {
-    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
-    public class ProveedorController : ControllerBase, IProveedorController
+    public class ProveedorController : ControllerBase
     {
         private IProveedorFlujo _proveedorFlujo;
         private ILogger<ProveedorController> _logger;

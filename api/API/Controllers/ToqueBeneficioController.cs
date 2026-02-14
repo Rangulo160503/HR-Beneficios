@@ -8,7 +8,7 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ToqueBeneficioController : ControllerBase, IToqueBeneficioController
+    public class ToqueBeneficioController : ControllerBase
     {
         private readonly IToqueBeneficioFlujo _toqueBeneficioFlujo;
         private readonly ILogger<ToqueBeneficioController> _logger;

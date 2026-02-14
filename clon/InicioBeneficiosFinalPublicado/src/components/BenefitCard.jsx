@@ -1,7 +1,7 @@
 // src/components/BenefitCard.jsx
 import { useEffect, useRef, useState } from "react";
-import { Api } from "../services/api";
-import { extractImage, safeSrc, EMBED_PLACEHOLDER } from "../utils/images";
+import { getBenefitCardImage } from "../core-config/useCases";
+import { safeSrc, EMBED_PLACEHOLDER } from "../utils/images";
 
 const imgCache = new Map();
 
@@ -23,8 +23,7 @@ export default function BenefitCard({ item, onClick }) {
 
     const load = async () => {
       try {
-        const d = await Api.beneficios.obtener(id);
-        const src = safeSrc(extractImage(d));
+        const src = safeSrc(await getBenefitCardImage(item));
         imgCache.set(id, src);
         setImgSrc(src);
       } catch {
