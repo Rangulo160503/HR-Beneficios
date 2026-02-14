@@ -127,24 +127,36 @@ export default function ProveedorHome() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {beneficios.map((b) => (
                 <article
-                  key={b.beneficioId || b.id}
-                  className="rounded-2xl bg-neutral-900/70 border border-neutral-800 p-4 space-y-2"
-                >
-                  <h3 className="font-semibold truncate">
-                    {b.titulo || b.Titulo}
-                  </h3>
-                  <p className="text-xs text-neutral-400 line-clamp-2">
-                    {b.descripcion || b.Descripcion}
-                  </p>
-                  <p className="text-sm font-medium mt-2">
-                    ₡{(b.precioCRC || b.PrecioCRC || 0).toLocaleString("es-CR")}
-                  </p>
-                  <p className="text-xs text-neutral-500">
-                    Vigencia:{" "}
-                    {b.vigenciaInicio || b.VigenciaInicio} —{" "}
-                    {b.vigenciaFin || b.VigenciaFin}
-                  </p>
-                </article>
+  key={b.beneficioId || b.id}
+  className="rounded-2xl bg-neutral-900/70 border border-neutral-800 p-4 space-y-2"
+>
+  <div className="flex items-start justify-between gap-3">
+    <h3 className="font-semibold truncate">
+      {b.titulo || b.Titulo}
+    </h3>
+
+    <button
+      type="button"
+      className="shrink-0 text-xs px-3 py-1 rounded-full border border-neutral-700 text-neutral-200 hover:bg-neutral-800"
+      onClick={() => console.log("Editar beneficio:", b.beneficioId || b.id)}
+    >
+      Editar
+    </button>
+  </div>
+
+  <p className="text-xs text-neutral-400 line-clamp-2">
+    {b.descripcion || b.Descripcion}
+  </p>
+  <p className="text-sm font-medium mt-2">
+    ₡{(b.precioCRC || b.PrecioCRC || 0).toLocaleString("es-CR")}
+  </p>
+  <p className="text-xs text-neutral-500">
+    Vigencia:{" "}
+    {b.vigenciaInicio || b.VigenciaInicio} —{" "}
+    {b.vigenciaFin || b.VigenciaFin}
+  </p>
+</article>
+
               ))}
             </div>
           )}
