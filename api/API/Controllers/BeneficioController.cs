@@ -48,6 +48,7 @@ namespace API.Controllers
         // PUT api/Beneficio/{Id}
         [HttpPut("{Id:guid}")]
         [RequestSizeLimit(20_000_000)]
+        [AllowAnonymous]
         public async Task<IActionResult> Editar(Guid Id, [FromBody] BeneficioRequest req)
         {
             if (!await VerificarBeneficioExiste(Id)) return NotFound("El beneficio no existe");
