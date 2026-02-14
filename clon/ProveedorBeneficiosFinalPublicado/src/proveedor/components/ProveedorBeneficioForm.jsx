@@ -77,6 +77,8 @@ export default function ProveedorBeneficioForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (saving) return; // prevenir envíos múltiples
+
     const proveedorId = localStorage.getItem("proveedorId");
     const guidRegex = /^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
 
@@ -106,11 +108,15 @@ export default function ProveedorBeneficioForm({
         imagen: form.imagen || null,
       };
       console.log("[Proveedor] payload a enviar:", payload);
-
+      
+      if (initial && (initial.beneficioId || initial.id)) {
+        const id = initial.beneficioId || initial.id;
+        await BeneficioApi.update(id, payload);
+        alert("Beneficio actualizado exitosamente");
+      } else {
       await BeneficioApi.create(payload);
-      alert(
-        "El beneficio fue enviado para aprobación. Un administrador debe aprobarlo antes de que aparezca publicado."
-      );
+      alert("Beneficio creado exitosamente");
+      }
       onSaved?.();
     } catch (error) {
       console.error("No se pudo guardar el beneficio", error);
