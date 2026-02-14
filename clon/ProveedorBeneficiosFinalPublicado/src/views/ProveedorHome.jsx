@@ -1,5 +1,5 @@
 // src/views/ProveedorHome.jsx
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ProveedorBeneficioForm from "../proveedor/components/ProveedorBeneficioForm";
 import { getProveedorDetail, loadBeneficiosByProveedor } from "../core-config/useCases";
 import { providerSessionStore } from "../core-config/sessionStores";
@@ -9,6 +9,7 @@ export default function ProveedorHome() {
   const [proveedorId, setProveedorId] = useState(null);
   const [proveedorNombre, setProveedorNombre] = useState("");
   const [beneficios, setBeneficios] = useState([]);
+  const [selectedBeneficio, setSelectedBeneficio] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // 1) Resolver proveedorId desde URL o SessionStore (esto ya lo tenías, solo lo
@@ -68,12 +69,7 @@ export default function ProveedorHome() {
         console.log("[Proveedor] beneficios recibidos:", data);
 
         if (!cancel) {
-          // Opcional: si quieres mostrar solo aprobados (estado === 1)
-          const soloAprobados = (data || []).filter(
-            (b) => b.estado === 1 || b.estado === "Aprobado"
-          );
-
-          setBeneficios(soloAprobados);
+          await loadBeneficios(proveedorId);
         }
       } catch (error) {
         console.error("[Proveedor] Error cargando beneficios:", error);
@@ -86,7 +82,29 @@ export default function ProveedorHome() {
     return () => {
       cancel = true;
     };
-  }, [proveedorId]);
+  }, [proveedorId, loadBeneficios]);
+
+  const handleNuevo = () => {
+    setSelectedBeneficio(null);
+    setShowForm(true);
+  };
+
+  const handleEditar = (beneficio) => {
+    setSelectedBeneficio(beneficio);
+    setShowForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setSelectedBeneficio(null);
+  };
+
+  const handleSaved = async () => {
+    if (proveedorId) {
+      await loadBeneficios(proveedorId);
+    }
+    handleCloseForm();
+  };
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white p-6">
@@ -103,7 +121,7 @@ export default function ProveedorHome() {
           </div>
 
           <button
-            onClick={() => setShowForm(true)}
+            onClick={handleNuevo}
             className="rounded-full px-4 py-2 bg-emerald-500 text-black font-semibold hover:bg-emerald-400"
           >
             Nuevo beneficio
@@ -132,24 +150,36 @@ export default function ProveedorHome() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {beneficios.map((b) => (
                 <article
-                  key={b.beneficioId || b.id}
-                  className="rounded-2xl bg-neutral-900/70 border border-neutral-800 p-4 space-y-2"
-                >
-                  <h3 className="font-semibold truncate">
-                    {b.titulo || b.Titulo}
-                  </h3>
-                  <p className="text-xs text-neutral-400 line-clamp-2">
-                    {b.descripcion || b.Descripcion}
-                  </p>
-                  <p className="text-sm font-medium mt-2">
-                    ₡{(b.precioCRC || b.PrecioCRC || 0).toLocaleString("es-CR")}
-                  </p>
-                  <p className="text-xs text-neutral-500">
-                    Vigencia:{" "}
-                    {b.vigenciaInicio || b.VigenciaInicio} —{" "}
-                    {b.vigenciaFin || b.VigenciaFin}
-                  </p>
-                </article>
+  key={b.beneficioId || b.id}
+  className="rounded-2xl bg-neutral-900/70 border border-neutral-800 p-4 space-y-2"
+>
+  <div className="flex items-start justify-between gap-3">
+    <h3 className="font-semibold truncate">
+      {b.titulo || b.Titulo}
+    </h3>
+
+    <button
+      type="button"
+      className="shrink-0 text-xs px-3 py-1 rounded-full border border-neutral-700 text-neutral-200 hover:bg-neutral-800"
+      onClick={() => handleEditar(b)}
+    >
+      Editar
+    </button>
+  </div>
+
+  <p className="text-xs text-neutral-400 line-clamp-2">
+    {b.descripcion || b.Descripcion}
+  </p>
+  <p className="text-sm font-medium mt-2">
+    ₡{(b.precioCRC || b.PrecioCRC || 0).toLocaleString("es-CR")}
+  </p>
+  <p className="text-xs text-neutral-500">
+    Vigencia:{" "}
+    {b.vigenciaInicio || b.VigenciaInicio} —{" "}
+    {b.vigenciaFin || b.VigenciaFin}
+  </p>
+</article>
+
               ))}
             </div>
           )}
@@ -159,9 +189,9 @@ export default function ProveedorHome() {
       {/* Modal de creación/edición */}
       {showForm && (
         <ProveedorBeneficioForm
-          initial={null}
-          onSaved={() => setShowForm(false)}
-          onCancel={() => setShowForm(false)}
+          initial={selectedBeneficio}
+          onSaved={handleSaved}
+          onCancel={handleCloseForm}
         />
       )}
     </div>
