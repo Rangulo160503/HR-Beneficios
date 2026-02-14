@@ -1,5 +1,6 @@
 // src/components/sidebar/Sidebar.jsx
 import NavItem from "./NavItem";
+import { LocalSessionStore } from "../../core/infrastructure/session/LocalSessionStore";
 
 const IconGift = (p) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...p}>
@@ -59,6 +60,7 @@ const IconBoard = (p) => (
 );
 
 const LS_SIDEBAR = "admin.sidebar.collapsed";
+const sidebarStore = new LocalSessionStore(LS_SIDEBAR);
 
 export default function Sidebar({
   nav,
@@ -72,9 +74,7 @@ export default function Sidebar({
         <button
           onClick={() => {
             const next = !collapsed;
-            try {
-              localStorage.setItem(LS_SIDEBAR, next ? "1" : "0");
-            } catch {}
+            sidebarStore.setSession(next ? "1" : "0");
             onToggleCollapsed(next);
           }}
           className="font-semibold text-white/60 hover:text-white"

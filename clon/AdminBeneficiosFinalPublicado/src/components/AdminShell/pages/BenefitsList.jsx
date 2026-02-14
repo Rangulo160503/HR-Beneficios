@@ -90,7 +90,7 @@ export default function BenefitsList({
                 className={`flex items-center px-4 py-3 gap-3 cursor-pointer ${
                   isActive ? "bg-white/5" : "hover:bg-white/5/60"
                 }`}
-                onClick={() => onSelect?.({ ...b, id: itemId, beneficioId: itemId })}
+                onClick={() => onSelect?.(b)}
               >
                 {/* mini imagen */}
                 <div className="w-10 h-10 rounded-md bg-white/10 overflow-hidden flex-shrink-0" />
@@ -119,7 +119,7 @@ export default function BenefitsList({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEdit?.({ ...b, id: itemId, beneficioId: itemId });
+                    onEdit?.(b);
                   }}
                   className="ml-2 px-3 py-1.5 rounded-full text-[11px] border border-white/15 hover:bg-white/10"
                 >

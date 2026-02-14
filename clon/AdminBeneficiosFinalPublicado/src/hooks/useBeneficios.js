@@ -1,6 +1,12 @@
 // src/hooks/useBeneficios.js
 import { useEffect, useMemo, useState } from "react";
-import { BeneficioApi, CategoriaApi, ProveedorApi } from "../services/adminApi";
+import {
+  deleteBeneficio,
+  loadBeneficiosList,
+  loadCategoriasList,
+  loadProveedoresList,
+  saveBeneficio,
+} from "../core-config/useCases";
 
 const norm   = v => (v == null ? "" : String(v).trim());
 const lower  = v => norm(v).toLowerCase();
@@ -14,24 +20,6 @@ const isMeaningful = (s) => {
 // helpers selección por nombre cuando no hay GUID estable
 const isNameSel = (sel) => String(sel).startsWith("name:");
 const nameOfSel = (sel) => String(sel).slice(5);
-
-// 🔒 Normaliza un beneficio para garantizar id estable
-const mapBenefitId = (r) => {
-  const id =
-    r?.id ??
-    r?.Id ??
-    r?.beneficioId ??
-    r?.BeneficioId ??
-    r?.beneficio?.id ??
-    r?.beneficio?.Id;
-
-  const fixed = String(id ?? "").trim();
-  return {
-    ...r,
-    id: fixed || undefined,          // clave única para React
-    beneficioId: fixed || undefined, // compatibilidad con código existente
-  };
-};
 
 export function useBeneficios() {
   const [items, setItems]     = useState([]);
@@ -51,9 +39,9 @@ export function useBeneficios() {
       try {
         setErr(""); setLoading(true);
         const [Craw, Praw, Braw] = await Promise.all([
-          CategoriaApi.list(),
-          ProveedorApi.list(),
-          BeneficioApi.list(),
+          loadCategoriasList(),
+          loadProveedoresList(),
+          loadBeneficiosList(),
         ]);
 
         if (!alive) return;
@@ -65,9 +53,7 @@ export function useBeneficios() {
         setCats(C);
         setProvs(P);
 
-        // Normaliza: todos los items con id estable
-        console.log("🧩 Braw example:", B[0]);
-        setItems(B.map(mapBenefitId));
+        setItems(B);
 
       } catch {
         setErr("No se pudieron cargar los datos.");
@@ -209,35 +195,24 @@ export function useBeneficios() {
 
   // ---- CRUD
   async function save(dto, editing) {
-    const id = editing?.beneficioId || editing?.BeneficioId || editing?.id || editing?.Id;
+    const result = await saveBeneficio({ dto, editing });
 
-    if (id) {
-      // UPDATE
-      await BeneficioApi.update(id, dto);
-      const freshRaw = await BeneficioApi.get(id);
-      const fresh = mapBenefitId(freshRaw);
-      setItems(s => s.map(x => ((x.id || x.beneficioId) === id ? fresh : mapBenefitId(x))));
-    } else {
-      // CREATE
-      const created = await BeneficioApi.create(dto); // puede ser objeto, id o null (204)
-      let freshRaw = created;
+    if (result?.beneficios) {
+      setItems(result.beneficios);
+      return;
+    }
 
-      if (freshRaw == null) {
-        // fallback: recargar lista para no insertar null
-        const Braw = await BeneficioApi.list();
-        setItems(Braw.map(mapBenefitId));
-        return;
-      }
-      if (typeof freshRaw === "string") {
-        freshRaw = await BeneficioApi.get(freshRaw);
-      }
-      const fresh = mapBenefitId(freshRaw);
-      setItems(s => [fresh, ...s.map(mapBenefitId)]);
+    if (result?.beneficio) {
+      const updated = result.beneficio;
+      setItems((prev) => {
+        const exists = prev.some((x) => (x.beneficioId || x.id) === updated.beneficioId);
+        return exists ? prev.map((x) => ((x.beneficioId || x.id) === updated.beneficioId ? updated : x)) : [updated, ...prev];
+      });
     }
   }
 
   async function remove(id) {
-    await BeneficioApi.remove(id);
+    await deleteBeneficio({ beneficioId: id });
     setItems(s => s.filter(x => x.id !== id));
   }
 

@@ -1,13 +1,12 @@
-import Display from "./components/Display";
+import { Route, Routes } from "react-router-dom";
+import LoginFormScreen from "./pages/LoginFormScreen";
+import Gate from "./components/Gate";
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="h-full flex overflow-x-hidden">
-        <main className="flex-1 min-w-0">
-          <Display />
-        </main>
-      </div>
-    </div>
+    <Routes>
+      <Route path="/login" element={<LoginFormScreen />} />
+      <Route path="/*" element={<Gate />} />
+    </Routes>
   );
 }

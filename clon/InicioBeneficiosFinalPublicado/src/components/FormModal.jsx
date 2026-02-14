@@ -1,5 +1,6 @@
 // src/components/FormModal.jsx
 import { useEffect, useRef, useState } from "react";
+import { submitContacto } from "../core-config/useCases";
 
 export default function FormModal({
   isOpen,
@@ -66,16 +67,7 @@ export default function FormModal({
 
     setSubmitting(true);
     try {
-      const res = await fetch(postUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
-      });
-      if (!res.ok) {
-        const txt = await res.text().catch(() => "");
-        throw new Error(txt || `Error ${res.status}`);
-      }
-      const data = await res.json().catch(() => ({}));
+      const data = await submitContacto({ url: postUrl, dto: form });
       onSubmitted?.(data);
       onClose?.();
     } catch (err) {
