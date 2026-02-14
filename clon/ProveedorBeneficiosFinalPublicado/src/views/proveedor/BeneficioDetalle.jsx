@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Api } from "../../services/api";
+import { getBeneficioDetail } from "../../core-config/useCases";
 
 export default function BeneficioDetalle() {
   const { id } = useParams();
@@ -12,7 +12,7 @@ export default function BeneficioDetalle() {
     let cancel = false;
     (async () => {
       try {
-        const dto = await Api.beneficios.obtener(id); // <-- GET /api/Beneficio/{id}
+        const dto = await getBeneficioDetail(id); // <-- GET /api/Beneficio/{id}
         if (!cancel) setItem(dto);
       } catch (e) {
         console.error(e);

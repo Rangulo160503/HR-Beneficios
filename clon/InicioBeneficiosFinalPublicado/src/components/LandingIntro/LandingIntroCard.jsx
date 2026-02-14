@@ -15,8 +15,9 @@ export default function LandingIntroCard({ kicker, title, subtitle, options }) {
             key={option.label}
             className="access-card"
             onClick={() => {
-              window.location.href = option.href;
-            }}
+  console.log("👉 CLICK:", option.label, option.href);
+  window.location.href = option.href;
+}}
           >
             <span className="access-label">{option.label}</span>
             <span className="access-arrow">→</span>

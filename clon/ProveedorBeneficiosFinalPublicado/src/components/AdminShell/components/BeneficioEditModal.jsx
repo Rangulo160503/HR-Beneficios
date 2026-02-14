@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import AprobacionesApi from "../services/adminApi";
+import { getBeneficioDetail, updateBeneficio } from "../../../../core-config/useCases";
 
 function BeneficioEditModal({ open, beneficioId, onClose, onSaved, categorias = [] }) {
   const [form, setForm] = useState({
@@ -21,7 +21,7 @@ function BeneficioEditModal({ open, beneficioId, onClose, onSaved, categorias = 
     if (open && beneficioId) {
       setLoading(true);
       setError("");
-      AprobacionesApi.obtenerDetalle(beneficioId)
+      getBeneficioDetail(beneficioId)
         .then((detalle) => {
           setForm({
             titulo: detalle.titulo || "",
@@ -86,7 +86,7 @@ function BeneficioEditModal({ open, beneficioId, onClose, onSaved, categorias = 
         categoriaId: form.categoriaId,
         disponible: form.disponible,
       };
-      await AprobacionesApi.editar(beneficioId, payload);
+      await updateBeneficio({ beneficioId, dto: payload });
       if (onSaved) onSaved();
       onClose();
     } catch (err) {
