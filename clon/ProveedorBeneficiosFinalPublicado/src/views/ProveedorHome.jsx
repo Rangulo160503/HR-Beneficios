@@ -1,5 +1,5 @@
 // src/views/ProveedorHome.jsx
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ProveedorBeneficioForm from "../proveedor/components/ProveedorBeneficioForm";
 import { BeneficioApi, ProveedorApi } from "../services/adminApi";
 
@@ -11,6 +11,94 @@ export default function ProveedorHome() {
   const [selectedBeneficio, setSelectedBeneficio] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Cache simple para no pedir el detalle cada vez que re-renderiza
+  const [imgCache, setImgCache] = useState(() => new Map());
+
+  const normalizeId = (b) => b?.beneficioId ?? b?.BeneficioId ?? b?.id ?? b?.Id ?? null;
+
+  const buildImgSrc = (rawImg) => {
+    if (!rawImg) return null;
+
+    // Si ya viene como data url, úsalo tal cual
+    if (typeof rawImg === "string" && rawImg.startsWith("data:image")) return rawImg;
+
+    // Detectar mime básico por firma
+    const mime =
+      rawImg?.startsWith("iVBOR") ? "image/png" :
+      rawImg?.startsWith("/9j/") ? "image/jpeg" :
+      "image/jpeg";
+
+    return `data:${mime};base64,${rawImg}`;
+  };
+
+  const hydrateImagenes = useCallback(async (items, cancelRef) => {
+    // Pedimos detalle solo para los que no tienen imagen en el listado
+    const toFetch = (items || []).filter((b) => {
+      const id = normalizeId(b);
+      if (!id) return false;
+
+      const raw =
+        b.imagen ?? b.Imagen ?? b.imagenBase64 ?? b.ImagenBase64 ?? null;
+
+      // ya venía en listado
+      if (raw) return false;
+
+      // ya está cacheada
+      if (imgCache.has(id)) return false;
+
+      return true;
+    });
+
+    if (toFetch.length === 0) return;
+
+    // Concurrencia limitada para no saturar (4 a la vez)
+    const limit = 4;
+    let idx = 0;
+
+    const localUpdates = new Map();
+
+    const worker = async () => {
+      while (idx < toFetch.length) {
+        const current = toFetch[idx++];
+        const id = normalizeId(current);
+        if (!id) continue;
+
+        try {
+          const detalle = await BeneficioApi.get(id); // GET /api/Beneficio/{id}
+          const raw = detalle?.imagen ?? detalle?.Imagen ?? null;
+          if (raw) localUpdates.set(id, raw);
+        } catch {
+          // noop
+        }
+
+        if (cancelRef?.current) return;
+      }
+    };
+
+    await Promise.all(Array.from({ length: Math.min(limit, toFetch.length) }, worker));
+
+    if (cancelRef?.current) return;
+
+    if (localUpdates.size > 0) {
+      // 1) actualizar cache
+      setImgCache((prev) => {
+        const next = new Map(prev);
+        for (const [k, v] of localUpdates.entries()) next.set(k, v);
+        return next;
+      });
+
+      // 2) “inyectar” imagen en beneficios para que el UI se actualice
+      setBeneficios((prev) =>
+        prev.map((b) => {
+          const id = normalizeId(b);
+          if (!id) return b;
+          const cached = localUpdates.get(id);
+          return cached ? { ...b, imagen: cached } : b;
+        })
+      );
+    }
+  }, [imgCache]);
+
   const loadBeneficios = useCallback(async (id) => {
     const data = await BeneficioApi.listByProveedor(id);
     console.log("[Proveedor] beneficios recibidos:", data);
@@ -19,11 +107,15 @@ export default function ProveedorHome() {
       (b) => b.estado === 1 || b.estado === "Aprobado"
     );
 
+    // Pintar rápido
     setBeneficios(soloAprobados);
-  }, []);
 
-  // 1) Resolver proveedorId desde URL o localStorage (esto ya lo tenías, solo lo
-  // dejo integrado aquí para que quede todo en un solo archivo).
+    // Luego completar imágenes desde el detalle (solo frontend)
+    const cancelRef = { current: false };
+    await hydrateImagenes(soloAprobados, cancelRef);
+  }, [hydrateImagenes]);
+
+  // 1) Resolver proveedorId desde URL o localStorage
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const fromUrl = params.get("proveedorId");
@@ -39,15 +131,13 @@ export default function ProveedorHome() {
         console.log("[Proveedor] usando proveedorId desde localStorage:", stored);
         setProveedorId(stored);
       } else {
-        console.warn(
-          "[Proveedor] NO hay proveedorId ni en URL ni en localStorage"
-        );
+        console.warn("[Proveedor] NO hay proveedorId ni en URL ni en localStorage");
         setProveedorId(null);
       }
     }
   }, []);
 
-  // 2) Cargar datos del proveedor (nombre) y sus beneficios cuando ya tenemos proveedorId
+  // 2) Cargar datos del proveedor y beneficios
   useEffect(() => {
     if (!proveedorId) {
       setLoading(false);
@@ -60,20 +150,16 @@ export default function ProveedorHome() {
       try {
         setLoading(true);
 
-        // Nombre del proveedor para la cabecera
+        // Nombre del proveedor
         try {
           const prov = await ProveedorApi.get(proveedorId);
-          if (!cancel && prov) {
-            setProveedorNombre(prov.nombre || prov.Nombre || "");
-          }
+          if (!cancel && prov) setProveedorNombre(prov.nombre || prov.Nombre || "");
         } catch (e) {
           console.warn("[Proveedor] Error obteniendo proveedor:", e);
         }
 
-        // Beneficios de este proveedor
-        if (!cancel) {
-          await loadBeneficios(proveedorId);
-        }
+        // Beneficios del proveedor
+        if (!cancel) await loadBeneficios(proveedorId);
       } catch (error) {
         console.error("[Proveedor] Error cargando beneficios:", error);
         if (!cancel) setBeneficios([]);
@@ -93,7 +179,9 @@ export default function ProveedorHome() {
   };
 
   const handleEditar = (beneficio) => {
-    setSelectedBeneficio(beneficio);
+    // Blindar id consistente
+    const beneficioId = normalizeId(beneficio);
+    setSelectedBeneficio(beneficioId ? { ...beneficio, beneficioId } : beneficio);
     setShowForm(true);
   };
 
@@ -103,9 +191,7 @@ export default function ProveedorHome() {
   };
 
   const handleSaved = async () => {
-    if (proveedorId) {
-      await loadBeneficios(proveedorId);
-    }
+    if (proveedorId) await loadBeneficios(proveedorId);
     handleCloseForm();
   };
 
@@ -118,7 +204,8 @@ export default function ProveedorHome() {
             <h1 className="text-2xl font-bold">Portal de Proveedor</h1>
             {proveedorNombre && (
               <p className="text-sm text-neutral-400 mt-1">
-                Sesión para: <span className="font-medium">{proveedorNombre}</span>
+                Sesión para:{" "}
+                <span className="font-medium">{proveedorNombre}</span>
               </p>
             )}
           </div>
@@ -134,8 +221,7 @@ export default function ProveedorHome() {
         {/* Intro */}
         <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4 text-neutral-200">
           <p className="text-sm text-neutral-400">
-            Aquí podrás crear los beneficios asociados. Usa
-            el botón superior para abrir el formulario.
+            Aquí podrás crear los beneficios asociados. Usa el botón superior para abrir el formulario.
           </p>
         </div>
 
@@ -151,39 +237,70 @@ export default function ProveedorHome() {
             </p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {beneficios.map((b) => (
-                <article
-  key={b.beneficioId || b.id}
-  className="rounded-2xl bg-neutral-900/70 border border-neutral-800 p-4 space-y-2"
->
-  <div className="flex items-start justify-between gap-3">
-    <h3 className="font-semibold truncate">
-      {b.titulo || b.Titulo}
-    </h3>
+              {beneficios.map((b) => {
+                const beneficioId = normalizeId(b);
 
-    <button
-      type="button"
-      className="shrink-0 text-xs px-3 py-1 rounded-full border border-neutral-700 text-neutral-200 hover:bg-neutral-800"
-      onClick={() => handleEditar(b)}
-    >
-      Editar
-    </button>
-  </div>
+                const rawImg =
+                  b.imagen ??
+                  b.Imagen ??
+                  b.imagenBase64 ??
+                  b.ImagenBase64 ??
+                  (beneficioId ? imgCache.get(beneficioId) : null) ??
+                  null;
 
-  <p className="text-xs text-neutral-400 line-clamp-2">
-    {b.descripcion || b.Descripcion}
-  </p>
-  <p className="text-sm font-medium mt-2">
-    ₡{(b.precioCRC || b.PrecioCRC || 0).toLocaleString("es-CR")}
-  </p>
-  <p className="text-xs text-neutral-500">
-    Vigencia:{" "}
-    {b.vigenciaInicio || b.VigenciaInicio} —{" "}
-    {b.vigenciaFin || b.VigenciaFin}
-  </p>
-</article>
+                const imgSrc = buildImgSrc(rawImg);
 
-              ))}
+                return (
+                  <article
+                    key={beneficioId || b.beneficioId || b.id}
+                    className="rounded-2xl bg-neutral-900/70 border border-neutral-800 p-4 space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 min-w-0">
+                        {imgSrc ? (
+                          <img
+                            src={imgSrc}
+                            alt={b.titulo || b.Titulo || "Imagen del beneficio"}
+                            className="w-16 h-16 rounded-xl object-cover border border-neutral-800 shrink-0"
+                            loading="lazy"
+                            onError={(e) => (e.currentTarget.style.display = "none")}
+                          />
+                        ) : (
+                          <div className="w-16 h-16 rounded-xl border border-neutral-800 bg-neutral-900 shrink-0 grid place-items-center text-neutral-600 text-xs">
+                            Sin imagen
+                          </div>
+                        )}
+
+                        <div className="min-w-0">
+                          <h3 className="font-semibold truncate">
+                            {b.titulo || b.Titulo}
+                          </h3>
+                          <p className="text-xs text-neutral-400 line-clamp-2 mt-1">
+                            {b.descripcion || b.Descripcion}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="shrink-0 text-xs px-3 py-1 rounded-full border border-neutral-700 text-neutral-200 hover:bg-neutral-800"
+                        onClick={() => handleEditar(b)}
+                      >
+                        Editar
+                      </button>
+                    </div>
+
+                    <p className="text-sm font-medium">
+                      ₡{(b.precioCRC || b.PrecioCRC || 0).toLocaleString("es-CR")}
+                    </p>
+
+                    <p className="text-xs text-neutral-500">
+                      Vigencia: {b.vigenciaInicio || b.VigenciaInicio} —{" "}
+                      {b.vigenciaFin || b.VigenciaFin}
+                    </p>
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>
