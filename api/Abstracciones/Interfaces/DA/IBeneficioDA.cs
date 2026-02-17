@@ -13,6 +13,7 @@ namespace Abstracciones.Interfaces.DA
         Task<IEnumerable<BeneficioResponse>> Obtener();
         Task<IEnumerable<BeneficioResponse>> ObtenerAprobados();
         Task<IEnumerable<BeneficioResponse>> ObtenerPendientes();
+        Task<IEnumerable<BeneficioResponse>> ObtenerRechazados();
         Task<BeneficioDetalle> Obtener(Guid Id);
         Task<Guid> Agregar(BeneficioRequest beneficio);
         Task<Guid> Editar(Guid Id, BeneficioRequest beneficio);

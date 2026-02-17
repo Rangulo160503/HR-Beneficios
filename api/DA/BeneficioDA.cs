@@ -103,6 +103,16 @@ namespace DA
             return rows;
         }
 
+        public async Task<IEnumerable<BeneficioResponse>> ObtenerRechazados()
+        {
+            const string sp = "core.ObtenerBeneficiosRechazados";
+            var rows = await _dapperWrapper.QueryAsync<BeneficioResponse>(
+                _dbConnection, sp, null, null, null, CommandType.StoredProcedure
+            );
+            return rows;
+        }
+
+
         public async Task<BeneficioDetalle> Obtener(Guid Id)
         {
             const string sp = "core.ObtenerBeneficio";

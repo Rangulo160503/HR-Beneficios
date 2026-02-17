@@ -91,9 +91,18 @@ namespace API.Controllers
 
         // GET api/Beneficio/pendientes
         [HttpGet("pendientes")]
+        [AllowAnonymous]
         public async Task<IActionResult> ObtenerPendientes()
         {
             var lista = await _beneficioFlujo.ObtenerPendientes();
+            return Ok(lista ?? Enumerable.Empty<BeneficioResponse>());
+        }
+        // GET api/Beneficio/rechazados
+        [HttpGet("rechazados")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ObtenerRechazados()
+        {
+            var lista = await _beneficioFlujo.ObtenerRechazados();
             return Ok(lista ?? Enumerable.Empty<BeneficioResponse>());
         }
 

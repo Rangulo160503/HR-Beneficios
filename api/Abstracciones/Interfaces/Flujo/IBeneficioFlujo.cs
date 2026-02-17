@@ -14,6 +14,7 @@ namespace Abstracciones.Interfaces.Flujo
         Task<IEnumerable<BeneficioResponse>> Obtener();
         Task<IEnumerable<BeneficioResponse>> ObtenerAprobados();
         Task<IEnumerable<BeneficioResponse>> ObtenerPendientes();
+        Task<IEnumerable<BeneficioResponse>> ObtenerRechazados();
         Task<BeneficioDetalle> Obtener(Guid Id);
         Task<Guid> Agregar(BeneficioRequest vehiculo);
         Task<Guid> Editar(Guid Id, BeneficioRequest vehiculo);

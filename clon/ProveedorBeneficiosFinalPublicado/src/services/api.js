@@ -3,7 +3,7 @@ const CLOUD = "https://hr-beneficios-api-grgmckc5dwdca9dc.canadacentral-01.azure
 const LOCAL  = "https://localhost:5001";
 
 // 🔀 cambia esto a "local" mientras Azure esté en quota exceeded
-const TARGET = "cloud"; // "cloud" | "local"
+const TARGET = "local"; // "cloud" | "local"
 
 const API_BASE = (TARGET === "cloud" ? CLOUD : LOCAL).replace(/\/$/, "");
 console.log("[API_BASE]", API_BASE);
@@ -26,6 +26,8 @@ async function httpGet(path) {
 export const EP = {
   // === Beneficios ===
   beneficios: () => `/api/Beneficio`,
+  beneficiosPendientes: () => `/api/Beneficio/pendientes`,
+  beneficiosRechazados: () => `/api/Beneficio/rechazados`,
   beneficioId: (id) => `/api/Beneficio/${id}`,
   aprobacionesPendientes: () => `/api/Beneficio/aprobaciones/pendientes`,
   aprobacionesAprobados: () => `/api/Beneficio/aprobaciones/aprobados`,
@@ -98,6 +100,8 @@ export const Api = {
 beneficios: {
   listar: () => httpGet(EP.beneficios()),
   obtener: (id) => httpGet(EP.beneficioId(id)),
+  pendientes: () => httpGet(EP.beneficiosPendientes()),
+  rechazados: () => httpGet(EP.beneficiosRechazados()),
   agregar: (payload) => {
   const params = new URLSearchParams(window.location.search);
   const proveedorId = params.get("proveedorId");
@@ -124,20 +128,26 @@ beneficios: {
 
   // Trae todos y filtra en el front por proveedor (usado en dashboard / portal proveedor)
   listarPorProveedorFront: async (proveedorId) => {
-    const all = await httpGet(EP.beneficios());
-    console.log("[Api] beneficios (ALL):", all);
+  const [aprobados, pendientes, rechazados] = await Promise.all([
+    httpGet(EP.beneficios()),
+    httpGet(EP.beneficiosPendientes()),
+    httpGet(EP.beneficiosRechazados()),
+  ]);
 
-    const norm = (v) => String(v || "").toLowerCase();
+  const all = [...(aprobados || []), ...(pendientes || []), ...(rechazados || [])];
+  console.log("[Api] beneficios (ALL):", all);
 
-    const filtrados = (all || []).filter((x) => {
-      // soporta ProveedorId (Pascal) y proveedorId (camel)
-      const idModelo = x.proveedorId ?? x.ProveedorId;
-      return norm(idModelo) === norm(proveedorId);
-    });
+  const norm = (v) => String(v || "").toLowerCase();
 
-    console.log("[Api] beneficios filtrados por proveedor:", filtrados);
-    return filtrados;
-  },
+  const filtrados = (all || []).filter((x) => {
+    const idModelo = x.proveedorId ?? x.ProveedorId;
+    return norm(idModelo) === norm(proveedorId);
+  });
+
+  console.log("[Api] beneficios filtrados por proveedor:", filtrados);
+  return filtrados;
+},
+
 
   // (para cuando crees el endpoint en backend)
   listarPorProveedorAPI: (proveedorId) =>

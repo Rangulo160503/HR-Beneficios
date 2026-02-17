@@ -47,6 +47,10 @@ namespace Flujo
             var items = await _beneficioDA.ObtenerPendientes();
             return items;
         }
+        public async Task<IEnumerable<BeneficioResponse>> ObtenerRechazados()
+        {
+            return await _beneficioDA.ObtenerRechazados();
+        }
 
         public async Task<BeneficioDetalle> Obtener(Guid id)
         {

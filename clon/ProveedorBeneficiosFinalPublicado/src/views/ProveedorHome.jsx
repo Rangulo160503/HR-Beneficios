@@ -8,6 +8,8 @@ export default function ProveedorHome() {
   const [proveedorId, setProveedorId] = useState(null);
   const [proveedorNombre, setProveedorNombre] = useState("");
   const [beneficios, setBeneficios] = useState([]);
+  const [allBeneficios, setAllBeneficios] = useState([]);
+const [filtroEstado, setFiltroEstado] = useState("aprobado");
   const [selectedBeneficio, setSelectedBeneficio] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -101,18 +103,26 @@ export default function ProveedorHome() {
 
   const loadBeneficios = useCallback(async (id) => {
     const data = await BeneficioApi.listByProveedor(id);
+    console.log("Unicos:", [...new Set((data || []).map(b => b.estado ?? b.Estado))]);
+
     console.log("[Proveedor] beneficios recibidos:", data);
 
-    const soloAprobados = (data || []).filter(
-      (b) => b.estado === 1 || b.estado === "Aprobado"
-    );
+    const all = data || [];
 
-    // Pintar rápido
-    setBeneficios(soloAprobados);
+// Guardar TODO para poder filtrar después
+setAllBeneficios(all);
+
+// Mantener UX: pintar rápido con el filtro inicial (aprobado)
+const inicial = all.filter(
+  (b) => b.estado === 1 || b.estado === "Aprobado"
+);
+
+setBeneficios(inicial);
+
 
     // Luego completar imágenes desde el detalle (solo frontend)
     const cancelRef = { current: false };
-    await hydrateImagenes(soloAprobados, cancelRef);
+    await hydrateImagenes(inicial, cancelRef);
   }, [hydrateImagenes]);
 
   // 1) Resolver proveedorId desde URL o localStorage
@@ -173,6 +183,33 @@ export default function ProveedorHome() {
     };
   }, [proveedorId, loadBeneficios]);
 
+    // 3) Re-filtrar cuando cambie el botón
+  useEffect(() => {
+    const all = allBeneficios || [];
+
+    let filtrados = all;
+
+    if (filtroEstado === "aprobado") {
+      filtrados = all.filter((b) => b.estado === 1 || b.estado === "Aprobado");
+    } else if (filtroEstado === "pendiente") {
+      filtrados = all.filter((b) => b.estado === 0 || b.estado === "Pendiente");
+    } else if (filtroEstado === "rechazado") {
+      filtrados = all.filter((b) => b.estado === 2 || b.estado === "Rechazado");
+    } else if (filtroEstado === "todos") {
+      filtrados = all;
+    }
+
+    setBeneficios(filtrados);
+
+    const cancelRef = { current: false };
+    hydrateImagenes(filtrados, cancelRef);
+
+    return () => {
+      cancelRef.current = true;
+    };
+  }, [allBeneficios, filtroEstado, hydrateImagenes]);
+
+
   const handleNuevo = () => {
     setSelectedBeneficio(null);
     setShowForm(true);
@@ -228,6 +265,61 @@ export default function ProveedorHome() {
         {/* Lista de beneficios */}
         <section className="mt-4">
           <h2 className="text-lg font-semibold mb-3">Tus beneficios</h2>
+
+          <div className="flex flex-wrap gap-2 mb-3">
+  <button
+    type="button"
+    onClick={() => setFiltroEstado("aprobado")}
+    className={
+      "px-3 py-1 rounded-full text-xs border " +
+      (filtroEstado === "aprobado"
+        ? "bg-emerald-500 text-black border-emerald-500"
+        : "border-neutral-700 text-neutral-200 hover:bg-neutral-800")
+    }
+  >
+    Aprobados
+  </button>
+
+  <button
+    type="button"
+    onClick={() => setFiltroEstado("pendiente")}
+    className={
+      "px-3 py-1 rounded-full text-xs border " +
+      (filtroEstado === "pendiente"
+        ? "bg-amber-400 text-black border-amber-400"
+        : "border-neutral-700 text-neutral-200 hover:bg-neutral-800")
+    }
+  >
+    Pendientes
+  </button>
+
+  <button
+    type="button"
+    onClick={() => setFiltroEstado("rechazado")}
+    className={
+      "px-3 py-1 rounded-full text-xs border " +
+      (filtroEstado === "rechazado"
+        ? "bg-red-400 text-black border-red-400"
+        : "border-neutral-700 text-neutral-200 hover:bg-neutral-800")
+    }
+  >
+    Rechazados
+  </button>
+
+  <button
+    type="button"
+    onClick={() => setFiltroEstado("todos")}
+    className={
+      "px-3 py-1 rounded-full text-xs border " +
+      (filtroEstado === "todos"
+        ? "bg-neutral-200 text-black border-neutral-200"
+        : "border-neutral-700 text-neutral-200 hover:bg-neutral-800")
+    }
+  >
+    Todos
+  </button>
+</div>
+
 
           {loading ? (
             <p className="text-sm text-neutral-500">Cargando beneficios...</p>
