@@ -1,4 +1,4 @@
-CREATE TABLE [core].[Proveedor] (
+﻿CREATE TABLE [core].[Proveedor] (
     [Nombre]      NVARCHAR (120)   NOT NULL,
     [Correo]      NVARCHAR (120)   NULL,
     [Telefono]    NVARCHAR (50)    NULL,
@@ -14,11 +14,10 @@ CREATE TABLE [core].[Proveedor] (
 
 
 
+
+
 GO
 CREATE UNIQUE NONCLUSTERED INDEX [UX_Proveedor_Nombre]
     ON [core].[Proveedor]([Nombre] ASC);
 
 GO
-CREATE UNIQUE NONCLUSTERED INDEX [IX_Proveedor_AccessToken]
-    ON [core].[Proveedor]([AccessToken] ASC)
-    WHERE [AccessToken] IS NOT NULL;

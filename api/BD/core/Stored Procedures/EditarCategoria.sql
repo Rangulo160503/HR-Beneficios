@@ -1,6 +1,9 @@
 ﻿
+
+/* SQL_STORED_PROCEDURE core.EditarCategoria */
+
 -- 3) Editar (sin @Activa, sin ModificadoEn)
-CREATE PROCEDURE core.EditarCategoria
+CREATE   PROCEDURE core.EditarCategoria
   @Id     UNIQUEIDENTIFIER,
   @Nombre NVARCHAR(160)
 AS

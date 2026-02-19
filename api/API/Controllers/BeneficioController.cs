@@ -62,6 +62,7 @@ namespace API.Controllers
 
         // DELETE api/Beneficio/{Id}
         [HttpDelete("{Id:guid}")]
+        [AllowAnonymous]
         public async Task<IActionResult> Eliminar([FromRoute] Guid Id)
         {
             if (!await VerificarBeneficioExiste(Id))

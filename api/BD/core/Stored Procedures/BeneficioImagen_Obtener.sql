@@ -1,4 +1,6 @@
 ﻿
+
+/* SQL_STORED_PROCEDURE core.BeneficioImagen_Obtener */
 CREATE   PROCEDURE core.BeneficioImagen_Obtener
     @ImagenId UNIQUEIDENTIFIER
 AS

@@ -1,4 +1,7 @@
-﻿CREATE PROCEDURE [core].[ObtenerBeneficios]
+﻿
+
+/* SQL_STORED_PROCEDURE core.ObtenerBeneficios */
+CREATE   PROCEDURE [core].[ObtenerBeneficios]
   @SoloPublicados BIT = 0   -- 0 = todos, 1 = solo aprobados y vigentes
 AS
 BEGIN

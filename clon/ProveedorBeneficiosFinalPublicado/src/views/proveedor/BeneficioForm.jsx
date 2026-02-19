@@ -22,6 +22,7 @@ export default function BeneficioForm({ mode }) {
     proveedorId: "",   // puedes setearlo si lo sabes
     categoriaId: "",   // idem
     imagen: "",        // base64
+    imagenMime: null,
   });
   const [loading, setLoading] = useState(mode === "edit");
   const [saving, setSaving] = useState(false);
@@ -82,7 +83,8 @@ export default function BeneficioForm({ mode }) {
         vigenciaFin: form.vigenciaFin ? new Date(form.vigenciaFin).toISOString() : null,
         proveedorId: form.proveedorId || null,
         categoriaId: form.categoriaId || null,
-        imagen: form.imagen || null, // base64 o null
+        imagen: form.imagen || null,
+  imagenMime: form.imagenMime || null,
       };
 
       if (isEdit) {

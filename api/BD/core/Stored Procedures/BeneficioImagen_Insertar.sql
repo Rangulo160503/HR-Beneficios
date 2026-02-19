@@ -1,4 +1,7 @@
-﻿CREATE   PROCEDURE core.BeneficioImagen_Insertar
+﻿
+
+/* SQL_STORED_PROCEDURE core.BeneficioImagen_Insertar */
+CREATE   PROCEDURE core.BeneficioImagen_Insertar
   @BeneficioId UNIQUEIDENTIFIER,
   @Imagen VARBINARY(MAX),
   @Orden INT = NULL

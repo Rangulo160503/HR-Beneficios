@@ -12,6 +12,8 @@ function BeneficioEditModal({ open, beneficioId, onClose, onSaved, categorias = 
     categoriaId: "",
     disponible: true,
     categoriaNombre: "",
+    imagen: null,
+    imagenMime: null,
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -85,6 +87,8 @@ function BeneficioEditModal({ open, beneficioId, onClose, onSaved, categorias = 
         vigenciaFin: form.vigenciaFin,
         categoriaId: form.categoriaId,
         disponible: form.disponible,
+        imagen: form.imagen || null,
+  imagenMime: form.imagenMime || null,
       };
       await AprobacionesApi.editar(beneficioId, payload);
       if (onSaved) onSaved();

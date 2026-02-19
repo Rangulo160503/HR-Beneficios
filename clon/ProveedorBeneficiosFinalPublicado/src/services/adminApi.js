@@ -5,6 +5,7 @@ export const BeneficioApi = {
   update: (id, payload) => Api.beneficios.editar(id, payload),
   get: (id) => Api.beneficios.obtener(id),
   listByProveedor: (proveedorId) => Api.beneficios.listarPorProveedorFront(proveedorId),
+  remove: (id, proveedorId, token) => Api.beneficios.eliminar(id, proveedorId, token),
 };
 
 export const CategoriaApi = {

@@ -1,4 +1,7 @@
-﻿CREATE PROCEDURE [core].[ObtenerBeneficiosPendientes]
+﻿
+
+/* SQL_STORED_PROCEDURE core.ObtenerBeneficiosPendientes */
+CREATE   PROCEDURE [core].[ObtenerBeneficiosPendientes]
 AS
 BEGIN
   SET NOCOUNT ON;

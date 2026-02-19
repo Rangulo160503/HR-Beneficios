@@ -1,4 +1,7 @@
-﻿CREATE PROCEDURE core.EliminarCategoria
+﻿
+
+/* SQL_STORED_PROCEDURE core.EliminarCategoria */
+CREATE   PROCEDURE core.EliminarCategoria
   @Id UNIQUEIDENTIFIER
 AS
 BEGIN

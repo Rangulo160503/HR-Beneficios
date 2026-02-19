@@ -1,4 +1,6 @@
 ﻿
+
+/* SQL_STORED_PROCEDURE core.AreaDeCategoria_Agregar */
 CREATE   PROCEDURE core.AreaDeCategoria_Agregar
     @Nombre NVARCHAR(150)
 AS

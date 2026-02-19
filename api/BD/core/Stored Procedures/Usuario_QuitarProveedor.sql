@@ -1,12 +1,15 @@
 ﻿
 
+/* SQL_STORED_PROCEDURE core.Usuario_QuitarProveedor */
+
+
 /* =========================================================
    core.Usuario_QuitarProveedor
    Quita relación Usuario–Proveedor.
    - Si @ProveedorId es NULL: elimina TODAS las relaciones del usuario.
    - Si viene @ProveedorId: elimina solo esa relación.
    ========================================================= */
-CREATE PROCEDURE [core].[Usuario_QuitarProveedor]
+CREATE   PROCEDURE [core].[Usuario_QuitarProveedor]
     @UsuarioId   UNIQUEIDENTIFIER,
     @ProveedorId UNIQUEIDENTIFIER = NULL
 AS

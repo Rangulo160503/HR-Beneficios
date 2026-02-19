@@ -127,5 +127,11 @@
     <Build Include="core\Stored Procedures\ReasignarBeneficiosCategoria_1.sql" />
     <Build Include="core\Stored Procedures\ReasignarBeneficiosCategoria_1.sql" />
     <Build Include="core\Stored Procedures\ObtenerBeneficiosPorCategoria_1.sql" />
+    <Build Include="core\Tables\RifaParticipacion.sql" />
+    <Build Include="core\Stored Procedures\RifaParticipacion_ObtenerPorId.sql" />
+    <Build Include="core\Stored Procedures\RifaParticipacion_Listar.sql" />
+    <Build Include="core\Stored Procedures\RifaParticipacion_Insertar.sql" />
+    <Build Include="core\Stored Procedures\RifaParticipacion_ActualizarEstado.sql" />
+    <Build Include="core\Stored Procedures\ObtenerBeneficiosRechazados.sql" />
   </ItemGroup>
 </Project>

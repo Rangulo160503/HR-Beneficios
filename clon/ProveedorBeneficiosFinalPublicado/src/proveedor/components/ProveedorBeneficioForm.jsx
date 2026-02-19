@@ -15,6 +15,7 @@ export default function ProveedorBeneficioForm({
     vigenciaFin: "",
     categoriaId: "",
     imagen: null,
+    imagenMime: null,
   });
   const [categorias, setCategorias] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -56,23 +57,49 @@ export default function ProveedorBeneficioForm({
   }, [initial]);
 
   const imagePreview = useMemo(() => {
-    if (!form.imagen) return null;
-    if (String(form.imagen).startsWith("data:")) return form.imagen;
-    return `data:image/jpeg;base64,${form.imagen}`;
-  }, [form.imagen]);
+  if (!form.imagen) return null;
+  const mime = form.imagenMime || "image/jpeg";
+  return `data:${mime};base64,${form.imagen}`;
+}, [form.imagen, form.imagenMime]);
+
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFile = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const buffer = await file.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
-    setForm((prev) => ({ ...prev, imagen: base64 }));
+  const handleFile = (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("El archivo seleccionado no es una imagen válida.");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    const dataUrl = reader.result; // data:image/png;base64,XXXX
+    const [meta, base64] = String(dataUrl).split(",");
+
+    const mime = meta.match(/data:(.*);base64/)?.[1] ?? file.type;
+
+    setForm((prev) => ({
+      ...prev,
+      imagen: base64,       // base64 limpio
+      imagenMime: mime,     // image/png, image/jpeg, etc
+    }));
   };
+
+  reader.onerror = () => {
+    alert("No se pudo leer la imagen.");
+  };
+
+  reader.readAsDataURL(file);
+};
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -106,6 +133,7 @@ export default function ProveedorBeneficioForm({
           ? new Date(form.vigenciaFin).toISOString()
           : null,
         imagen: form.imagen || null,
+  imagenMime: form.imagenMime || null,
       };
       console.log("[Proveedor] payload a enviar:", payload);
       

@@ -1,4 +1,7 @@
 ﻿
+
+/* SQL_STORED_PROCEDURE core.Usuario_Actualizar */
+
 /* =========================================================
    core.Usuario_Actualizar
    Actualiza datos por UsuarioId (GUID).

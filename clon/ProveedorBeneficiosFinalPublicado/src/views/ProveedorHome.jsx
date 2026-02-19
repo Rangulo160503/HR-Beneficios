@@ -222,6 +222,29 @@ setBeneficios(inicial);
     setShowForm(true);
   };
 
+  const handleEliminar = async (beneficio) => {
+  const id = beneficio?.beneficioId || beneficio?.id;
+  if (!id) return;
+
+  const ok = window.confirm("¿Seguro que deseas eliminar este beneficio?");
+  if (!ok) return;
+
+  try {
+    await BeneficioApi.remove(id);
+
+    // recargar lista
+    if (proveedorId) {
+      await loadBeneficios(proveedorId);
+    }
+
+    alert("Beneficio eliminado.");
+  } catch (error) {
+    console.error("[Proveedor] Error eliminando beneficio:", error);
+    alert("No se pudo eliminar el beneficio. Revisa la consola/Network.");
+  }
+};
+
+
   const handleCloseForm = () => {
     setShowForm(false);
     setSelectedBeneficio(null);
@@ -380,6 +403,16 @@ setBeneficios(inicial);
                       >
                         Editar
                       </button>
+
+                      <button
+  type="button"
+  className="text-xs px-3 py-1 rounded-full border border-red-500/40 text-red-200 hover:bg-red-500/10"
+  onClick={() => handleEliminar(b)}
+>
+  Eliminar
+</button>
+
+
                     </div>
 
                     <p className="text-sm font-medium">

@@ -1,12 +1,15 @@
 ﻿
 
+/* SQL_STORED_PROCEDURE core.Usuario_Obtener */
+
+
 /* =========================================================
    core.Usuario_Obtener
    Obtiene un usuario por UsuarioId.
    - Mantiene una columna de compatibilidad 'ProveedorId' (TOP 1)
      para no romper clientes antiguos que esperaban ese campo.
    ========================================================= */
-CREATE PROCEDURE [core].[Usuario_Obtener]
+CREATE   PROCEDURE [core].[Usuario_Obtener]
     @UsuarioId UNIQUEIDENTIFIER
 AS
 BEGIN

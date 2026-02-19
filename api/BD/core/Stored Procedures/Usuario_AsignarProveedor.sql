@@ -1,10 +1,13 @@
 ﻿
 
+/* SQL_STORED_PROCEDURE core.Usuario_AsignarProveedor */
+
+
 /* =========================================================
    core.Usuario_AsignarProveedor
    Crea (idempotente) la relación Usuario–Proveedor en core.ProveedorUsuario.
    ========================================================= */
-CREATE PROCEDURE [core].[Usuario_AsignarProveedor]
+CREATE   PROCEDURE [core].[Usuario_AsignarProveedor]
     @UsuarioId   UNIQUEIDENTIFIER,
     @ProveedorId UNIQUEIDENTIFIER,
     @Rol         NVARCHAR(50) = NULL

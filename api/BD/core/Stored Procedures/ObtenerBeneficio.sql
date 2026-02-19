@@ -1,4 +1,7 @@
-﻿CREATE PROCEDURE [core].[ObtenerBeneficio]
+﻿
+
+/* SQL_STORED_PROCEDURE core.ObtenerBeneficio */
+CREATE   PROCEDURE [core].[ObtenerBeneficio]
   @Id UNIQUEIDENTIFIER
 AS
 BEGIN

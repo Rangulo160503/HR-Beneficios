@@ -1,4 +1,7 @@
-﻿CREATE PROCEDURE [core].[EditarBeneficio]
+﻿
+
+/* SQL_STORED_PROCEDURE core.EditarBeneficio */
+CREATE   PROCEDURE [core].[EditarBeneficio]
   @Id             UNIQUEIDENTIFIER,
   @Titulo         NVARCHAR(140),
   @Descripcion    NVARCHAR(MAX),

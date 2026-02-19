@@ -1,7 +1,7 @@
 ﻿
 
-/* SQL_STORED_PROCEDURE core.ObtenerBeneficiosAprobados */
-CREATE   PROCEDURE [core].[ObtenerBeneficiosAprobados]
+/* SQL_STORED_PROCEDURE core.ObtenerBeneficiosRechazados */
+CREATE   PROCEDURE [core].[ObtenerBeneficiosRechazados]
 AS
 BEGIN
   SET NOCOUNT ON;
@@ -13,8 +13,7 @@ BEGIN
     b.PrecioCRC,
     b.ProveedorId,
     b.CategoriaId,
-    -- b.Imagen,  -- ❌ quitar del listado
-    CASE WHEN b.Imagen IS NULL THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END AS TieneImagen,
+    b.Imagen,
     b.Condiciones,
     b.VigenciaInicio,
     b.VigenciaFin,
@@ -29,7 +28,6 @@ BEGIN
   FROM core.Beneficio b
   JOIN core.Proveedor p ON p.ProveedorId = b.ProveedorId
   JOIN core.Categoria c ON c.CategoriaId = b.CategoriaId
-  WHERE b.Estado = 1
-    AND (CAST(SYSUTCDATETIME() AS date) BETWEEN b.VigenciaInicio AND b.VigenciaFin)
+  WHERE b.Estado = 2
   ORDER BY b.FechaCreacion DESC;
 END

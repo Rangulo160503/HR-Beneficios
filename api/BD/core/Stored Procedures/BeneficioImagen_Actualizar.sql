@@ -1,4 +1,6 @@
 ﻿
+
+/* SQL_STORED_PROCEDURE core.BeneficioImagen_Actualizar */
 CREATE   PROCEDURE [core].[BeneficioImagen_Actualizar]
     @ImagenId     UNIQUEIDENTIFIER,
     @BeneficioId  UNIQUEIDENTIFIER,

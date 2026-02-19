@@ -1,11 +1,14 @@
 ﻿
+
+/* SQL_STORED_PROCEDURE core.Usuario_Listar */
+
 /* =========================================================
    core.Usuario_Listar
    Lista usuarios; permite filtrar por ProveedorId o Correo.
    - @ProveedorId: si viene, filtra via tabla puente core.ProveedorUsuario
    - @Correo: comparación exacta tras normalizar (lower/trim)
    ========================================================= */
-CREATE PROCEDURE [core].[Usuario_Listar]
+CREATE   PROCEDURE [core].[Usuario_Listar]
     @ProveedorId UNIQUEIDENTIFIER = NULL,
     @Correo      NVARCHAR(254)    = NULL
 AS

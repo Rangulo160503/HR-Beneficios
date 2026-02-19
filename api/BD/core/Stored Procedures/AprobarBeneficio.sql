@@ -1,4 +1,7 @@
-﻿CREATE PROCEDURE [core].[AprobarBeneficio]
+﻿
+
+/* SQL_STORED_PROCEDURE core.AprobarBeneficio */
+CREATE   PROCEDURE [core].[AprobarBeneficio]
   @Id UNIQUEIDENTIFIER,
   @UsuarioId UNIQUEIDENTIFIER = NULL
 AS

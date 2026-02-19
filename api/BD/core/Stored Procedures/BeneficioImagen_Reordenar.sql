@@ -1,4 +1,7 @@
-﻿CREATE   PROCEDURE core.BeneficioImagen_Reordenar
+﻿
+
+/* SQL_STORED_PROCEDURE core.BeneficioImagen_Reordenar */
+CREATE   PROCEDURE core.BeneficioImagen_Reordenar
   @BeneficioId UNIQUEIDENTIFIER
 AS
 BEGIN
