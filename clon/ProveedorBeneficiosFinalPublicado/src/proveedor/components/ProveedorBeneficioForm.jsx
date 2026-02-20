@@ -10,6 +10,7 @@ export default function ProveedorBeneficioForm({
     titulo: "",
     descripcion: "",
     precioCRC: "",
+    precioDesde: false,
     condiciones: "",
     vigenciaInicio: "",
     vigenciaFin: "",
@@ -45,6 +46,7 @@ export default function ProveedorBeneficioForm({
       titulo: initial.titulo || "",
       descripcion: initial.descripcion || "",
       precioCRC: initial.precioCRC ?? "",
+      precioDesde: initial.precioDesde ?? false,
       condiciones: initial.condiciones || "",
       vigenciaInicio: initial.vigenciaInicio
         ? initial.vigenciaInicio.slice(0, 10)
@@ -98,6 +100,7 @@ export default function ProveedorBeneficioForm({
         titulo: form.titulo,
         descripcion: form.descripcion,
         precioCRC: Number(form.precioCRC) || 0,
+        precioDesde: !!form.precioDesde,
         condiciones: form.condiciones,
         vigenciaInicio: form.vigenciaInicio
           ? new Date(form.vigenciaInicio).toISOString()
@@ -228,6 +231,20 @@ export default function ProveedorBeneficioForm({
                       [&::-webkit-outer-spin-button]:appearance-none
                       [&::-webkit-inner-spin-button]:appearance-none`}
                   />
+                  <label className="flex items-center gap-2 text-xs text-white/70 mt-1">
+      <input
+        type="checkbox"
+        checked={!!form.precioDesde}
+        onChange={(e) =>
+          setForm((prev) => ({
+            ...prev,
+            precioDesde: e.target.checked,
+          }))
+        }
+        className="h-4 w-4 rounded border border-white/20 bg-neutral-900"
+      />
+      Mostrar como “A partir de”
+    </label>
                   <div className={helperCls}>Usá el monto en colones.</div>
                 </div>
 

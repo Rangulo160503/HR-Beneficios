@@ -12,18 +12,14 @@ namespace Abstracciones.Modelos
     {
         [Required, StringLength(200, MinimumLength = 3)]
         public string Titulo { get; set; } = null!;
-
         [Required]
         public string Descripcion { get; set; } = null!;
-
         [Required, Range(0, double.MaxValue)]
         public decimal PrecioCRC { get; set; }
-
+        public bool PrecioDesde { get; set; } = false;
         public string? Condiciones { get; set; }
-
         [DataType(DataType.Date)]
         public DateTime VigenciaInicio { get; set; }
-
         [DataType(DataType.Date)]
         public DateTime VigenciaFin { get; set; }
 

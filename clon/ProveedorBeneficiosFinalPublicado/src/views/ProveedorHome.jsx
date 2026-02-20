@@ -383,8 +383,9 @@ setBeneficios(inicial);
                     </div>
 
                     <p className="text-sm font-medium">
-                      ₡{(b.precioCRC || b.PrecioCRC || 0).toLocaleString("es-CR")}
-                    </p>
+  {(b.precioDesde ?? b.PrecioDesde) ? "A partir de " : ""}
+  ₡{(b.precioCRC || b.PrecioCRC || 0).toLocaleString("es-CR")}
+</p>
 
                     <p className="text-xs text-neutral-500">
                       Vigencia: {b.vigenciaInicio || b.VigenciaInicio} —{" "}
