@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Api } from "../../services/api"; // ajusta extensión si tu bundler lo requiere
+import { getBeneficioDetail, loadBeneficioImagenes } from "../../core-config/useCases";
 import { extractImage, safeSrc, EMBED_PLACEHOLDER } from "../../utils/images";
 
 export default function BenefitDetailModal({ selected, onClose }) {
@@ -43,7 +43,7 @@ export default function BenefitDetailModal({ selected, onClose }) {
     let alive = true;
     (async () => {
       try {
-        const d = await Api.beneficios.obtener(id);
+        const d = await getBeneficioDetail(id);
         if (!alive) return;
         setDetail(d || null);
         setEstado({ loading: false, error: "" });
@@ -73,7 +73,7 @@ export default function BenefitDetailModal({ selected, onClose }) {
 
         // ⚠️ AJUSTA ESTA LÍNEA AL MÉTODO REAL DE TU Api
         // Por ejemplo, si tienes Api.beneficioImagen.listarPorBeneficio(id)
-        const data = await Api.beneficioImagen.obtenerPorBeneficio(id);
+        const data = await loadBeneficioImagenes(id);
 
         if (!alive) return;
         setImagenes(Array.isArray(data) ? data : []);

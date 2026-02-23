@@ -1,5 +1,5 @@
-// src/utils/mappers.js
-import { extractImage, EMBED_PLACEHOLDER } from "../utils/images";
+// Mapping de vista para InicioBeneficiosFinalPublicado (landing)
+import { extractImage, EMBED_PLACEHOLDER } from "../../../utils/images";
 
 export function mapBenefit(b) {
   const id = b.beneficioId ?? b.BeneficioId ?? b.id ?? b.Id;
@@ -21,7 +21,6 @@ export function mapBenefit(b) {
     categoria,
     descuento: descuento || null,
     destacado,
-    // Usa lo que venga; si no hay imagen en la lista, cae al placeholder
     imagen: extractImage(b) || EMBED_PLACEHOLDER,
   };
 }
