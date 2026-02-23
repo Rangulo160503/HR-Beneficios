@@ -76,6 +76,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             NameClaimType = ClaimTypes.Name,
             RoleClaimType = ClaimTypes.Role
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                if (context.Request.Cookies.TryGetValue("hr_auth", out var token))
+                {
+                    context.Token = token;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization(options =>
@@ -99,6 +110,7 @@ builder.Services.AddCors(o =>
         })
         .AllowAnyHeader()
         .AllowAnyMethod()
+        .AllowCredentials()
         .WithExposedHeaders("Location")
     );
 });

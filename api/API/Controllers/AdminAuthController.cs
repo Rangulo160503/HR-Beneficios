@@ -30,11 +30,27 @@ namespace API.Controllers
             {
                 var result = await _adminAuthFlujo.Login(request);
                 if (result is null)
-                {
                     return Unauthorized(new { message = "Credenciales inválidas" });
-                }
 
-                return Ok(result);
+                // 1) sacar el token (ajusta el nombre según tu DTO real)
+                var token = result.Token;
+
+                if (string.IsNullOrWhiteSpace(token))
+                    return StatusCode(StatusCodes.Status500InternalServerError,
+                        new { message = "Login OK pero no se generó token." });
+
+                // 2) setear cookie httpOnly
+                Response.Cookies.Append("hr_auth", token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,                 // estás en https://localhost:5001
+                    SameSite = SameSiteMode.Lax,
+                    Expires = DateTimeOffset.UtcNow.AddHours(8),
+                    Path = "/"
+                });
+
+                // 3) devolver respuesta mínima (sin token)
+                return Ok(new { ok = true });
             }
             catch (InactiveAdminException ex)
             {
