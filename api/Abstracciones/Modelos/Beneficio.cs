@@ -36,6 +36,7 @@ namespace Abstracciones.Modelos
     {
         public Guid ProveedorId { get; set; }
         public Guid CategoriaId { get; set; }
+        public bool? PrecioDesde { get; set; }
     }
 
     // Queque ya horneado y decorado → lo que entregamos al usuario

@@ -28,6 +28,7 @@ namespace DA
                     b.Titulo,
                     b.Descripcion,
                     b.PrecioCRC,
+                    b.PrecioDesde,
                     b.Condiciones,
                     b.VigenciaInicio,
                     b.VigenciaFin,
@@ -53,6 +54,7 @@ namespace DA
                     b.Titulo,
                     b.Descripcion,
                     b.PrecioCRC,
+                    b.PrecioDesde,
                     b.ProveedorId,     // Guid
                     b.CategoriaId,     // Guid
                     Imagen = b.Imagen, // byte[]? (null => se conserva por COALESCE)
