@@ -204,7 +204,7 @@ export default function LoginFormScreen() {
       >
         <div className="space-y-2 text-center">
           <p className="text-xs uppercase tracking-[0.3em] text-emerald-400/80">
-            HR Beneficios
+            Beneficios
           </p>
           <h1 className="text-3xl font-bold">Bienvenido</h1>
           <p className="text-sm text-neutral-400">

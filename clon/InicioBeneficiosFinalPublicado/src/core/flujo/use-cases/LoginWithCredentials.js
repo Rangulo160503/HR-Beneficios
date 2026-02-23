@@ -1,31 +1,8 @@
-const parseExpiresAt = (value) => {
-  if (value == null) return undefined;
-  const numeric = Number(value);
-  if (Number.isFinite(numeric)) return numeric;
-  const parsed = new Date(value).getTime();
-  return Number.isNaN(parsed) ? undefined : parsed;
-};
-
-const normalizeCredentialsSession = (response, defaultRoles = []) => {
-  if (!response || typeof response !== "object") return null;
-  const token = response.token || response.access_token || response.accessToken;
-  if (!token) return null;
-
-  const profile = response.profile || response.user || null;
-  const roles = response.roles || profile?.roles || profile?.Roles || defaultRoles;
-
-  return {
-    access_token: token,
-    token,
-    token_type: response.tokenType || response.token_type || "Bearer",
-    expires_at: parseExpiresAt(response.expiresAt || response.expires_at),
-    user: profile,
-    roles: Array.isArray(roles) ? roles : defaultRoles,
-  };
-};
+// src/core/flujo/use-cases/LoginWithCredentials.js
 
 export async function loginWithCredentials({
   authGateway,
+  // sessionStore ya no se usa en cookie-only, lo dejamos por compatibilidad
   sessionStore,
   usuario,
   password,
@@ -40,17 +17,52 @@ export async function loginWithCredentials({
     const response = await authGateway.loginWithCredentials({
       usuario,
       password,
-      options,
+      options: {
+        ...(options ?? {}),
+        // IMPORTANTE: para que el browser acepte Set-Cookie desde la API
+        credentials: options?.credentials ?? "include",
+      },
     });
-    const session = normalizeCredentialsSession(response, defaultRoles);
 
-    if (!session) {
-      return { ok: false, message: "No se pudo iniciar sesión." };
+    // Cookie-only: el API responde { ok: true } (sin token)
+    // Aceptamos cualquiera de estas señales de éxito:
+    const ok =
+      response?.ok === true ||
+      response?.success === true ||
+      response?.isOk === true;
+
+    if (!ok) {
+      // Si en algún ambiente todavía devolviera token, lo dejamos soportado:
+      const token = response?.token || response?.access_token || response?.accessToken;
+      if (!token) return { ok: false, message: "No se pudo iniciar sesión." };
+
+      // (Fallback) si llega token, guardamos como antes
+      const session = {
+        access_token: token,
+        token,
+        token_type: response?.tokenType || response?.token_type || "Bearer",
+        expires_at: response?.expiresAt
+          ? new Date(response.expiresAt).getTime()
+          : response?.expires_at,
+        user: response?.profile || response?.user || null,
+        roles: Array.isArray(response?.roles)
+          ? response.roles
+          : Array.isArray(defaultRoles)
+          ? defaultRoles
+          : [],
+      };
+
+      sessionStore?.save?.(session);
+      return { ok: true, session, response };
     }
 
-    sessionStore?.save?.(session);
-    return { ok: true, session, response };
+    // ✅ Cookie-only success (no guardamos nada en localStorage)
+    return { ok: true, response };
   } catch (error) {
-    return { ok: false, message: error?.message || "No se pudo iniciar sesión.", error };
+    return {
+      ok: false,
+      message: error?.message || "No se pudo iniciar sesión.",
+      error,
+    };
   }
 }

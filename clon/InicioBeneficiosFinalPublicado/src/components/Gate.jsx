@@ -2,45 +2,43 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import LandingShell from "./LandingShell";
 import NotAuthorized from "./NotAuthorized";
-import {
-  SessionStatus,
-  validateSessionAndAuthorize,
-} from "../core/flujo/use-cases/ValidateSessionAndAuthorize";
-import { landingSessionStore } from "../core-config/sessionStores";
+import { validateSessionAndAuthorize } from "../core-config/useCases";
+import { SessionStatus } from "../core/flujo/use-cases/ValidateSessionAndAuthorize";
 
-const validateLandingSession = (session) => Boolean(session?.token);
+const validateLandingSession = (session) => Boolean(session?.access_token);
 
 export default function Gate() {
-  const [status, setStatus] = useState(SessionStatus.OK);
+  const [status, setStatus] = useState(null); // loading
 
   useEffect(() => {
     let active = true;
 
-    const checkSession = async () => {
-      const result = await validateSessionAndAuthorize({
-        sessionStore: landingSessionStore,
-        sessionValidator: validateLandingSession,
-      });
-
-      if (!active) return;
-      setStatus(result.status);
-    };
-
-    checkSession();
+    (async () => {
+      try {
+        const result = await validateSessionAndAuthorize({
+          sessionValidator: validateLandingSession,
+        });
+        if (active) setStatus(result.status);
+      } catch {
+        if (active) setStatus(SessionStatus.ERROR);
+      }
+    })();
 
     return () => {
       active = false;
     };
   }, []);
 
-  if (status === SessionStatus.SHOW_LOGIN) {
-    return <Navigate to="/login" replace />;
+  if (status === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        Cargando...
+      </div>
+    );
   }
 
-  if (status === SessionStatus.NOT_AUTHORIZED) {
-    return <NotAuthorized />;
-  }
-
+  if (status === SessionStatus.SHOW_LOGIN) return <Navigate to="/login" replace />;
+  if (status === SessionStatus.NOT_AUTHORIZED) return <NotAuthorized />;
   if (status === SessionStatus.ERROR) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">

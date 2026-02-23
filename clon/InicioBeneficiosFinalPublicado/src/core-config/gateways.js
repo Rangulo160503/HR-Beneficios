@@ -1,5 +1,4 @@
 import { API_BASE } from "../services/apiBase";
-import { landingSessionStore } from "./sessionStores";
 import { AuthGatewayFetch } from "../core/infrastructure/auth/AuthGatewayFetch";
 import { createFetchClient } from "../core/infrastructure/http/createFetchClient";
 import { BeneficioGatewayFetch } from "../core/infrastructure/http/BeneficioGatewayFetch";
@@ -12,7 +11,6 @@ import { ContactoGatewayFetch } from "../core/infrastructure/http/ContactoGatewa
 
 const fetchClient = createFetchClient({
   baseUrl: API_BASE,
-  sessionStore: landingSessionStore,
   onUnauthorized: () => {
     if (typeof window !== "undefined") {
       window.location.replace("/login");

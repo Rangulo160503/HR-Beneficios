@@ -21,6 +21,7 @@ export class AuthGatewayFetch {
         "Content-Type": "application/json",
         ...(options?.headers ?? {}),
       },
+      credentials: options?.credentials ?? "include",
       body: JSON.stringify(body ?? {}),
       mode: options?.mode ?? "cors",
       signal: options?.signal,
