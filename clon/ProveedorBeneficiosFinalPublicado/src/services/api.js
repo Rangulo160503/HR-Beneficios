@@ -61,12 +61,18 @@ export const EP = {
 // === Funciones HTTP auxiliares ===
 async function httpPost(path, body) {
   const url = `${API_BASE}${path}`;
+
+  const isFormData = body instanceof FormData;
+
   const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify(body),
+    headers: isFormData
+      ? { Accept: "application/json" }
+      : { "Content-Type": "application/json", Accept: "application/json" },
+    body: isFormData ? body : JSON.stringify(body),
     mode: "cors",
   });
+
   if (res.status === 204) return null;
   const ct = res.headers.get("content-type") || "";
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} – ${await res.text()}`);
@@ -75,12 +81,18 @@ async function httpPost(path, body) {
 
 async function httpPut(path, body) {
   const url = `${API_BASE}${path}`;
+
+  const isFormData = body instanceof FormData;
+
   const res = await fetch(url, {
     method: "PUT",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify(body),
+    headers: isFormData
+      ? { Accept: "application/json" }
+      : { "Content-Type": "application/json", Accept: "application/json" },
+    body: isFormData ? body : JSON.stringify(body),
     mode: "cors",
   });
+
   if (res.status === 204) return null;
   const ct = res.headers.get("content-type") || "";
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} – ${await res.text()}`);
