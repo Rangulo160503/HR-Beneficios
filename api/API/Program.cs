@@ -187,7 +187,7 @@ else
 // Opcional: páginas de estado simples (404, 405, etc.) en texto/JSON
 app.UseStatusCodePages(context =>
 {
-    var resp = context.HttpContext.Response;
+    var resp = context.HttpContext.Response; 
     // Evita interferir con respuestas API que ya envían cuerpo propio
     if (resp.ContentType is null or "" && resp.StatusCode != 204)
     {

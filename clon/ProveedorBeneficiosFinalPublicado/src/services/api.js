@@ -3,7 +3,7 @@ const CLOUD = "https://hr-beneficios-api-grgmckc5dwdca9dc.canadacentral-01.azure
 const LOCAL  = "https://localhost:5001";
 
 // 🔀 cambia esto a "local" mientras Azure esté en quota exceeded
-const TARGET = "local"; // "cloud" | "local"
+const TARGET = "cloud"; // "cloud" | "local"
 
 const API_BASE = (TARGET === "cloud" ? CLOUD : LOCAL).replace(/\/$/, "");
 console.log("[API_BASE]", API_BASE);

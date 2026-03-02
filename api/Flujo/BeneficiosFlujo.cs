@@ -13,15 +13,14 @@ namespace Flujo
             _beneficioDA = beneficioDA ?? throw new ArgumentNullException(nameof(beneficioDA));
         }
 
-        public async Task<Guid> Agregar(BeneficioRequest beneficio)
+        public async Task<Guid> Agregar(BeneficioRequest beneficio, byte[]? imagen)
         {
-            var id = await _beneficioDA.Agregar(beneficio);
-            return id;
+            return await _beneficioDA.Agregar(beneficio, imagen);
         }
 
-        public async Task<Guid> Editar(Guid id, BeneficioRequest beneficio)
+        public async Task<Guid> Editar(Guid id, BeneficioRequest beneficio, byte[]? imagen)
         {
-            var result = await _beneficioDA.Editar(id, beneficio);
+            var result = await _beneficioDA.Editar(id, beneficio, imagen);
             return result;
         }
 

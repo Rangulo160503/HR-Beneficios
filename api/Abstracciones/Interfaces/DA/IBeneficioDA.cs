@@ -15,8 +15,8 @@ namespace Abstracciones.Interfaces.DA
         Task<IEnumerable<BeneficioResponse>> ObtenerPendientes();
         Task<IEnumerable<BeneficioResponse>> ObtenerRechazados();
         Task<BeneficioDetalle> Obtener(Guid Id);
-        Task<Guid> Agregar(BeneficioRequest beneficio);
-        Task<Guid> Editar(Guid Id, BeneficioRequest beneficio);
+        Task<Guid> Agregar(BeneficioRequest beneficio, byte[]? imagen);
+        Task<Guid> Editar(Guid id, BeneficioRequest beneficio, byte[]? imagen);
         Task<Guid> Eliminar(Guid Id);
         Task<Guid> Aprobar(Guid Id, Guid? usuarioId);
         Task<Guid> Rechazar(Guid Id, Guid? usuarioId);

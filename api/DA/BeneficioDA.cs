@@ -19,7 +19,7 @@ namespace DA
         }
 
         #region Operaciones
-        public async Task<Guid> Agregar(BeneficioRequest b)
+        public async Task<Guid> Agregar(BeneficioRequest b, byte[]? imagen)
         {
             const string sp = "core.AgregarBeneficio";
             var id = await _dapperWrapper.ExecuteScalarAsync<Guid>(
@@ -32,7 +32,7 @@ namespace DA
                     b.Condiciones,
                     b.VigenciaInicio,
                     b.VigenciaFin,
-                    Imagen = b.Imagen,
+                    Imagen = imagen,
                     b.ProveedorId,
                     b.CategoriaId,
                     Estado = (int)EstadoBeneficio.Pendiente,
@@ -43,7 +43,7 @@ namespace DA
             );
             return id;
         }
-        public async Task<Guid> Editar(Guid Id, BeneficioRequest b)
+        public async Task<Guid> Editar(Guid Id, BeneficioRequest b, byte[]? imagen)
         {
             const string sp = "core.EditarBeneficio";
 
@@ -57,7 +57,7 @@ namespace DA
                     b.PrecioDesde,
                     b.ProveedorId,     // Guid
                     b.CategoriaId,     // Guid
-                    Imagen = b.Imagen, // byte[]? (null => se conserva por COALESCE)
+                    Imagen = imagen,
                     b.Condiciones,
                     b.VigenciaInicio,
                     b.VigenciaFin

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CategoriaApi } from "../../services/adminApi";
+import { CategoriaApi, BeneficioApi } from "../../services/adminApi";
 
 export default function ProveedorBeneficioForm({
   initial = null,
@@ -79,10 +79,10 @@ export default function ProveedorBeneficioForm({
       return;
     }
 
-    if (file.size > 5_000_000) {
-      alert("La imagen no puede superar 5MB.");
-      return;
-    }
+    if (file.size > 50_000_000) {
+  alert("La imagen supera los 50MB.");
+  return;
+}
 
     setImagenFile(file);
   };
@@ -112,6 +112,7 @@ export default function ProveedorBeneficioForm({
       formData.append("VigenciaInicio", form.vigenciaInicio || "");
       formData.append("VigenciaFin", form.vigenciaFin || "");
       formData.append("CategoriaId", form.categoriaId || "");
+      formData.append("ProveedorId", proveedorId);
 
       if (imagenFile) {
         formData.append("imagen", imagenFile);
@@ -119,19 +120,10 @@ export default function ProveedorBeneficioForm({
 
       if (initial?.beneficioId || initial?.id) {
         const id = initial.beneficioId || initial.id;
-        await fetch(`/api/Beneficio/${id}`, {
-          method: "PUT",
-          body: formData,
-        });
+        await BeneficioApi.update(id, formData);
         alert("Beneficio actualizado exitosamente");
       } else {
-        await fetch(
-          `/api/Beneficio?proveedorId=${proveedorId}&token=${token}`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
+        await BeneficioApi.create(formData);
         alert("Beneficio creado exitosamente");
       }
 

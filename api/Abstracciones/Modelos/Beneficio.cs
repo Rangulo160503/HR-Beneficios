@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace Abstracciones.Modelos
 {
@@ -26,12 +27,12 @@ namespace Abstracciones.Modelos
 
         [DataType(DataType.Date)]
         public DateTime VigenciaFin { get; set; }
-
-        // Imagen guardada como binario
-        public byte[]? Imagen { get; set; }
     }
-
     // Mezcla cruda lista para "entrar al horno" → creación/edición
+    public class BeneficioFormRequest : BeneficioRequest
+    {
+        public IFormFile? Imagen { get; set; }
+    }
     public class BeneficioRequest : BeneficioBase
     {
         public Guid ProveedorId { get; set; }
@@ -54,6 +55,7 @@ namespace Abstracciones.Modelos
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaAprobacion { get; set; }
         public Guid? AprobadoPorUsuarioId { get; set; }
+        public byte[]? Imagen { get; set; }
     }
 
     // Queque servido en la mesa → con métricas adicionales
@@ -62,6 +64,7 @@ namespace Abstracciones.Modelos
         public int? VecesSeleccionado { get; set; }
         public int? VouchersEmitidos { get; set; }
         public int? VouchersCanjeados { get; set; }
+        public byte[]? Imagen { get; set; }
     }
 
     public class BeneficioPorCategoriaBase : BeneficioResponse
