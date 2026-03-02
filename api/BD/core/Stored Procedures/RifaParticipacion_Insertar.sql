@@ -1,11 +1,4 @@
-﻿
-
-/* SQL_STORED_PROCEDURE core.RifaParticipacion_Insertar */
-
-/* ============================
-   INSERTAR (devuelve GUID)
-============================ */
-CREATE   PROCEDURE core.RifaParticipacion_Insertar
+﻿CREATE PROCEDURE core.RifaParticipacion_Insertar
     @Nombre NVARCHAR(150),
     @Correo NVARCHAR(200),
     @Telefono NVARCHAR(30) = NULL,

@@ -1,11 +1,9 @@
-﻿
-
-/* SQL_STORED_PROCEDURE core.EditarBeneficio */
-CREATE   PROCEDURE [core].[EditarBeneficio]
+﻿CREATE PROCEDURE [core].[EditarBeneficio]
   @Id             UNIQUEIDENTIFIER,
   @Titulo         NVARCHAR(140),
   @Descripcion    NVARCHAR(MAX),
   @PrecioCRC      DECIMAL(12,2),
+  @PrecioDesde    BIT = 0,
   @ProveedorId    UNIQUEIDENTIFIER,
   @CategoriaId    UNIQUEIDENTIFIER,
   @Imagen         VARBINARY(MAX) = NULL,
@@ -15,18 +13,21 @@ CREATE   PROCEDURE [core].[EditarBeneficio]
 AS
 BEGIN
   SET NOCOUNT ON;
+
   UPDATE b SET
       Titulo=@Titulo,
       Descripcion=@Descripcion,
       PrecioCRC=@PrecioCRC,
+      PrecioDesde=@PrecioDesde,
       ProveedorId=@ProveedorId,
       CategoriaId=@CategoriaId,
-      Imagen = @Imagen,
+      Imagen = COALESCE(@Imagen, b.Imagen),
       Condiciones=@Condiciones,
       VigenciaInicio=@VigenciaInicio,
       VigenciaFin=@VigenciaFin,
       ModificadoEn=SYSUTCDATETIME()
   FROM core.Beneficio b
   WHERE b.BeneficioId=@Id;
+
   SELECT @Id;
-END
+END;

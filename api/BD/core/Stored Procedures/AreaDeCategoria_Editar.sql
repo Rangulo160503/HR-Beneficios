@@ -1,7 +1,4 @@
-﻿
-
-/* SQL_STORED_PROCEDURE core.AreaDeCategoria_Editar */
-CREATE   PROCEDURE core.AreaDeCategoria_Editar
+﻿CREATE   PROCEDURE core.AreaDeCategoria_Editar
     @AreaDeCategoriaId UNIQUEIDENTIFIER,
     @Nombre NVARCHAR(150)
 AS

@@ -1,7 +1,4 @@
-﻿
-
-/* SQL_STORED_PROCEDURE core.ReasignarBeneficiosCategoria */
-CREATE   PROCEDURE [core].[ReasignarBeneficiosCategoria]
+﻿CREATE   PROCEDURE [core].[ReasignarBeneficiosCategoria]
     @FromCategoriaId UNIQUEIDENTIFIER,
     @ToCategoriaId   UNIQUEIDENTIFIER,
     @BeneficioIds    NVARCHAR(MAX) = NULL -- CSV opcional

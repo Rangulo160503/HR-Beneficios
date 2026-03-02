@@ -1,7 +1,4 @@
-﻿
-
-/* SQL_STORED_PROCEDURE core.ObtenerBeneficio */
-CREATE   PROCEDURE [core].[ObtenerBeneficio]
+﻿CREATE PROCEDURE [core].[ObtenerBeneficio]
   @Id UNIQUEIDENTIFIER
 AS
 BEGIN
@@ -12,6 +9,7 @@ BEGIN
     b.Titulo,
     b.Descripcion,
     b.PrecioCRC,
+    b.PrecioDesde,
     b.ProveedorId,
     b.CategoriaId,
     b.Imagen,
@@ -27,7 +25,7 @@ BEGIN
     b.Disponible,
     b.Origen,
     p.Nombre   AS ProveedorNombre,
-    c.Nombre   AS CategoriaNombre,   -- si en core.Categoria el campo ahora se llama Titulo, cambia esta línea a: c.Titulo AS CategoriaNombre
+    c.Nombre   AS CategoriaNombre,
     CAST(NULL AS INT) AS VecesSeleccionado,
     CAST(NULL AS INT) AS VouchersEmitidos,
     CAST(NULL AS INT) AS VouchersCanjeados

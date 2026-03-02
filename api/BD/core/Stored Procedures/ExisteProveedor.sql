@@ -1,7 +1,4 @@
-﻿
-
-/* SQL_STORED_PROCEDURE core.ExisteProveedor */
-CREATE   PROCEDURE core.ExisteProveedor
+﻿CREATE PROCEDURE core.ExisteProveedor
     @Id UNIQUEIDENTIFIER
 AS
 BEGIN

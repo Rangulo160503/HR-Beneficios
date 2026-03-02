@@ -1,7 +1,4 @@
 ﻿
-
-/* SQL_STORED_PROCEDURE core.InfoBoardItem_Agregar */
-
 /* 4) Stored Procedures */
 CREATE   PROCEDURE [core].[InfoBoardItem_Agregar]
     @Titulo       NVARCHAR(120),

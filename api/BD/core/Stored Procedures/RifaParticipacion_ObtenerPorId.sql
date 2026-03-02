@@ -1,11 +1,4 @@
-﻿
-
-/* SQL_STORED_PROCEDURE core.RifaParticipacion_ObtenerPorId */
-
-/* ============================
-   OBTENER POR ID (GUID)
-============================ */
-CREATE   PROCEDURE core.RifaParticipacion_ObtenerPorId
+﻿CREATE PROCEDURE core.RifaParticipacion_ObtenerPorId
     @Id UNIQUEIDENTIFIER
 AS
 BEGIN

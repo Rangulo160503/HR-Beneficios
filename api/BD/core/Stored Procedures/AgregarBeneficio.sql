@@ -1,10 +1,8 @@
-﻿
-
-/* SQL_STORED_PROCEDURE core.AgregarBeneficio */
-CREATE   PROCEDURE [core].[AgregarBeneficio]
+﻿CREATE PROCEDURE [core].[AgregarBeneficio]
   @Titulo         NVARCHAR(140),
   @Descripcion    NVARCHAR(MAX),
   @PrecioCRC      DECIMAL(12,2),
+  @PrecioDesde    BIT = 0,
   @ProveedorId    UNIQUEIDENTIFIER,
   @CategoriaId    UNIQUEIDENTIFIER,
   @Imagen         VARBINARY(MAX) = NULL,
@@ -31,13 +29,13 @@ BEGIN
   DECLARE @FechaActual DATETIME2 = ISNULL(@FechaCreacion, SYSUTCDATETIME());
 
   INSERT INTO core.Beneficio(
-    BeneficioId, Titulo, Descripcion, PrecioCRC,
+    BeneficioId, Titulo, Descripcion, PrecioCRC, PrecioDesde,
     ProveedorId, CategoriaId, Imagen, Condiciones,
     VigenciaInicio, VigenciaFin, Estado, FechaCreacion, FechaAprobacion,
     AprobadoPorUsuarioId, CreadoEn
   )
   VALUES(
-    @NewId, @Titulo, @Descripcion, @PrecioCRC,
+    @NewId, @Titulo, @Descripcion, @PrecioCRC, @PrecioDesde,
     @ProveedorId, @CategoriaId, @Imagen, @Condiciones,
     @VigenciaInicio, @VigenciaFin, @Estado, @FechaActual, NULL,
     @AprobadoPorUsuarioId, @FechaActual

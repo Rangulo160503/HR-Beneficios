@@ -17,6 +17,7 @@
     [FechaCreacion]        DATETIME2 (7)    DEFAULT (sysutcdatetime()) NOT NULL,
     [FechaAprobacion]      DATETIME2 (7)    NULL,
     [AprobadoPorUsuarioId] UNIQUEIDENTIFIER NULL,
+    [PrecioDesde]          BIT              CONSTRAINT [DF_Beneficio_PrecioDesde] DEFAULT ((0)) NOT NULL,
     CONSTRAINT [PK_Beneficio] PRIMARY KEY CLUSTERED ([BeneficioId] ASC),
     CHECK ([Origen]='email' OR [Origen]='manual'),
     CHECK ([PrecioCRC]>=(0)),
@@ -24,6 +25,8 @@
     CONSTRAINT [FK_Beneficio_Categoria] FOREIGN KEY ([CategoriaId]) REFERENCES [core].[Categoria] ([CategoriaId]),
     CONSTRAINT [FK_Beneficio_Proveedor] FOREIGN KEY ([ProveedorId]) REFERENCES [core].[Proveedor] ([ProveedorId])
 );
+
+
 
 
 

@@ -1,8 +1,5 @@
 ﻿
 
-/* SQL_STORED_PROCEDURE core.AreaDeCategoria_ObtenerPorId */
-
-
 /* =========================================================
    SP: OBTENER POR ID
    ========================================================= */

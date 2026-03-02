@@ -1,6 +1,4 @@
 ﻿
-
-/* SQL_STORED_PROCEDURE core.InfoBoardItem_Editar */
 CREATE   PROCEDURE [core].[InfoBoardItem_Editar]
     @InfoBoardItemId UNIQUEIDENTIFIER,
     @Titulo          NVARCHAR(120),

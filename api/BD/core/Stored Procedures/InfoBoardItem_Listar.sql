@@ -1,6 +1,4 @@
 ﻿
-
-/* SQL_STORED_PROCEDURE core.InfoBoardItem_Listar */
 CREATE   PROCEDURE [core].[InfoBoardItem_Listar]
     @Activo   BIT = 1,
     @Busqueda NVARCHAR(200) = NULL

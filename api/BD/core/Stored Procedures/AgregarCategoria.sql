@@ -1,9 +1,6 @@
 ﻿
-
-/* SQL_STORED_PROCEDURE core.AgregarCategoria */
-
 -- 4) Agregar (sin @Activa, sin CreadoEn)
-CREATE   PROCEDURE core.AgregarCategoria
+CREATE PROCEDURE core.AgregarCategoria
   @Nombre NVARCHAR(160)
 AS
 BEGIN

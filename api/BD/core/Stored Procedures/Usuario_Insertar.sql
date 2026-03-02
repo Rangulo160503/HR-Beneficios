@@ -1,7 +1,4 @@
 ﻿
-
-/* SQL_STORED_PROCEDURE core.Usuario_Insertar */
-
 /* =========================================================
    core.Usuario_Insertar
    Crea usuario y devuelve UsuarioId (GUID).
@@ -10,7 +7,7 @@
                     FechaRegistro (DEFAULT), PasswordHash,
                     Tipo, Estado)
    ========================================================= */
-CREATE   PROCEDURE [core].[Usuario_Insertar]
+CREATE PROCEDURE [core].[Usuario_Insertar]
     @Correo        NVARCHAR(254),
     @Nombre        NVARCHAR(120) = NULL,
     @Telefono      NVARCHAR(32)  = NULL,

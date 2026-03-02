@@ -1,6 +1,4 @@
 ﻿
-
-/* SQL_STORED_PROCEDURE core.InfoBoardItem_Eliminar */
 CREATE   PROCEDURE [core].[InfoBoardItem_Eliminar]
     @InfoBoardItemId UNIQUEIDENTIFIER
 AS

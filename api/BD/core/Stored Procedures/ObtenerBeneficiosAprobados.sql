@@ -1,7 +1,4 @@
-﻿
-
-/* SQL_STORED_PROCEDURE core.ObtenerBeneficiosAprobados */
-CREATE   PROCEDURE [core].[ObtenerBeneficiosAprobados]
+﻿CREATE PROCEDURE [core].[ObtenerBeneficiosAprobados]
 AS
 BEGIN
   SET NOCOUNT ON;
@@ -11,10 +8,10 @@ BEGIN
     b.Titulo,
     b.Descripcion,
     b.PrecioCRC,
+    b.PrecioDesde,
     b.ProveedorId,
     b.CategoriaId,
-    -- b.Imagen,  -- ❌ quitar del listado
-    CASE WHEN b.Imagen IS NULL THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END AS TieneImagen,
+    b.Imagen,
     b.Condiciones,
     b.VigenciaInicio,
     b.VigenciaFin,
@@ -32,4 +29,4 @@ BEGIN
   WHERE b.Estado = 1
     AND (CAST(SYSUTCDATETIME() AS date) BETWEEN b.VigenciaInicio AND b.VigenciaFin)
   ORDER BY b.FechaCreacion DESC;
-END
+END;

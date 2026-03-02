@@ -1,9 +1,6 @@
 ﻿
-
-/* SQL_STORED_PROCEDURE core.ObtenerCategoria */
-
 -- 2) Detalle
-CREATE   PROCEDURE core.ObtenerCategoria
+CREATE PROCEDURE core.ObtenerCategoria
   @Id UNIQUEIDENTIFIER
 AS
 BEGIN

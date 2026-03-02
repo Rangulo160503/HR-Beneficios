@@ -1,8 +1,5 @@
 ﻿
 
-/* SQL_STORED_PROCEDURE core.AreaDeCategoria_Listar */
-
-
 /* =========================================================
    SP: LISTAR
    Búsqueda (por nombre) + paginación

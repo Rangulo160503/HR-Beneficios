@@ -1,7 +1,4 @@
-﻿
-
-/* SQL_STORED_PROCEDURE core.BeneficioImagen_ListarPorBeneficio */
-CREATE   PROCEDURE core.BeneficioImagen_ListarPorBeneficio
+﻿CREATE   PROCEDURE core.BeneficioImagen_ListarPorBeneficio
     @BeneficioId UNIQUEIDENTIFIER
 AS
 BEGIN

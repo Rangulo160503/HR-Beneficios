@@ -1,7 +1,4 @@
-﻿
-
-/* SQL_STORED_PROCEDURE core.ObtenerBeneficiosRechazados */
-CREATE   PROCEDURE [core].[ObtenerBeneficiosRechazados]
+﻿CREATE PROCEDURE [core].[ObtenerBeneficiosRechazados]
 AS
 BEGIN
   SET NOCOUNT ON;
@@ -11,6 +8,7 @@ BEGIN
     b.Titulo,
     b.Descripcion,
     b.PrecioCRC,
+    b.PrecioDesde,
     b.ProveedorId,
     b.CategoriaId,
     b.Imagen,
@@ -30,4 +28,4 @@ BEGIN
   JOIN core.Categoria c ON c.CategoriaId = b.CategoriaId
   WHERE b.Estado = 2
   ORDER BY b.FechaCreacion DESC;
-END
+END;

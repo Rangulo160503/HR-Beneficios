@@ -1,6 +1,4 @@
 ﻿
-
-/* SQL_STORED_PROCEDURE core.InfoBoardItem_ObtenerPorId */
 CREATE   PROCEDURE [core].[InfoBoardItem_ObtenerPorId]
     @InfoBoardItemId UNIQUEIDENTIFIER
 AS

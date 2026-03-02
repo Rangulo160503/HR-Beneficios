@@ -1,11 +1,4 @@
-﻿
-
-/* SQL_STORED_PROCEDURE core.RifaParticipacion_Listar */
-
-/* ============================
-   LISTAR (GUID)
-============================ */
-CREATE   PROCEDURE core.RifaParticipacion_Listar
+﻿CREATE PROCEDURE core.RifaParticipacion_Listar
     @Q NVARCHAR(200) = NULL,
     @From DATETIME2 = NULL,
     @To DATETIME2 = NULL,
@@ -26,7 +19,6 @@ BEGIN
 
     DECLARE @Offset INT = (@Page - 1) * @PageSize;
 
-    -- Permitimos sort por campos existentes (Id incluido por si quieres)
     SET @SortCampo = CASE
         WHEN @SortCampo IN ('Nombre','Correo','FechaCreacion','Estado','Id')
         THEN @SortCampo
@@ -55,7 +47,8 @@ BEGIN
         OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;';
 
     DECLARE @QPattern NVARCHAR(260) = NULL;
-    IF @Q IS NOT NULL AND LTRIM(RTRIM(@Q)) <> '' SET @QPattern = N'%' + @Q + N'%';
+    IF @Q IS NOT NULL AND LTRIM(RTRIM(@Q)) <> ''
+        SET @QPattern = N'%' + @Q + N'%';
 
     EXEC sp_executesql
         @Sql,

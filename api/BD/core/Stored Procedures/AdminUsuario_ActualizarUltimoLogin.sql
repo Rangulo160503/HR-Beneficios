@@ -1,7 +1,5 @@
-﻿/* SQL_STORED_PROCEDURE core.AdminUsuario_ActualizarUltimoLogin */
-/* =========================================================
-   4) SP: core.AdminUsuario_ActualizarUltimoLogin
-   ========================================================= */
+﻿
+-- 5) SP: Actualizar UltimoLogin
 CREATE   PROCEDURE [core].[AdminUsuario_ActualizarUltimoLogin]
     @AdminUsuarioId UNIQUEIDENTIFIER
 AS
@@ -9,7 +7,7 @@ BEGIN
     SET NOCOUNT ON;
 
     UPDATE core.tbAdminUsuario
-    SET UltimoLogin = SYSUTCDATETIME()
+    SET UltimoLogin = sysdatetime()
     WHERE AdminUsuarioId = @AdminUsuarioId;
 
     SELECT @AdminUsuarioId AS AdminUsuarioId;

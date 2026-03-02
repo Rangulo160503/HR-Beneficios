@@ -1,7 +1,4 @@
 ﻿
-
-/* SQL_STORED_PROCEDURE core.Usuario_Eliminar */
-
 /* =========================================================
    core.Usuario_Eliminar
    Elimina por UsuarioId.

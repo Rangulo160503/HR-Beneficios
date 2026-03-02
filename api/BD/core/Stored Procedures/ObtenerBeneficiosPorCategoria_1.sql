@@ -1,7 +1,4 @@
-﻿
-
-/* SQL_STORED_PROCEDURE core.ObtenerBeneficiosPorCategoria */
-CREATE   PROCEDURE [core].[ObtenerBeneficiosPorCategoria]
+﻿CREATE PROCEDURE [core].[ObtenerBeneficiosPorCategoria]
     @CategoriaId UNIQUEIDENTIFIER,
     @Page INT = 1,
     @PageSize INT = 50,
@@ -14,10 +11,10 @@ BEGIN
     SET @PageSize = CASE WHEN @PageSize < 1 THEN 50 ELSE @PageSize END;
 
     DECLARE @Offset INT = (@Page - 1) * @PageSize;
-
     DECLARE @Pattern NVARCHAR(202) = NULL;
-    IF (@Search IS NOT NULL AND LTRIM(RTRIM(@Search)) <> N'')
-        SET @Pattern = N'%' + LTRIM(RTRIM(@Search)) + N'%';
+
+    IF (@Search IS NOT NULL AND LTRIM(RTRIM(@Search)) <> '')
+        SET @Pattern = '%' + LTRIM(RTRIM(@Search)) + '%';
 
     ;WITH base AS (
         SELECT
@@ -25,6 +22,7 @@ BEGIN
             b.Titulo,
             b.Descripcion,
             b.PrecioCRC,
+            b.PrecioDesde,
             b.Condiciones,
             b.VigenciaInicio,
             b.VigenciaFin,
@@ -41,16 +39,14 @@ BEGIN
             b.AprobadoPorUsuarioId,
             p.Nombre AS ProveedorNombre,
             c.Nombre AS CategoriaNombre
-            -- si tu tabla es core.Categoria(Titulo), usa:
-            -- c.Titulo AS CategoriaNombre
         FROM core.Beneficio b
         INNER JOIN core.Proveedor p ON p.ProveedorId = b.ProveedorId
         INNER JOIN core.Categoria c ON c.CategoriaId = b.CategoriaId
         WHERE b.CategoriaId = @CategoriaId
           AND (
-                @Pattern IS NULL
-                OR b.Titulo LIKE @Pattern
-                OR p.Nombre LIKE @Pattern
+            @Pattern IS NULL OR
+            b.Titulo LIKE @Pattern OR
+            p.Nombre LIKE @Pattern
           )
     )
     SELECT
@@ -59,4 +55,4 @@ BEGIN
     FROM base
     ORDER BY FechaCreacion DESC
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
-END
+END;

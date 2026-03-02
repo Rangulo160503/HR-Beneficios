@@ -1,7 +1,4 @@
-﻿
-
-/* SQL_STORED_PROCEDURE core.EliminarBeneficio */
-CREATE   PROCEDURE [core].[EliminarBeneficio]
+﻿CREATE PROCEDURE [core].[EliminarBeneficio]
   @Id UNIQUEIDENTIFIER
 AS
 BEGIN
