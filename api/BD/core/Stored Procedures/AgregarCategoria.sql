@@ -1,5 +1,4 @@
-﻿
--- 4) Agregar (sin @Activa, sin CreadoEn)
+
 CREATE PROCEDURE core.AgregarCategoria
   @Nombre NVARCHAR(160)
 AS

@@ -1,5 +1,5 @@
-﻿
-/* DELETE: usa ProductoId en el WHERE */
+
+
 CREATE   PROCEDURE core.Producto_Eliminar
     @Id UNIQUEIDENTIFIER
 AS

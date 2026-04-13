@@ -1,4 +1,4 @@
-﻿
+
 CREATE   PROCEDURE [core].[InfoBoardItem_Eliminar]
     @InfoBoardItemId UNIQUEIDENTIFIER
 AS

@@ -1,8 +1,5 @@
-﻿
-/* =========================================================
-   core.Usuario_Eliminar
-   Elimina por UsuarioId.
-   ========================================================= */
+
+
 CREATE   PROCEDURE core.Usuario_Eliminar
     @UsuarioId UNIQUEIDENTIFIER
 AS

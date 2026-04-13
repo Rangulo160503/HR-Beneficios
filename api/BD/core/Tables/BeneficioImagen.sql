@@ -1,4 +1,4 @@
-﻿CREATE TABLE [core].[BeneficioImagen] (
+CREATE TABLE [core].[BeneficioImagen] (
     [ImagenId]     UNIQUEIDENTIFIER DEFAULT (newid()) NOT NULL,
     [BeneficioId]  UNIQUEIDENTIFIER NOT NULL,
     [Imagen]       VARBINARY (MAX)  NOT NULL,
@@ -8,4 +8,3 @@
     CONSTRAINT [PK_BeneficioImagen] PRIMARY KEY CLUSTERED ([ImagenId] ASC),
     CONSTRAINT [FK_BeneficioImagen_Beneficio] FOREIGN KEY ([BeneficioId]) REFERENCES [core].[Beneficio] ([BeneficioId]) ON DELETE CASCADE
 );
-

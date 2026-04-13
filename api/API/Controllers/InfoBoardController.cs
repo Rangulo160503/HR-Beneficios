@@ -48,19 +48,7 @@ namespace API.Controllers
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
 
-            /*
-             * Ejemplo de payload:
-             * {
-             *   "titulo": "Charla: Finanzas personales 2025",
-             *   "descripcion": "Inscribite en la charla virtual con cupo limitado.",
-             *   "url": "https://empresa.com/charla-finanzas",
-             *   "tipo": "charla",
-             *   "prioridad": 10,
-             *   "activo": true,
-             *   "fechaInicio": "2025-12-14T00:00:00",
-             *   "fechaFin": "2026-01-14T23:59:59"
-             * }
-             */
+            
 
             var id = await _infoBoardFlujo.Agregar(item);
             var creado = await _infoBoardFlujo.Obtener(id);

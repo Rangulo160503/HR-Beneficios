@@ -1,12 +1,9 @@
-import {Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import ProveedorLogin from "./proveedor/pages/ProveedorLogin";
 import ProveedorHome from "./views/ProveedorHome";
-
 export default function App() {
-  return (
-    <Routes>
+  return <Routes>
       <Route path="/login" element={<ProveedorLogin />} />
       <Route path="/*" element={<ProveedorHome />} />
-    </Routes>
-  );
+    </Routes>;
 }

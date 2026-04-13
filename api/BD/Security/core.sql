@@ -1,3 +1,2 @@
-﻿CREATE SCHEMA [core]
+CREATE SCHEMA [core]
     AUTHORIZATION [dbo];
-

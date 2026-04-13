@@ -1,4 +1,4 @@
-﻿
+
 CREATE   PROCEDURE [core].[BeneficioImagen_Actualizar]
     @ImagenId     UNIQUEIDENTIFIER,
     @BeneficioId  UNIQUEIDENTIFIER,
@@ -8,14 +8,12 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Validar que exista
     IF NOT EXISTS (SELECT 1 FROM core.BeneficioImagen WHERE ImagenId = @ImagenId)
     BEGIN
         THROW 50000, 'La imagen especificada no existe.', 1;
         RETURN;
     END
 
-    -- Si se especifica un nuevo orden, reacomodar
     IF @Orden IS NOT NULL
     BEGIN
         DECLARE @OrdenActual INT;
@@ -34,7 +32,6 @@ BEGIN
         END
     END
 
-    -- Actualizar campos principales
     UPDATE core.BeneficioImagen
     SET
         Imagen = COALESCE(@Imagen, Imagen),

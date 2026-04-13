@@ -1,4 +1,4 @@
-﻿using Abstracciones.Interfaces.API;
+using Abstracciones.Interfaces.API;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
 using Microsoft.AspNetCore.Authorization;
@@ -20,7 +20,6 @@ namespace API.Controllers
             _logger = logger;
         }
 
-        // POST api/Usuario
         [HttpPost]
         public async Task<IActionResult> Agregar([FromBody] UsuarioRequest req)
         {
@@ -31,7 +30,6 @@ namespace API.Controllers
             return CreatedAtAction(nameof(Obtener), new { Id = id }, creado);
         }
 
-        // PUT api/Usuario/{id}
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Editar(Guid id, [FromBody] UsuarioRequest req)
         {
@@ -43,7 +41,6 @@ namespace API.Controllers
             return Ok(actualizado);
         }
 
-        // DELETE api/Usuario/{id}
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Eliminar(Guid id)
         {
@@ -54,7 +51,6 @@ namespace API.Controllers
             return NoContent();
         }
 
-        // GET api/Usuario
         [HttpGet]
         public async Task<IActionResult> Obtener()
         {
@@ -62,7 +58,6 @@ namespace API.Controllers
             return Ok(lista ?? Enumerable.Empty<UsuarioResponse>());
         }
 
-        // GET api/Usuario/{id}
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> Obtener([FromRoute] Guid id)
         {
@@ -70,7 +65,6 @@ namespace API.Controllers
             return item is null ? NotFound() : Ok(item);
         }
 
-        // === Gestión de proveedor ===
         [HttpPut("asignar-proveedor")]
         public async Task<IActionResult> AsignarProveedor([FromBody] UsuarioAsignarProveedorRequest req)
         {

@@ -1,4 +1,4 @@
-﻿
+
 CREATE   PROCEDURE [core].[InfoBoardItem_ObtenerPorId]
     @InfoBoardItemId UNIQUEIDENTIFIER
 AS

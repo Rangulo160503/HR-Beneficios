@@ -1,10 +1,9 @@
-﻿CREATE PROCEDURE core.EliminarCategoria
+CREATE PROCEDURE core.EliminarCategoria
   @Id UNIQUEIDENTIFIER
 AS
 BEGIN
   SET NOCOUNT ON;
 
-  -- Bloquea borrado si hay beneficios que referencian esta categoría
   IF EXISTS (SELECT 1 FROM core.Beneficio WHERE CategoriaId = @Id)
     THROW 50011, 'No se puede eliminar: tiene beneficios asociados.', 1;
 

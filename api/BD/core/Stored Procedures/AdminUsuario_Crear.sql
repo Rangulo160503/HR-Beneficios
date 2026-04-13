@@ -1,5 +1,4 @@
-﻿
--- 4) SP: Crear
+
 CREATE   PROCEDURE [core].[AdminUsuario_Crear]
     @Usuario      NVARCHAR(50),
     @Nombre       NVARCHAR(100) = NULL,

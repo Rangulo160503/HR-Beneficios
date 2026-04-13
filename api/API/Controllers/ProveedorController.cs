@@ -1,4 +1,4 @@
-﻿using Abstracciones.Interfaces.API;
+using Abstracciones.Interfaces.API;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
 using Microsoft.AspNetCore.Authorization;
@@ -37,22 +37,19 @@ namespace API.Controllers
         [HttpPut("{Id:guid}")]
         public async Task<IActionResult> Editar([FromRoute] Guid Id, [FromBody] ProveedorRequest proveedor)
         {
-            // Validación de entrada
             if (string.IsNullOrWhiteSpace(proveedor?.Nombre))
                 return BadRequest("El nombre es requerido.");
 
-            // 404 si no existe
             var actual = await _proveedorFlujo.Obtener(Id);
             if (actual is null)
                 return NotFound("El proveedor no existe");
 
             try
             {
-                var resultado = await _proveedorFlujo.Editar(Id, proveedor); // debe llamar a core.EditarProveedor
-                return Ok(resultado); // { proveedorId, nombre, modificadoEn }
+                var resultado = await _proveedorFlujo.Editar(Id, proveedor);
+                return Ok(resultado);
             }
-            // (Opcional) Mapear códigos de la SP a HTTP adecuados
-            catch (SqlException ex) when (ex.Number == 52112) // "nombre duplicado"
+            catch (SqlException ex) when (ex.Number == 52112)
             {
                 return Conflict("Ya existe un proveedor con ese nombre.");
             }
@@ -69,7 +66,7 @@ namespace API.Controllers
                 await _proveedorFlujo.Eliminar(Id);
                 return NoContent();
             }
-            catch (SqlException ex) when (ex.Number == 51003) // "tiene beneficios asociados"
+            catch (SqlException ex) when (ex.Number == 51003)
             {
                 return Conflict("No se puede eliminar el proveedor: tiene beneficios asociados.");
             }

@@ -1,4 +1,4 @@
-﻿using Abstracciones.Interfaces.DA;
+using Abstracciones.Interfaces.DA;
 using Abstracciones.Modelos;
 using System;
 using System.Collections.Generic;
@@ -27,7 +27,6 @@ namespace DA
         public async Task<Guid> Agregar(AreaDeCategoriaRequest a)
         {
             const string sp = "core.AreaDeCategoria_Agregar";
-            // El SP debe terminar con: SELECT @NuevoId;
             var id = await _dapperWrapper.ExecuteScalarAsync<Guid>(
                 _dbConnection, sp,
                 new { Nombre = a.Nombre },
@@ -39,7 +38,6 @@ namespace DA
         public async Task<Guid> Editar(Guid id, AreaDeCategoriaRequest a)
         {
             const string sp = "core.AreaDeCategoria_Editar";
-            // El SP no devuelve nada; usamos Guid de eco para mantener la firma homogénea
             await VerificarExiste(id);
 
             var rid = await _dapperWrapper.ExecuteScalarAsync<Guid>(
@@ -48,7 +46,6 @@ namespace DA
                 commandType: CommandType.StoredProcedure
             );
 
-            // Si tu wrapper no retorna valor, podrías retornar el propio id
             return rid == Guid.Empty ? id : rid;
         }
 
@@ -62,14 +59,9 @@ namespace DA
                 null, null, CommandType.StoredProcedure
             );
 
-            // Igual que Editar: si el SP no retorna, devolvemos el id solicitado
             return rid == Guid.Empty ? id : rid;
         }
 
-        /// <summary>
-        /// Listado simple (sin paginar). 
-        /// TIP: El SP AreaDeCategoria_Listar devuelve 2 resultsets; QueryAsync leerá el primero (Items).
-        /// </summary>
         public async Task<IEnumerable<AreaDeCategoriaResponse>> Obtener()
         {
             const string sp = "core.AreaDeCategoria_Listar";
@@ -90,7 +82,6 @@ namespace DA
                 null, null, CommandType.StoredProcedure
             );
 
-            // Si no hay resultado, devolvemos un objeto vacío (igual que BeneficioDetalle)
             return rows.FirstOrDefault() ?? new AreaDeCategoriaDetalle();
         }
 

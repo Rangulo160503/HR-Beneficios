@@ -1,4 +1,4 @@
-﻿
+
 CREATE   PROCEDURE core.ObtenerServicio
     @ServicioId UNIQUEIDENTIFIER
 AS

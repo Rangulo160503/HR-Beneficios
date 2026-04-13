@@ -1,4 +1,4 @@
-﻿using Abstracciones.Interfaces.API;
+using Abstracciones.Interfaces.API;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
 using Microsoft.AspNetCore.Authorization;
@@ -22,7 +22,6 @@ namespace API.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        // GET api/AreaDeCategoria
         [HttpGet]
         public async Task<IActionResult> Obtener()
         {
@@ -30,7 +29,6 @@ namespace API.Controllers
             return Ok(lista ?? Enumerable.Empty<AreaDeCategoriaResponse>());
         }
 
-        // GET api/AreaDeCategoria/{Id}
         [HttpGet("{Id:guid}")]
         public async Task<IActionResult> Obtener(Guid Id)
         {
@@ -38,7 +36,6 @@ namespace API.Controllers
             return item is null ? NotFound() : Ok(item);
         }
 
-        // POST api/AreaDeCategoria
         [HttpPost]
         public async Task<IActionResult> Agregar([FromBody] AreaDeCategoriaRequest areacategoria)
         {
@@ -50,7 +47,6 @@ namespace API.Controllers
             return CreatedAtAction(nameof(Obtener), new { Id = id }, creado);
         }
 
-        // PUT api/AreaDeCategoria/{Id}
         [HttpPut("{Id:guid}")]
         public async Task<IActionResult> Editar(Guid Id, [FromBody] AreaDeCategoriaRequest areacategoria)
         {
@@ -62,7 +58,6 @@ namespace API.Controllers
             return Ok(actualizado);
         }
 
-        // DELETE api/AreaDeCategoria/{Id}
         [HttpDelete("{Id:guid}")]
         public async Task<IActionResult> Eliminar(Guid Id)
         {
@@ -73,7 +68,6 @@ namespace API.Controllers
             return NoContent();
         }
 
-        // ===== Helper =====
         private async Task<bool> VerificarAreaExiste(Guid Id)
             => (await _flujo.Obtener(Id)) is not null;
     }

@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [core].[ObtenerBeneficiosPorCategoria]
+CREATE PROCEDURE [core].[ObtenerBeneficiosPorCategoria]
     @CategoriaId UNIQUEIDENTIFIER,
     @Page INT = 1,
     @PageSize INT = 50,

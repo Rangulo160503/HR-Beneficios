@@ -1,4 +1,4 @@
-﻿CREATE TABLE [core].[RifaParticipacion] (
+CREATE TABLE [core].[RifaParticipacion] (
     [Id]            UNIQUEIDENTIFIER CONSTRAINT [DF_RifaParticipacion_Id] DEFAULT (newsequentialid()) NOT NULL,
     [Source]        NVARCHAR (50)    CONSTRAINT [DF_RifaParticipacion_Source] DEFAULT ('web') NOT NULL,
     [Estado]        NVARCHAR (50)    CONSTRAINT [DF_RifaParticipacion_Estado] DEFAULT ('Nuevo') NOT NULL,
@@ -9,4 +9,3 @@
     [Mensaje]       NVARCHAR (MAX)   NULL,
     CONSTRAINT [PK_RifaParticipacion] PRIMARY KEY CLUSTERED ([Id] ASC)
 );
-

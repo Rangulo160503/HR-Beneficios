@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE core.ExisteProveedor
+CREATE PROCEDURE core.ExisteProveedor
     @Id UNIQUEIDENTIFIER
 AS
 BEGIN

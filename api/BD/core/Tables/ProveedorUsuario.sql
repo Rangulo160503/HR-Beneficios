@@ -1,4 +1,4 @@
-﻿CREATE TABLE [core].[ProveedorUsuario] (
+CREATE TABLE [core].[ProveedorUsuario] (
     [ProveedorId]     UNIQUEIDENTIFIER NOT NULL,
     [UsuarioId]       UNIQUEIDENTIFIER NOT NULL,
     [Rol]             NVARCHAR (50)    NULL,
@@ -12,4 +12,3 @@
 GO
 CREATE NONCLUSTERED INDEX [IX_ProveedorUsuario_Usuario]
     ON [core].[ProveedorUsuario]([UsuarioId] ASC);
-

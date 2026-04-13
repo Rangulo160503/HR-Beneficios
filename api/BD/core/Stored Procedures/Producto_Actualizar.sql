@@ -1,4 +1,4 @@
-﻿/* UPDATE: usa ProductoId en el WHERE y devuelve el mismo Id */
+
 CREATE   PROCEDURE core.Producto_Actualizar
     @Id UNIQUEIDENTIFIER,
     @Nombre NVARCHAR(150),

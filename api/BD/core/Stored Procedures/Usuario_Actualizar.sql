@@ -1,8 +1,5 @@
-﻿
-/* =========================================================
-   core.Usuario_Actualizar
-   Actualiza datos por UsuarioId (GUID).
-   ========================================================= */
+
+
 CREATE   PROCEDURE core.Usuario_Actualizar
     @UsuarioId     UNIQUEIDENTIFIER,
     @Correo        NVARCHAR(120),

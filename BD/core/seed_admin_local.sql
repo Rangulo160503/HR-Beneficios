@@ -1,18 +1,11 @@
-/*
-    Seed local para bootstrap del usuario administrador.
-    - Crea schema y tabla core.tbAdminUsuario si no existen.
-    - Actualiza/crea los procedimientos necesarios para autenticación.
-    - Inserta el usuario admin inicial de forma idempotente usando un hash bcrypt provisto.
-*/
 
--- Crear schema core si no existe
+
 IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'core')
 BEGIN
     EXEC('CREATE SCHEMA core');
 END
 GO
 
--- Crear tabla core.tbAdminUsuario si no existe
 IF NOT EXISTS (
     SELECT 1
     FROM sys.tables t
@@ -36,11 +29,7 @@ BEGIN
 END
 GO
 
-/* =========================================================
-   core.AdminUsuario_Login
-   Busca un administrador por Usuario y devuelve su hash para
-   validar en la capa de aplicación.
-   ========================================================= */
+
 CREATE OR ALTER PROCEDURE [core].[AdminUsuario_Login]
     @Usuario NVARCHAR(50)
 AS
@@ -61,10 +50,7 @@ BEGIN
 END
 GO
 
-/* =========================================================
-   core.AdminUsuario_Crear
-   Crea un administrador usando el hash de password provisto.
-   ========================================================= */
+
 CREATE OR ALTER PROCEDURE [core].[AdminUsuario_Crear]
     @Usuario      NVARCHAR(50),
     @Nombre       NVARCHAR(100) = NULL,
@@ -100,10 +86,7 @@ BEGIN
 END
 GO
 
-/* =========================================================
-   core.AdminUsuario_ActualizarUltimoLogin
-   Actualiza la fecha de último login para el administrador.
-   ========================================================= */
+
 CREATE OR ALTER PROCEDURE [core].[AdminUsuario_ActualizarUltimoLogin]
     @AdminUsuarioId UNIQUEIDENTIFIER
 AS
@@ -118,7 +101,6 @@ BEGIN
 END
 GO
 
--- Insertar administrador inicial de forma idempotente
 IF NOT EXISTS (SELECT 1 FROM core.tbAdminUsuario WHERE Usuario = 'admin')
 BEGIN
     INSERT INTO core.tbAdminUsuario (AdminUsuarioId, Usuario, Nombre, Correo, PasswordHash, Activo)

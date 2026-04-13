@@ -1,10 +1,5 @@
-﻿
-/* =========================================================
-   core.Usuario_Listar
-   Lista usuarios; permite filtrar por ProveedorId o Correo.
-   - @ProveedorId: si viene, filtra via tabla puente core.ProveedorUsuario
-   - @Correo: comparación exacta tras normalizar (lower/trim)
-   ========================================================= */
+
+
 CREATE PROCEDURE [core].[Usuario_Listar]
     @ProveedorId UNIQUEIDENTIFIER = NULL,
     @Correo      NVARCHAR(254)    = NULL
@@ -12,7 +7,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Normalización mínima
     SET @Correo = CASE WHEN @Correo IS NULL THEN NULL ELSE LOWER(LTRIM(RTRIM(@Correo))) END;
 
     SELECT

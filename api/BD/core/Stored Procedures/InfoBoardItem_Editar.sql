@@ -1,4 +1,4 @@
-﻿
+
 CREATE   PROCEDURE [core].[InfoBoardItem_Editar]
     @InfoBoardItemId UNIQUEIDENTIFIER,
     @Titulo          NVARCHAR(120),

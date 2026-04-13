@@ -1,4 +1,4 @@
-﻿
+
 CREATE   PROCEDURE core.ObtenerProducto
     @ProductoId UNIQUEIDENTIFIER
 AS

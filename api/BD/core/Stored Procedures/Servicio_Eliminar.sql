@@ -1,5 +1,4 @@
-﻿
--- ELIMINAR
+
 CREATE   PROCEDURE core.Servicio_Eliminar
     @Id UNIQUEIDENTIFIER
 AS

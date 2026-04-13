@@ -1,4 +1,4 @@
-﻿CREATE TABLE [core].[Beneficio] (
+CREATE TABLE [core].[Beneficio] (
     [BeneficioId]          UNIQUEIDENTIFIER CONSTRAINT [DF_Beneficio_BeneficioId] DEFAULT (newid()) NOT NULL,
     [Titulo]               NVARCHAR (140)   NOT NULL,
     [Descripcion]          NVARCHAR (MAX)   NULL,

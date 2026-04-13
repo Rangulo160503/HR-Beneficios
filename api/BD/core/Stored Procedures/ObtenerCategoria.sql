@@ -1,5 +1,4 @@
-﻿
--- 2) Detalle
+
 CREATE PROCEDURE core.ObtenerCategoria
   @Id UNIQUEIDENTIFIER
 AS

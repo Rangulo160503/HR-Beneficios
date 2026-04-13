@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [core].[ObtenerBeneficiosPendientes]
+CREATE PROCEDURE [core].[ObtenerBeneficiosPendientes]
 AS
 BEGIN
   SET NOCOUNT ON;

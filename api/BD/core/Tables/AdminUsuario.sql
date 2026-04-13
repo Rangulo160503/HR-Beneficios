@@ -1,4 +1,4 @@
-﻿CREATE TABLE [core].[tbAdminUsuario] (
+CREATE TABLE [core].[tbAdminUsuario] (
     [AdminUsuarioId] UNIQUEIDENTIFIER CONSTRAINT [DF_tbAdminUsuario_AdminUsuarioId] DEFAULT (newsequentialid()) NOT NULL,
     [Usuario]        NVARCHAR (50)    NOT NULL,
     [Nombre]         NVARCHAR (100)   NULL,

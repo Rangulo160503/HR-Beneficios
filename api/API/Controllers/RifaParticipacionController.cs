@@ -7,32 +7,6 @@ using System;
 
 namespace API.Controllers
 {
-    /// <summary>
-    /// Registro y consulta de participaciones para la rifa.
-    /// </summary>
-    /// <remarks>
-    /// Ejemplo de solicitud:
-    /// POST /api/RifaParticipacion
-    /// {
-    ///   "nombre": "Ana Pérez",
-    ///   "correo": "ana@example.com",
-    ///   "telefono": "+50688888888",
-    ///   "mensaje": "¡Quiero participar!",
-    ///   "source": "web"
-    /// }
-    /// 
-    /// Respuesta 201:
-    /// {
-    ///   "id": "c2e8ecab-0d7f-4f36-9fa9-3f5ff3e5c001",
-    ///   "nombre": "Ana Pérez",
-    ///   "correo": "ana@example.com",
-    ///   "telefono": "+50688888888",
-    ///   "mensaje": "¡Quiero participar!",
-    ///   "source": "web",
-    ///   "estado": "Nuevo",
-    ///   "fechaCreacion": "2024-05-10T12:00:00Z"
-    /// }
-    /// </remarks>
     [Route("api/[controller]")]
     [ApiController]
     public class RifaParticipacionController : ControllerBase, IRifaParticipacionController

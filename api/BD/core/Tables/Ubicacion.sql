@@ -1,4 +1,4 @@
-﻿CREATE TABLE [core].[Ubicacion] (
+CREATE TABLE [core].[Ubicacion] (
     [UbicacionId]     UNIQUEIDENTIFIER DEFAULT (newid()) NOT NULL,
     [Provincia]       NVARCHAR (100)   NOT NULL,
     [Canton]          NVARCHAR (100)   NULL,
@@ -8,4 +8,3 @@
     [ModificadoEn]    DATETIME2 (7)    NULL,
     PRIMARY KEY CLUSTERED ([UbicacionId] ASC)
 );
-

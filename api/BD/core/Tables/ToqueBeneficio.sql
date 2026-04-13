@@ -14,4 +14,3 @@ CREATE TABLE [core].[ToqueBeneficio] (
 GO
 CREATE NONCLUSTERED INDEX [IX_ToqueBeneficio_BeneficioId_Fecha]
     ON [core].[ToqueBeneficio]([BeneficioId] ASC, [Fecha] ASC);
-

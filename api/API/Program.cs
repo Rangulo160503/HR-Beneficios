@@ -1,4 +1,3 @@
-﻿using Abstracciones.Interfaces.DA;
 using Abstracciones.Interfaces.DA;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Interfaces.Reglas;
@@ -17,26 +16,14 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-/* =========================
- * Logging
- * ========================= */
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-/* =========================
- * Feature flags / settings
- * - Activa errores detallados con:
- *   1) ASPNETCORE_ENVIRONMENT=Development  (o)
- *   2) DETAILED_ERRORS=1  (variable de aplicación en Azure)
- * ========================= */
 bool detailedErrors =
     builder.Environment.IsDevelopment() ||
     string.Equals(builder.Configuration["DETAILED_ERRORS"], "1", StringComparison.OrdinalIgnoreCase) ||
     string.Equals(builder.Configuration["DETAILED_ERRORS"], "true", StringComparison.OrdinalIgnoreCase);
 
-/* =========================
- * Infra básica
- * ========================= */
 builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -83,9 +70,6 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 });
 
-/* =========================
- * CORS
- * ========================= */
 const string WebCors = "WebCors";
 builder.Services.AddCors(o =>
 {
@@ -93,7 +77,7 @@ builder.Services.AddCors(o =>
         p.SetIsOriginAllowed(origin =>
         {
             if (!Uri.TryCreate(origin, UriKind.Absolute, out var u)) return false;
-            if (u.IsLoopback) return true; // localhost con cualquier puerto
+            if (u.IsLoopback) return true;
             var host = u.Host.ToLowerInvariant();
             return host.EndsWith(".canadacentral-01.azurewebsites.net");
         })
@@ -103,9 +87,6 @@ builder.Services.AddCors(o =>
     );
 });
 
-/* =========================
- * DI
- * ========================= */
 builder.Services.AddScoped<IDapperWrapper, DA.Wrappers.DapperWrapper>();
 builder.Services.AddScoped<IRepositorioDapper, DA.Repositorios.RepositorioDapper>();
 builder.Services.AddScoped<IBeneficioDA, BeneficioDA>();
@@ -120,7 +101,6 @@ builder.Services.AddScoped<IConfiguracion, Configuracion>();
 builder.Services.AddScoped<IAreaDeCategoriaDA, AreaDeCategoriaDA>();
 builder.Services.AddScoped<IAreaDeCategoriaFlujo, AreaDeCategoriaFlujo>();
 builder.Services.AddScoped<IToqueBeneficioFlujo, ToqueBeneficioFlujo>();
-// ===== Catálogos de filtros (nuevo) =====
 builder.Services.AddScoped<IProductoDA, ProductoDA>();
 builder.Services.AddScoped<IServicioDA, ServicioDA>();
 builder.Services.AddScoped<IUbicacionDA, UbicacionDA>();
@@ -142,21 +122,14 @@ builder.Services.AddScoped<IRifaParticipacionFlujo, RifaParticipacionFlujo>();
 builder.Services.AddScoped<IAdminAuthDA, AdminAuthDA>();
 builder.Services.AddScoped<IAdminAuthFlujo, AdminAuthFlujo>();
 
-
-
 var app = builder.Build();
 
-/* =========================
- * Error handling + Diagnostics
- * ========================= */
 if (detailedErrors)
 {
-    // Modo diagnóstico: muestra página de excepción con stack completo
     app.UseDeveloperExceptionPage();
 }
 else
 {
-    // Producción: JSON genérico + trace id; CORS amigable para el error
     app.UseExceptionHandler(errorApp =>
     {
         errorApp.Run(async context =>
@@ -165,7 +138,6 @@ else
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
-            // Permitir que el cliente lea el error genérico respetando CORS del Origin
             var origin = context.Request.Headers["Origin"].ToString();
             if (Uri.TryCreate(origin, UriKind.Absolute, out _))
             {
@@ -184,11 +156,9 @@ else
     });
 }
 
-// Opcional: páginas de estado simples (404, 405, etc.) en texto/JSON
 app.UseStatusCodePages(context =>
 {
     var resp = context.HttpContext.Response;
-    // Evita interferir con respuestas API que ya envían cuerpo propio
     if (resp.ContentType is null or "" && resp.StatusCode != 204)
     {
         resp.ContentType = "application/json";
@@ -197,16 +167,12 @@ app.UseStatusCodePages(context =>
     return Task.CompletedTask;
 });
 
-/* =========================
- * Pipeline
- * ========================= */
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors(WebCors);
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Swagger también en PROD: útil para probar rápidamente
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -214,7 +180,6 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "HR-Beneficios API v1");
 });
 
-// Log básico de request/response para atrapar el 500 con trace-id
 app.Use(async (ctx, next) =>
 {
     var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -229,7 +194,7 @@ app.Use(async (ctx, next) =>
            .CreateLogger("Unhandled")
            .LogError(ex, "Unhandled exception: {Method} {Path} TraceId={TraceId}",
                      ctx.Request.Method, ctx.Request.Path, ctx.TraceIdentifier);
-        throw; // lo captura el ExceptionHandler/DeveloperExceptionPage de arriba
+        throw;
     }
     finally
     {

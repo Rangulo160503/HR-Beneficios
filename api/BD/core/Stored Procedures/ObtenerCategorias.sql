@@ -1,4 +1,3 @@
-﻿-- 1) Lista
 CREATE PROCEDURE core.ObtenerCategorias
 AS
 BEGIN

@@ -1,5 +1,4 @@
-﻿
--- 5) SP: Actualizar UltimoLogin
+
 CREATE   PROCEDURE [core].[AdminUsuario_ActualizarUltimoLogin]
     @AdminUsuarioId UNIQUEIDENTIFIER
 AS

@@ -1,8 +1,6 @@
-﻿
 
-/* ===========================
-   3) SERVICIO – listar y por Id
-   =========================== */
+
+
 CREATE   PROCEDURE core.ObtenerServicios
 AS
 BEGIN

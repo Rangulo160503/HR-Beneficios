@@ -1,9 +1,6 @@
-﻿
 
-/* =========================================================
-   SP: LISTAR
-   Búsqueda (por nombre) + paginación
-   ========================================================= */
+
+
 CREATE   PROCEDURE core.AreaDeCategoria_Listar
     @Buscar NVARCHAR(150) = NULL,        -- término opcional
     @Page INT = 1,                        -- 1-based
@@ -32,7 +29,6 @@ BEGIN
     ORDER BY Nombre
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
-    -- Total de filas para paginación (opcional)
     SELECT COUNT(1) AS TotalFilas
     FROM core.AreaDeCategoria A
     WHERE (@Buscar IS NULL OR @Buscar = N'')

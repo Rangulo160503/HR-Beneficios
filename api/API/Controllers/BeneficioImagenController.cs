@@ -1,4 +1,4 @@
-﻿using Abstracciones.Interfaces.API;
+using Abstracciones.Interfaces.API;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
 using Microsoft.AspNetCore.Authorization;
@@ -19,7 +19,6 @@ namespace API.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        // ✅ PÚBLICO: GET api/BeneficioImagen/{beneficioId}
         [HttpGet("{beneficioId:guid}")]
         [AllowAnonymous]
         public async Task<IActionResult> Obtener(Guid beneficioId)
@@ -28,7 +27,6 @@ namespace API.Controllers
             return Ok(lista ?? Enumerable.Empty<BeneficioImagenResponse>());
         }
 
-        // ✅ PÚBLICO: GET api/BeneficioImagen/detalle/{imagenId}
         [HttpGet("detalle/{imagenId:guid}")]
         [AllowAnonymous]
         public async Task<IActionResult> ObtenerPorId(Guid imagenId)
@@ -37,7 +35,6 @@ namespace API.Controllers
             return item is null ? NotFound() : Ok(item);
         }
 
-        // 🔒 PRIVADO: POST api/BeneficioImagen
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [RequestSizeLimit(20_000_000)]
@@ -52,7 +49,6 @@ namespace API.Controllers
             return CreatedAtAction(nameof(ObtenerPorId), new { imagenId = id }, creado);
         }
 
-        // 🔒 PRIVADO: PUT api/BeneficioImagen/{imagenId}
         [HttpPut("{imagenId:guid}")]
         [Authorize(Roles = "Admin")]
         [RequestSizeLimit(20_000_000)]
@@ -68,7 +64,6 @@ namespace API.Controllers
             return Ok(actualizado);
         }
 
-        // 🔒 PRIVADO: DELETE api/BeneficioImagen/{imagenId}
         [HttpDelete("{imagenId:guid}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Eliminar(Guid imagenId)

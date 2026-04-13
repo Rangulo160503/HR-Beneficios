@@ -1,4 +1,4 @@
-﻿
+
 CREATE   PROCEDURE core.Ubicacion_ObtenerPorId
     @Id UNIQUEIDENTIFIER
 AS
