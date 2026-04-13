@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [core].[ObtenerBeneficiosRechazados]
+CREATE PROCEDURE [core].[ObtenerBeneficiosRechazados]
 AS
 BEGIN
   SET NOCOUNT ON;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +8,7 @@ namespace Abstracciones.Modelos
 {
     public class Servicio
     {
-        public Guid ServicioId { get; set; }          // GUID PK
+        public Guid ServicioId { get; set; }
         public string Nombre { get; set; } = string.Empty;
         public string? Descripcion { get; set; }
         public DateTime CreadoEn { get; set; }

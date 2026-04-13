@@ -1,4 +1,4 @@
-﻿using Abstracciones.Interfaces.API;
+using Abstracciones.Interfaces.API;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +21,6 @@ namespace API.Controllers
             _logger = logger;
         }
 
-        // POST api/Beneficio
         [HttpPost]
         [RequestSizeLimit(20_000_000)]
         [AllowAnonymous]
@@ -45,7 +44,6 @@ namespace API.Controllers
             return CreatedAtAction(nameof(Obtener), new { Id = id }, creado);
         }
 
-        // PUT api/Beneficio/{Id}
         [HttpPut("{Id:guid}")]
         [RequestSizeLimit(20_000_000)]
         [AllowAnonymous]
@@ -53,14 +51,12 @@ namespace API.Controllers
         {
             if (!await VerificarBeneficioExiste(Id)) return NotFound("El beneficio no existe");
 
-            // Si Imagen viene null, conservar la existente (no sobreescribir con NULL)
-            await _beneficioFlujo.Editar(Id, req); // ver SQL abajo
+            await _beneficioFlujo.Editar(Id, req);
 
             var actualizado = await _beneficioFlujo.Obtener(Id);
             return Ok(actualizado);
         }
 
-        // DELETE api/Beneficio/{Id}
         [HttpDelete("{Id:guid}")]
         [AllowAnonymous]
         public async Task<IActionResult> Eliminar([FromRoute] Guid Id)
@@ -72,7 +68,6 @@ namespace API.Controllers
             return NoContent();
         }
 
-        // GET api/Beneficio
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> Obtener()
@@ -81,7 +76,6 @@ namespace API.Controllers
             return Ok(lista ?? Enumerable.Empty<BeneficioResponse>());
         }
 
-        // GET api/Beneficio/{Id}
         [HttpGet("{Id:guid}")]
         [AllowAnonymous]
         public async Task<IActionResult> Obtener([FromRoute] Guid Id)
@@ -90,7 +84,6 @@ namespace API.Controllers
             return item is null ? NotFound() : Ok(item);
         }
 
-        // GET api/Beneficio/pendientes
         [HttpGet("pendientes")]
         [AllowAnonymous]
         public async Task<IActionResult> ObtenerPendientes()
@@ -98,7 +91,6 @@ namespace API.Controllers
             var lista = await _beneficioFlujo.ObtenerPendientes();
             return Ok(lista ?? Enumerable.Empty<BeneficioResponse>());
         }
-        // GET api/Beneficio/rechazados
         [HttpGet("rechazados")]
         [AllowAnonymous]
         public async Task<IActionResult> ObtenerRechazados()
@@ -107,7 +99,6 @@ namespace API.Controllers
             return Ok(lista ?? Enumerable.Empty<BeneficioResponse>());
         }
 
-        // PUT api/Beneficio/{Id}/aprobar
         [HttpPut("{Id:guid}/aprobar")]
         public async Task<IActionResult> Aprobar([FromRoute] Guid Id)
         {
@@ -117,7 +108,6 @@ namespace API.Controllers
             return NoContent();
         }
 
-        // PUT api/Beneficio/{Id}/rechazar
         [HttpPut("{Id:guid}/rechazar")]
         public async Task<IActionResult> Rechazar([FromRoute] Guid Id)
         {
@@ -127,7 +117,6 @@ namespace API.Controllers
             return NoContent();
         }
 
-        // GET api/Beneficio/por-categoria/{categoriaId}
         [HttpGet("por-categoria/{categoriaId:guid}")]
         public async Task<IActionResult> ObtenerPorCategoria(
             [FromRoute] Guid categoriaId,
@@ -140,7 +129,6 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        // PUT api/Beneficio/reasignar-categoria
         [HttpPut("reasignar-categoria")]
         public async Task<IActionResult> ReasignarCategoria([FromBody] ReasignarCategoriaRequest body)
         {
@@ -158,8 +146,6 @@ namespace API.Controllers
             return NoContent();
         }
 
-
-        // ===== Helpers =====
         private async Task<bool> VerificarBeneficioExiste(Guid Id)
         {
             var b = await _beneficioFlujo.Obtener(Id);

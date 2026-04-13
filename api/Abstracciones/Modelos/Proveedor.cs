@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Abstracciones.Modelos
 {
@@ -10,14 +10,12 @@ namespace Abstracciones.Modelos
         public string? Correo { get; set; }
         [Phone, StringLength(50)]
         public string? Telefono { get; set; }
-        // Imagen del proveedor (logo o foto)
         public byte[]? Imagen { get; set; }
         public string? Direccion { get; set; }
     }
 
     public class ProveedorRequest : ProveedorBase
     {
-        // Para creación/edición
         public string? AccessToken { get; set; }
     }
 
@@ -29,7 +27,6 @@ namespace Abstracciones.Modelos
 
     public class ProveedorDetalle : ProveedorResponse
     {
-        // Información extendida para cuando se consulta el proveedor
         public string? Direccion { get; set; }
         public int? CantidadBeneficios { get; set; }
     }

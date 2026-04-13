@@ -1,4 +1,4 @@
-﻿CREATE TABLE [core].[SeleccionBeneficio] (
+CREATE TABLE [core].[SeleccionBeneficio] (
     [SeleccionId]    INT              IDENTITY (1, 1) NOT NULL,
     [UsuarioId]      INT              NOT NULL,
     [BeneficioId]    UNIQUEIDENTIFIER NOT NULL,
@@ -8,4 +8,3 @@
     CHECK ([Origen]='Email' OR [Origen]='App' OR [Origen]='Web'),
     CONSTRAINT [FK_SeleccionBeneficio_BeneficioId] FOREIGN KEY ([BeneficioId]) REFERENCES [core].[Beneficio] ([BeneficioId])
 );
-

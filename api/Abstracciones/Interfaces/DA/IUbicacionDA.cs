@@ -1,4 +1,4 @@
-﻿using Abstracciones.Modelos;
+using Abstracciones.Modelos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +9,10 @@ namespace Abstracciones.Interfaces.DA
 {
     public interface IUbicacionDA
     {
-        Task<IEnumerable<Ubicacion>> Obtener();          // core.ObtenerUbicaciones
-        Task<Ubicacion> Obtener(Guid Id);                // core.ObtenerUbicacion
-        Task<Guid> Agregar(Ubicacion ubicacion);         // core.Ubicacion_Insertar
-        Task<Guid> Editar(Guid Id, Ubicacion ubicacion); // core.Ubicacion_Actualizar
-        Task<Guid> Eliminar(Guid Id);                    // core.Ubicacion_Eliminar
+        Task<IEnumerable<Ubicacion>> Obtener();
+        Task<Ubicacion> Obtener(Guid Id);
+        Task<Guid> Agregar(Ubicacion ubicacion);
+        Task<Guid> Editar(Guid Id, Ubicacion ubicacion);
+        Task<Guid> Eliminar(Guid Id);
     }
 }

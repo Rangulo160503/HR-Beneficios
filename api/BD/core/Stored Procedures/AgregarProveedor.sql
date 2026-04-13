@@ -1,8 +1,6 @@
-﻿
 
-/* =========================================================
-   2) Stored Procedure: core.AgregarProveedor (con AccessToken)
-   ========================================================= */
+
+
 
 CREATE   PROCEDURE [core].[AgregarProveedor]
     @Nombre       NVARCHAR(120),

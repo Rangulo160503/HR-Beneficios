@@ -1,4 +1,4 @@
-﻿CREATE   PROCEDURE core.BeneficioImagen_Insertar
+CREATE   PROCEDURE core.BeneficioImagen_Insertar
   @BeneficioId UNIQUEIDENTIFIER,
   @Imagen VARBINARY(MAX),
   @Orden INT = NULL
@@ -12,7 +12,6 @@ BEGIN
     SELECT @Orden = ISNULL(MAX(Orden),0)+1 FROM core.BeneficioImagen WHERE BeneficioId=@BeneficioId;
 
   BEGIN TRAN;
-    -- Desplaza a partir del orden solicitado
     UPDATE core.BeneficioImagen
       SET Orden = Orden + 1
     WHERE BeneficioId = @BeneficioId

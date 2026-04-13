@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import IntroSplash from "../IntroSplash";
-import IntroSplashCard from "../IntroSplash/IntroSplashCard";
-import LandingIntro from "../LandingIntro";
-import LandingIntroCard from "../LandingIntro/LandingIntroCard";
-import { LANDING_TEXT } from "../LandingIntro/constants";
+import IntroSplash from "./IntroSplash";
+import IntroSplashCard from "./IntroSplashCard";
+import LandingIntro from "./LandingIntro";
+import LandingIntroCard from "./LandingIntroCard";
+import { LANDING_TEXT } from "./introConstants";
 import "./IntroLandingTransition.css";
 
 const MOTION_DURATION = 900;
@@ -13,51 +13,42 @@ export default function IntroLandingTransition({ accessOptions, onOpenPreview })
   const [overlayActive, setOverlayActive] = useState(false);
   const [playFlip, setPlayFlip] = useState(false);
   const [backgroundPhase, setBackgroundPhase] = useState("intro");
-
   const introCardRef = useRef(null);
   const landingCardRef = useRef(null);
   const wrapRef = useRef(null);
 
   useEffect(() => {
     if (stage !== "transition") return;
-
     const first = introCardRef.current?.getBoundingClientRect();
     const last = landingCardRef.current?.getBoundingClientRect();
     if (!first || !last) {
       setStage("landing");
       return;
     }
-
     const dx = first.left - last.left;
     const dy = first.top - last.top;
     const sx = first.width / last.width;
     const sy = first.height / last.height;
-
     const wrapEl = wrapRef.current;
     if (!wrapEl) return;
-
     setOverlayActive(true);
     setBackgroundPhase("fade");
-
     wrapEl.style.width = `${last.width}px`;
     wrapEl.style.height = `${last.height}px`;
     wrapEl.style.transformOrigin = "top left";
     wrapEl.style.transition = "none";
     wrapEl.style.transform = `translate(${last.left}px, ${last.top}px) translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
-
     requestAnimationFrame(() => {
       wrapEl.style.transition = `transform ${MOTION_DURATION}ms cubic-bezier(.16,1,.3,1)`;
       wrapEl.style.transform = `translate(${last.left}px, ${last.top}px)`;
       setPlayFlip(true);
     });
-
     const timer = setTimeout(() => {
       setStage("landing");
       setOverlayActive(false);
       setPlayFlip(false);
       setBackgroundPhase("done");
     }, MOTION_DURATION + 80);
-
     return () => clearTimeout(timer);
   }, [stage]);
 
@@ -75,7 +66,6 @@ export default function IntroLandingTransition({ accessOptions, onOpenPreview })
         }}
         cardRef={introCardRef}
       />
-
       {stage !== "intro" && (
         <LandingIntro
           accessOptions={accessOptions}
@@ -85,12 +75,10 @@ export default function IntroLandingTransition({ accessOptions, onOpenPreview })
           placeholder={stage !== "landing"}
         />
       )}
-
       {overlayActive && (
         <div className="transition-layer">
           <div className={`bg-layer black ${backgroundPhase}`} />
           <div className={`bg-layer green ${backgroundPhase}`} />
-
           <div className="flip-wrap" ref={wrapRef}>
             <div className={`flip-inner ${playFlip ? "play" : ""}`}>
               <div className="face front">

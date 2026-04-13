@@ -1,5 +1,4 @@
-﻿
--- ELIMINAR
+
 CREATE   PROCEDURE core.Ubicacion_Eliminar
     @Id UNIQUEIDENTIFIER
 AS

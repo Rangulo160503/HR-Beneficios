@@ -1,11 +1,8 @@
-﻿
 
 
-/* =========================================================
-   UBICACION – CRUD con GUID correcto (UbicacionId)
-   ========================================================= */
 
--- INSERTAR
+
+
 CREATE   PROCEDURE core.Ubicacion_Insertar
     @Provincia NVARCHAR(100),
     @Canton NVARCHAR(100) = NULL,

@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [core].[RechazarBeneficio]
+CREATE PROCEDURE [core].[RechazarBeneficio]
   @Id UNIQUEIDENTIFIER,
   @UsuarioId UNIQUEIDENTIFIER = NULL
 AS

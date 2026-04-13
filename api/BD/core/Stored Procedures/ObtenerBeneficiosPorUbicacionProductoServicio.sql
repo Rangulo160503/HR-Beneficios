@@ -1,4 +1,4 @@
-﻿
+
 CREATE   PROCEDURE core.ObtenerBeneficiosPorUbicacionProductoServicio
     @UbicacionId UNIQUEIDENTIFIER = NULL,
     @ProductoId  UNIQUEIDENTIFIER = NULL,

@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE core.RifaParticipacion_Listar
+CREATE PROCEDURE core.RifaParticipacion_Listar
     @Q NVARCHAR(200) = NULL,
     @From DATETIME2 = NULL,
     @To DATETIME2 = NULL,

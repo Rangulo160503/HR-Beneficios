@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [core].[AgregarBeneficio]
+CREATE PROCEDURE [core].[AgregarBeneficio]
   @Titulo         NVARCHAR(140),
   @Descripcion    NVARCHAR(MAX),
   @PrecioCRC      DECIMAL(12,2),

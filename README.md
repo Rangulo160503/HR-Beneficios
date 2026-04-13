@@ -1,6 +1,9 @@
 # 📚 Modelo de Datos – Beneficios-PR
 
 Este proyecto contiene la base de datos y módulos para la gestión de beneficios.
+
+**Frontends (`clon/`):** Se mantiene el código de los clones Vite/React sin `console.log` de depuración, comentarios temporales tipo placeholder ni bloques comentados obsoletos; los comentarios útiles (reglas de negocio, formas del API) se conservan.
+
 A continuación se muestra el diagrama entidad–relación (ERD) en **Mermaid**:
 
 ## Admin local

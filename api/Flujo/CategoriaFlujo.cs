@@ -1,4 +1,4 @@
-﻿using Abstracciones.Interfaces.DA;
+using Abstracciones.Interfaces.DA;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
 
@@ -23,7 +23,7 @@ namespace Flujo
 
         public async Task<CategoriaDetalle> Obtener(Guid id)
         {
-            var item = await _categoriaDA.Obtener(id);  // ICategoriaDA.Obtener(Guid) → CategoriaDetalle
+            var item = await _categoriaDA.Obtener(id);
             return item ?? new CategoriaDetalle();
         }
 

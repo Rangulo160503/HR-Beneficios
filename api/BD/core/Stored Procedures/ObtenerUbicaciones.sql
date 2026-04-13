@@ -1,8 +1,6 @@
-﻿
 
-/* ===========================
-   4) UBICACION – listar y por Id
-   =========================== */
+
+
 CREATE   PROCEDURE core.ObtenerUbicaciones
 AS
 BEGIN

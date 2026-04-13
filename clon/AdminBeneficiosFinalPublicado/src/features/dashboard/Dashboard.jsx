@@ -1,0 +1,79 @@
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import Sidebar from "./layout/Sidebar";
+import MobileSidebar from "./layout/MobileSidebar";
+import DashboardHeader from "./DashboardHeader";
+import DashboardMain from "./DashboardMain";
+import useDashboard from "./useDashboard";
+import { MOBILE_ITEMS, NAV_ITEMS } from "./constants";
+import { clearSession } from "../../auth/auth";
+export default function Dashboard() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const {
+    nav,
+    setNav,
+    collapsed,
+    setCollapsed,
+    showMobileNav,
+    setShowMobileNav,
+    beneficiosState,
+    beneficios,
+    accionesBeneficios,
+    cats,
+    provs,
+    addCategoria,
+    addProveedor,
+    upsertProveedorLocal,
+    categoriaEnUso,
+    showCategoriaEnUso,
+    setCategoriaEnUso,
+    setShowCategoriaEnUso,
+    showForm,
+    setShowForm,
+    editing,
+    setEditing,
+    renameCategoria,
+    deleteCategoria
+  } = useDashboard();
+  const handleSelectNav = key => {
+    if (key === NAV_ITEMS.HRPORTAL) {
+      window.open("http://hrportal", "_blank", "noopener,noreferrer");
+      return;
+    }
+    setNav(key);
+  };
+  const handleLogout = () => {
+    clearSession();
+    navigate("/admin/login", {
+      replace: true
+    });
+  };
+  useEffect(() => {
+    const path = location.pathname.toLowerCase();
+    if (path.includes("/admin/infoboard")) setNav(NAV_ITEMS.INFOBOARD);else if (path.includes("/admin/categorias")) setNav(NAV_ITEMS.CATEGORIAS);else if (path.includes("/admin/proveedores")) setNav(NAV_ITEMS.PROVEEDORES);else if (path.includes("/admin/aprobaciones")) setNav(NAV_ITEMS.APROBACIONES);else if (!path.includes("/admin")) setNav(NAV_ITEMS.BENEFICIOS);else setNav(prev => prev || NAV_ITEMS.BENEFICIOS);
+  }, [location.pathname, setNav]);
+  useEffect(() => {
+    const nextPath = nav === NAV_ITEMS.INFOBOARD ? "/admin/infoboard" : nav === NAV_ITEMS.CATEGORIAS ? "/admin/categorias" : nav === NAV_ITEMS.PROVEEDORES ? "/admin/proveedores" : nav === NAV_ITEMS.APROBACIONES ? "/admin/aprobaciones" : "/admin";
+    if (location.pathname !== nextPath) {
+      navigate(nextPath, {
+        replace: true
+      });
+    }
+  }, [nav, navigate, location.pathname]);
+  return <div className="min-h-screen bg-neutral-950 text-white flex flex-col md:flex-row">
+      
+      <Sidebar nav={nav} onChangeNav={handleSelectNav} collapsed={collapsed} onToggleCollapsed={setCollapsed} />
+
+      <div className="flex-1 flex flex-col">
+        
+        <DashboardHeader nav={nav} onOpenMobile={() => setShowMobileNav(true)} onLogout={handleLogout} />
+
+        
+        <DashboardMain nav={nav} setNav={setNav} state={beneficiosState} beneficios={beneficios} accionesBeneficios={accionesBeneficios} cats={cats} provs={provs} addCategoria={addCategoria} renameCategoria={renameCategoria} deleteCategoria={deleteCategoria} addProveedor={addProveedor} upsertProveedorLocal={upsertProveedorLocal} categoriaEnUso={categoriaEnUso} showCategoriaEnUso={showCategoriaEnUso} setCategoriaEnUso={setCategoriaEnUso} setShowCategoriaEnUso={setShowCategoriaEnUso} showForm={showForm} setShowForm={setShowForm} editing={editing} setEditing={setEditing} />
+
+        
+        <MobileSidebar open={showMobileNav} current={nav} items={MOBILE_ITEMS} onSelect={handleSelectNav} onClose={() => setShowMobileNav(false)} />
+      </div>
+    </div>;
+}

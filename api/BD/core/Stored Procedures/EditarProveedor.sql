@@ -1,8 +1,6 @@
-﻿
 
-/* =========================================================
-   3) Stored Procedure: core.EditarProveedor (con AccessToken)
-   ========================================================= */
+
+
 
 CREATE   PROCEDURE [core].[EditarProveedor]
     @Id          UNIQUEIDENTIFIER,
@@ -16,7 +14,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Evita nombres duplicados (si ya tienes otra regla, ajusta esto)
     IF EXISTS (SELECT 1 FROM core.Proveedor WHERE Nombre = @Nombre AND ProveedorId <> @Id)
         THROW 50010, 'Nombre de proveedor ya existe.', 1;
 

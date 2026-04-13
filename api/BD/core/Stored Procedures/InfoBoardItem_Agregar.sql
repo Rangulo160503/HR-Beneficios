@@ -1,5 +1,5 @@
-﻿
-/* 4) Stored Procedures */
+
+
 CREATE   PROCEDURE [core].[InfoBoardItem_Agregar]
     @Titulo       NVARCHAR(120),
     @Descripcion  NVARCHAR(500) = NULL,

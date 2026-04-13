@@ -1,9 +1,6 @@
-﻿
-/* =========================================================
-   SERVICIO – CRUD con GUID correcto (ServicioId)
-   ========================================================= */
 
--- INSERTAR
+
+
 CREATE   PROCEDURE core.Servicio_Insertar
     @Nombre NVARCHAR(150),
     @Descripcion NVARCHAR(300) = NULL

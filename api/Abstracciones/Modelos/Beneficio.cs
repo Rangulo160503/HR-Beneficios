@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Abstracciones.Modelos
 {
@@ -27,18 +27,15 @@ namespace Abstracciones.Modelos
         [DataType(DataType.Date)]
         public DateTime VigenciaFin { get; set; }
 
-        // Imagen guardada como binario
         public byte[]? Imagen { get; set; }
     }
 
-    // Mezcla cruda lista para "entrar al horno" → creación/edición
     public class BeneficioRequest : BeneficioBase
     {
         public Guid ProveedorId { get; set; }
         public Guid CategoriaId { get; set; }
     }
 
-    // Queque ya horneado y decorado → lo que entregamos al usuario
     public class BeneficioResponse : BeneficioBase
     {
         public Guid BeneficioId { get; set; }
@@ -46,16 +43,13 @@ namespace Abstracciones.Modelos
         public string? CategoriaNombre { get; set; }
         public Guid ProveedorId { get; set; }
         public Guid CategoriaId { get; set; }
-        // Estado de aprobación del beneficio
         public EstadoBeneficio Estado { get; set; } = EstadoBeneficio.Pendiente;
 
-        // Tiempos y trazabilidad de aprobación
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaAprobacion { get; set; }
         public Guid? AprobadoPorUsuarioId { get; set; }
     }
 
-    // Queque servido en la mesa → con métricas adicionales
     public class BeneficioDetalle : BeneficioResponse
     {
         public int? VecesSeleccionado { get; set; }
@@ -69,9 +63,6 @@ namespace Abstracciones.Modelos
 
     public class BeneficioPorCategoriaResponse : BeneficioPorCategoriaBase
     {
-        /// <summary>
-        /// Total de registros en la consulta paginada.
-        /// </summary>
         public int Total { get; set; }
     }
 

@@ -5,7 +5,7 @@ export const BeneficioApi = {
   update: (id, payload) => Api.beneficios.editar(id, payload),
   get: (id) => Api.beneficios.obtener(id),
   listByProveedor: (proveedorId) => Api.beneficios.listarPorProveedorFront(proveedorId),
-  remove: (id, proveedorId, token) => Api.beneficios.eliminar(id, proveedorId, token),
+  remove: (id) => Api.beneficios.eliminar(id),
 };
 
 export const CategoriaApi = {
@@ -14,14 +14,5 @@ export const CategoriaApi = {
 };
 
 export const ProveedorApi = {
-  list: () => Api.proveedores.listar(),
   get: (id) => Api.proveedores.obtener(id),
-};
-
-export const BeneficioImagenApi = {
-  listByBeneficio: (beneficioId) => Api.imagenes.listarPorBeneficio(beneficioId),
-  get: (imagenId) => Api.imagenes.detalle(imagenId),
-  create: (body) => Api.imagenes.crear(body),
-  update: (imagenId, body) => Api.imagenes.editar(imagenId, body),
-  remove: (imagenId) => Api.imagenes.eliminar(imagenId),
 };

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -15,7 +15,6 @@ namespace Abstracciones.Modelos
 
     public class AreaDeCategoriaRequest : AreaDeCategoriaBase
     {
-        // No requiere Id porque se genera automáticamente en la DB
     }
 
     public class AreaDeCategoriaResponse : AreaDeCategoriaBase

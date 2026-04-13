@@ -1,5 +1,4 @@
-﻿
--- 3) SP: Login (devuelve el usuario + hash para validar en app)
+
 CREATE   PROCEDURE [core].[AdminUsuario_Login]
     @Usuario NVARCHAR(50)
 AS

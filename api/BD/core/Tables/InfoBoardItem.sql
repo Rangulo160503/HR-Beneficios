@@ -1,4 +1,4 @@
-﻿CREATE TABLE [core].[InfoBoardItem] (
+CREATE TABLE [core].[InfoBoardItem] (
     [InfoBoardItemId] UNIQUEIDENTIFIER CONSTRAINT [DF_InfoBoardItem_InfoBoardItemId] DEFAULT (newid()) NOT NULL,
     [Titulo]          NVARCHAR (120)   NOT NULL,
     [Descripcion]     NVARCHAR (500)   NULL,
@@ -21,4 +21,3 @@ GO
 CREATE NONCLUSTERED INDEX [IX_InfoBoardItem_Activo_Prioridad]
     ON [core].[InfoBoardItem]([Activo] ASC, [Prioridad] DESC, [CreatedAt] DESC)
     INCLUDE([FechaInicio], [FechaFin]);
-

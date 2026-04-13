@@ -1,8 +1,6 @@
-﻿
 
-/* =========================================================
-   4) Stored Procedure: core.ObtenerProveedor (incluye AccessToken)
-   ========================================================= */
+
+
 
 CREATE   PROCEDURE [core].[ObtenerProveedor]
     @Id UNIQUEIDENTIFIER

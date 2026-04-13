@@ -1,4 +1,4 @@
-﻿
+
 CREATE   PROCEDURE core.ObtenerProductos
 AS
 BEGIN

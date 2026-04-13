@@ -1,4 +1,4 @@
-﻿using Abstracciones.Interfaces.DA;
+using Abstracciones.Interfaces.DA;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
 using System;
@@ -18,7 +18,6 @@ namespace Flujo
             _beneficioImagenDA = beneficioImagenDA ?? throw new ArgumentNullException(nameof(beneficioImagenDA));
         }
 
-        //  Obtiene todas las imágenes de un beneficio
         public async Task<IEnumerable<BeneficioImagenResponse>> Obtener(Guid beneficioId)
         {
             if (beneficioId == Guid.Empty)
@@ -28,7 +27,6 @@ namespace Flujo
             return items;
         }
 
-        //  Obtiene una imagen específica por su ID
         public async Task<BeneficioImagenDetalle?> ObtenerPorId(Guid imagenId)
         {
             if (imagenId == Guid.Empty)
@@ -38,7 +36,6 @@ namespace Flujo
             return item ?? new BeneficioImagenDetalle();
         }
 
-        //  Agrega una nueva imagen
         public async Task<Guid> Agregar(BeneficioImagenRequest beneficioImagen)
         {
             if (beneficioImagen is null)
@@ -51,7 +48,6 @@ namespace Flujo
             return id;
         }
 
-        //  Edita una imagen existente
         public async Task<Guid> Editar(Guid imagenId, BeneficioImagenRequest beneficioImagen)
         {
             if (imagenId == Guid.Empty)
@@ -64,7 +60,6 @@ namespace Flujo
             return result;
         }
 
-        //  Elimina una imagen asociada al beneficio
         public async Task<Guid> Eliminar(Guid imagenId)
         {
             if (imagenId == Guid.Empty)

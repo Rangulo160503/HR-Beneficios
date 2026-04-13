@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [core].[ObtenerBeneficios]
+CREATE PROCEDURE [core].[ObtenerBeneficios]
   @SoloPublicados BIT = 0
 AS
 BEGIN

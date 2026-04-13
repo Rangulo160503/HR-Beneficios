@@ -1,8 +1,6 @@
-﻿
 
-/* =======================================================
-   BENEFICIO – ASIGNAR Y OBTENER (GUID)  ✅ ya creados
-   ======================================================= */
+
+
 CREATE   PROCEDURE core.AsignarUbicacionProductoServicio
     @BeneficioId UNIQUEIDENTIFIER,
     @UbicacionId UNIQUEIDENTIFIER = NULL,

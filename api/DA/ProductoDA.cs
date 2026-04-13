@@ -1,4 +1,4 @@
-﻿using Abstracciones.Interfaces.DA;
+using Abstracciones.Interfaces.DA;
 using Abstracciones.Modelos;
 using System;
 using System.Collections.Generic;
@@ -54,7 +54,7 @@ namespace DA
             const string sp = "core.Producto_Actualizar";
             var rid = await _dapperWrapper.ExecuteScalarAsync<Guid>(_dbConnection, sp, new
             {
-                Id,                    // parámetro del SP
+                Id,
                 p.Nombre,
                 p.Descripcion
             }, commandType: CommandType.StoredProcedure);

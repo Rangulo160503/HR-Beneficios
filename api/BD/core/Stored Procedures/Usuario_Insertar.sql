@@ -1,12 +1,5 @@
-﻿
-/* =========================================================
-   core.Usuario_Insertar
-   Crea usuario y devuelve UsuarioId (GUID).
-   Modelo actual:
-     - core.Usuario(UsuarioId, Correo, Nombre, Telefono,
-                    FechaRegistro (DEFAULT), PasswordHash,
-                    Tipo, Estado)
-   ========================================================= */
+
+
 CREATE PROCEDURE [core].[Usuario_Insertar]
     @Correo        NVARCHAR(254),
     @Nombre        NVARCHAR(120) = NULL,
@@ -18,12 +11,10 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Normalizar entradas mínimas
     SET @Correo = LOWER(LTRIM(RTRIM(@Correo)));
     IF (@Nombre IS NULL OR LTRIM(RTRIM(@Nombre)) = N'')
         SET @Nombre = @Correo;  -- Fallback sencillo; ajusta la regla si prefieres forzar NOT NULL
 
-    -- Verificación de unicidad con hint para evitar carrera (similar a SERIALIZABLE a nivel fila)
     IF EXISTS (
         SELECT 1
         FROM core.Usuario WITH (UPDLOCK, HOLDLOCK)

@@ -1,4 +1,4 @@
-﻿
+
 CREATE   PROCEDURE core.AreaDeCategoria_Agregar
     @Nombre NVARCHAR(150)
 AS
@@ -22,7 +22,6 @@ BEGIN
         INSERT INTO core.AreaDeCategoria (AreaDeCategoriaId, Nombre)
         VALUES (@NuevoId, @Nombre);
 
-        -- 👇 Esto es lo que lee ExecuteScalarAsync<Guid>
         SELECT @NuevoId AS Id;
     END TRY
     BEGIN CATCH

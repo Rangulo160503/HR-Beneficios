@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Abstracciones.Modelos
@@ -11,7 +11,6 @@ namespace Abstracciones.Modelos
 
     public class CategoriaRequest : CategoriaBase
     {
-        // Para creación/edición
     }
 
     public class CategoriaResponse : CategoriaBase
@@ -21,7 +20,6 @@ namespace Abstracciones.Modelos
 
     public class CategoriaDetalle : CategoriaResponse
     {
-        // Datos descriptivos opcionales
         
     }
 

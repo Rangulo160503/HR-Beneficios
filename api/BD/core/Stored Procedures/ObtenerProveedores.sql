@@ -1,8 +1,6 @@
-﻿
 
-/* =========================================================
-   5) Stored Procedure: core.ObtenerProveedores (incluye AccessToken)
-   ========================================================= */
+
+
 
 CREATE   PROCEDURE [core].[ObtenerProveedores]
 AS

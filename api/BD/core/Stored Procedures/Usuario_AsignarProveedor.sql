@@ -1,9 +1,6 @@
-﻿
 
-/* =========================================================
-   core.Usuario_AsignarProveedor
-   Crea (idempotente) la relación Usuario–Proveedor en core.ProveedorUsuario.
-   ========================================================= */
+
+
 CREATE PROCEDURE [core].[Usuario_AsignarProveedor]
     @UsuarioId   UNIQUEIDENTIFIER,
     @ProveedorId UNIQUEIDENTIFIER,
@@ -18,7 +15,6 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM core.Proveedor WHERE ProveedorId = @ProveedorId)
     BEGIN RAISERROR('El proveedor no existe.',16,1); RETURN; END;
 
-    -- Idempotente: no duplica si ya existe
     IF NOT EXISTS (
         SELECT 1 FROM core.ProveedorUsuario
         WHERE UsuarioId = @UsuarioId AND ProveedorId = @ProveedorId

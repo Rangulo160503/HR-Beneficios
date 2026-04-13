@@ -23,4 +23,3 @@ CREATE NONCLUSTERED INDEX [IX_Usuario_Tipo]
 GO
 CREATE NONCLUSTERED INDEX [IX_Usuario_Estado]
     ON [core].[Usuario]([Estado] ASC);
-

@@ -1,8 +1,6 @@
-﻿
 
-/* =========================================================
-   SP: OBTENER POR ID
-   ========================================================= */
+
+
 CREATE   PROCEDURE core.AreaDeCategoria_ObtenerPorId
     @AreaDeCategoriaId UNIQUEIDENTIFIER
 AS

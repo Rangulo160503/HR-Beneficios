@@ -1,5 +1,4 @@
-﻿
--- ACTUALIZAR
+
 CREATE   PROCEDURE core.Ubicacion_Actualizar
     @Id UNIQUEIDENTIFIER,
     @Provincia NVARCHAR(100),

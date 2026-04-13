@@ -1,11 +1,6 @@
-﻿
 
-/* =========================================================
-   core.Usuario_QuitarProveedor
-   Quita relación Usuario–Proveedor.
-   - Si @ProveedorId es NULL: elimina TODAS las relaciones del usuario.
-   - Si viene @ProveedorId: elimina solo esa relación.
-   ========================================================= */
+
+
 CREATE PROCEDURE [core].[Usuario_QuitarProveedor]
     @UsuarioId   UNIQUEIDENTIFIER,
     @ProveedorId UNIQUEIDENTIFIER = NULL
@@ -18,7 +13,6 @@ BEGIN
 
     IF @ProveedorId IS NULL
     BEGIN
-        -- Comportamiento compatible con “poner ProveedorId = NULL”: quita todas las asignaciones
         DELETE FROM core.ProveedorUsuario
         WHERE UsuarioId = @UsuarioId;
     END

@@ -1,7 +1,5 @@
-// src/components/Display/DisplayFilters.jsx
-import HScroll from "../HScroll";
-import ChipsRow from "../ChipsRow";
-
+import HScroll from "./HScroll";
+import ChipsRow from "./ChipsRow";
 export default function DisplayFilters({
   loadingFilters,
   categorias,
@@ -9,65 +7,31 @@ export default function DisplayFilters({
   catSel,
   setCatSel,
   provSel,
-  setProvSel,
+  setProvSel
 }) {
-  return (
-    <div className="border-t border-white/10">
+  return <div className="border-t border-white/10">
       <div className="mx-auto w-full max-w-7xl px-4">
-        {/* Categorías */}
-        {loadingFilters ? (
-          <div className="w-full">
+        
+        {loadingFilters ? <div className="w-full">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 px-1 -mx-1">
-              {Array.from({ length: 11 }).map((_, i) => (
-                <span
-                  key={`cat-skel-${i}`}
-                  aria-hidden="true"
-                  className={[
-                    "h-9 rounded-full bg-white/5 border border-white/10 animate-pulse",
-                    i % 4 === 0 ? "w-20" : i % 4 === 1 ? "w-24" : i % 4 === 2 ? "w-28" : "w-32",
-                  ].join(" ")}
-                />
-              ))}
+              {Array.from({
+            length: 11
+          }).map((_, i) => <span key={`cat-skel-${i}`} aria-hidden="true" className={["h-9 rounded-full bg-white/5 border border-white/10 animate-pulse", i % 4 === 0 ? "w-20" : i % 4 === 1 ? "w-24" : i % 4 === 2 ? "w-28" : "w-32"].join(" ")} />)}
             </div>
-          </div>
-        ) : (
-          <HScroll>
-            <ChipsRow
-              items={categorias}
-              selected={catSel}
-              onSelect={setCatSel}
-              allLabel="Todas las categorías"
-            />
-          </HScroll>
-        )}
+          </div> : <HScroll>
+            <ChipsRow items={categorias} selected={catSel} onSelect={setCatSel} allLabel="Todas las categorías" />
+          </HScroll>}
 
-        {/* Proveedores */}
-        {loadingFilters ? (
-          <div className="w-full">
+        
+        {loadingFilters ? <div className="w-full">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 px-1 -mx-1">
-              {Array.from({ length: 11 }).map((_, i) => (
-                <span
-                  key={`prov-skel-${i}`}
-                  aria-hidden="true"
-                  className={[
-                    "h-9 rounded-full bg-white/5 border border-white/10 animate-pulse",
-                    i % 4 === 0 ? "w-20" : i % 4 === 1 ? "w-24" : i % 4 === 2 ? "w-28" : "w-32",
-                  ].join(" ")}
-                />
-              ))}
+              {Array.from({
+            length: 11
+          }).map((_, i) => <span key={`prov-skel-${i}`} aria-hidden="true" className={["h-9 rounded-full bg-white/5 border border-white/10 animate-pulse", i % 4 === 0 ? "w-20" : i % 4 === 1 ? "w-24" : i % 4 === 2 ? "w-28" : "w-32"].join(" ")} />)}
             </div>
-          </div>
-        ) : (
-          <HScroll>
-            <ChipsRow
-              items={proveedores}
-              selected={provSel}
-              onSelect={setProvSel}
-              allLabel="Todos los proveedores"
-            />
-          </HScroll>
-        )}
+          </div> : <HScroll>
+            <ChipsRow items={proveedores} selected={provSel} onSelect={setProvSel} allLabel="Todos los proveedores" />
+          </HScroll>}
       </div>
-    </div>
-  );
+    </div>;
 }

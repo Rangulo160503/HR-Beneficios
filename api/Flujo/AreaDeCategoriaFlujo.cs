@@ -1,4 +1,4 @@
-﻿using Abstracciones.Interfaces.DA;
+using Abstracciones.Interfaces.DA;
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
 using System;
@@ -50,8 +50,6 @@ namespace Flujo
         {
             if (Id == Guid.Empty) throw new ArgumentException("Id inválido.", nameof(Id));
             var dto = await _areaDA.Obtener(Id);
-            // Si tu DA devuelve un objeto vacío cuando no encuentra, lo retornamos tal cual.
-            // Si prefieres null, cambia la firma de la interfaz (no recomendado porque ya acordamos Detalle).
             return dto;
         }
     }

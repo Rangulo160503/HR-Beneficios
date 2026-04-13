@@ -1,4 +1,4 @@
-﻿CREATE   PROCEDURE [core].[ReasignarBeneficiosCategoria]
+CREATE   PROCEDURE [core].[ReasignarBeneficiosCategoria]
     @FromCategoriaId UNIQUEIDENTIFIER,
     @ToCategoriaId   UNIQUEIDENTIFIER,
     @BeneficioIds    NVARCHAR(MAX) = NULL -- CSV opcional
@@ -6,7 +6,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Validaciones básicas
     IF @FromCategoriaId = @ToCategoriaId
         THROW 50021, 'La categoría destino debe ser diferente.', 1;
 
@@ -18,7 +17,6 @@ BEGIN
 
     DECLARE @Actualizados INT = 0;
 
-    -- Caso 1: Reasignar SOLO beneficios específicos
     IF (@BeneficioIds IS NOT NULL AND LTRIM(RTRIM(@BeneficioIds)) <> N'')
     BEGIN
         DECLARE @Ids TABLE (Id UNIQUEIDENTIFIER PRIMARY KEY);
@@ -38,7 +36,6 @@ BEGIN
     END
     ELSE
     BEGIN
-        -- Caso 2: Reasignar TODOS los beneficios
         UPDATE core.Beneficio
            SET CategoriaId = @ToCategoriaId
         WHERE CategoriaId = @FromCategoriaId;

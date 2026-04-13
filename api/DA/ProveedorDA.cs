@@ -1,4 +1,4 @@
-﻿using Abstracciones.Interfaces.DA;
+using Abstracciones.Interfaces.DA;
 using Abstracciones.Modelos;
 using System.Data;
 using System.Linq;
@@ -117,7 +117,6 @@ namespace DA
             int valor = rows.FirstOrDefault();
             return valor == 1;
         }
-
 
         #endregion
 

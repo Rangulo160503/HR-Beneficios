@@ -1,4 +1,4 @@
-﻿CREATE   PROCEDURE core.AreaDeCategoria_Eliminar
+CREATE   PROCEDURE core.AreaDeCategoria_Eliminar
     @AreaDeCategoriaId UNIQUEIDENTIFIER
 AS
 BEGIN
@@ -28,7 +28,6 @@ BEGIN
         DECLARE @ErrNum INT = ERROR_NUMBER(),
                 @Msg    NVARCHAR(4000) = ERROR_MESSAGE();
 
-        -- 547: violación de FK
         IF (@ErrNum = 547)
             RAISERROR('No se puede eliminar: hay categorías que referencian esta área.', 16, 1);
         ELSE

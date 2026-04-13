@@ -1,5 +1,5 @@
-﻿
-/* INSERT: devuelve el GUID correcto */
+
+
 CREATE   PROCEDURE core.Producto_Insertar
     @Nombre NVARCHAR(150),
     @Descripcion NVARCHAR(300) = NULL

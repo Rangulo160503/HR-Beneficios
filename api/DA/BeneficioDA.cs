@@ -1,4 +1,4 @@
-﻿using Abstracciones.Interfaces.DA;
+using Abstracciones.Interfaces.DA;
 using Abstracciones.Modelos;
 using System.Data;
 using System.Linq;
@@ -36,7 +36,6 @@ namespace DA
                     b.CategoriaId,
                     Estado = (int)EstadoBeneficio.Pendiente,
                     FechaCreacion = DateTime.UtcNow
-                    // ⬅️ sin contadores
                 },
                 null, null, CommandType.StoredProcedure
             );
@@ -53,9 +52,9 @@ namespace DA
                     b.Titulo,
                     b.Descripcion,
                     b.PrecioCRC,
-                    b.ProveedorId,     // Guid
-                    b.CategoriaId,     // Guid
-                    Imagen = b.Imagen, // byte[]? (null => se conserva por COALESCE)
+                    b.ProveedorId,
+                    b.CategoriaId,
+                    Imagen = b.Imagen,
                     b.Condiciones,
                     b.VigenciaInicio,
                     b.VigenciaFin
@@ -111,7 +110,6 @@ namespace DA
             );
             return rows;
         }
-
 
         public async Task<BeneficioDetalle> Obtener(Guid Id)
         {

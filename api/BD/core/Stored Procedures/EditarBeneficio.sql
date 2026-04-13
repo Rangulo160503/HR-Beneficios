@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [core].[EditarBeneficio]
+CREATE PROCEDURE [core].[EditarBeneficio]
   @Id             UNIQUEIDENTIFIER,
   @Titulo         NVARCHAR(140),
   @Descripcion    NVARCHAR(MAX),

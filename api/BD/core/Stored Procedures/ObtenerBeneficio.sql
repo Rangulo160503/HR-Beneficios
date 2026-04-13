@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [core].[ObtenerBeneficio]
+CREATE PROCEDURE [core].[ObtenerBeneficio]
   @Id UNIQUEIDENTIFIER
 AS
 BEGIN

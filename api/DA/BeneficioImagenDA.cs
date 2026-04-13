@@ -1,4 +1,4 @@
-﻿using Abstracciones.Interfaces.DA;
+using Abstracciones.Interfaces.DA;
 using Abstracciones.Modelos;
 using System;
 using System.Collections.Generic;
@@ -24,7 +24,6 @@ namespace DA
 
         #region Operaciones
 
-        //  Obtiene todas las imágenes asociadas a un beneficio
         public async Task<IEnumerable<BeneficioImagenResponse>> Obtener(Guid BeneficioId)
         {
             const string sp = "core.BeneficioImagen_ListarPorBeneficio";
@@ -34,7 +33,6 @@ namespace DA
             return rows;
         }
 
-        //  Obtiene una imagen específica por su Id
         public async Task<BeneficioImagenDetalle> ObtenerPorId(Guid ImagenId)
         {
             const string sp = "core.BeneficioImagen_Obtener";
@@ -44,7 +42,6 @@ namespace DA
             return rows.FirstOrDefault() ?? new BeneficioImagenDetalle();
         }
 
-        //  Inserta una nueva imagen asociada a un beneficio
         public async Task<Guid> Agregar(BeneficioImagenRequest beneficioImagen)
         {
             const string sp = "core.BeneficioImagen_Insertar";
@@ -60,21 +57,19 @@ namespace DA
             return id;
         }
 
-        //  Actualiza los datos o la imagen de una entrada existente
         public async Task<Guid> Editar(Guid imagenId, BeneficioImagenRequest req)
         {
             const string sp = "core.BeneficioImagen_Actualizar";
 
-            // Nota: los nombres deben coincidir EXACTO con los parámetros del SP
             var result = await _dapperWrapper.ExecuteScalarAsync<Guid>(
                 _dbConnection,
                 sp,
                 new
                 {
                     ImagenId = imagenId,
-                    BeneficioId = req.BeneficioId,   // <-- FALTABA
-                    Imagen = req.Imagen,        // null => COALESCE en el SP
-                    Orden = req.Orden          // null => conserva orden
+                    BeneficioId = req.BeneficioId,
+                    Imagen = req.Imagen,
+                    Orden = req.Orden
                 },
                 commandType: CommandType.StoredProcedure
             );
@@ -82,7 +77,6 @@ namespace DA
             return result;
         }
 
-        //  Elimina una imagen asociada al beneficio
         public async Task<Guid> Eliminar(Guid ImagenId)
         {
             const string sp = "core.BeneficioImagen_Eliminar";

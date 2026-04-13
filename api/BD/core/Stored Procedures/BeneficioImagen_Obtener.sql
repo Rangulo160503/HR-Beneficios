@@ -1,4 +1,4 @@
-﻿
+
 CREATE   PROCEDURE core.BeneficioImagen_Obtener
     @ImagenId UNIQUEIDENTIFIER
 AS

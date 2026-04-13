@@ -25,4 +25,3 @@ CREATE UNIQUE NONCLUSTERED INDEX [UX_Proveedor_Nombre]
 GO
 CREATE UNIQUE NONCLUSTERED INDEX [IX_Proveedor_AccessToken]
     ON [core].[Proveedor]([AccessToken] ASC) WHERE ([AccessToken] IS NOT NULL);
-

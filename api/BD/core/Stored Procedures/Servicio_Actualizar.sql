@@ -1,5 +1,4 @@
-﻿
--- ACTUALIZAR
+
 CREATE   PROCEDURE core.Servicio_Actualizar
     @Id UNIQUEIDENTIFIER,
     @Nombre NVARCHAR(150),

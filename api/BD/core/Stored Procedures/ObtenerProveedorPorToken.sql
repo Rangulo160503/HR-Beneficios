@@ -1,8 +1,6 @@
-﻿
 
-/* =========================================================
-   6) Stored Procedure NUEVA: core.ObtenerProveedorPorToken
-   ========================================================= */
+
+
 
 CREATE   PROCEDURE [core].[ObtenerProveedorPorToken]
     @AccessToken VARCHAR(128)
