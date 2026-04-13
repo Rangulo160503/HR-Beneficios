@@ -1,66 +1,77 @@
-# Spotify Clone 🎧
+# BeneficiosFinalPublicado
 
-A Spotify clone built with React JS and Tailwind CSS, showcasing a dynamic and responsive user interface. This project is a demonstration of modern web development techniques using React JS hooks, React-DOM for navigation, and the Tailwind CSS framework for styling.
+## 1. Descripción del módulo
 
-## Table of Contents
+Aplicación web **SPA** orientada al usuario final (colaborador): catálogo de beneficios con filtros, detalle y formularios según la implementación en `src/components/Display/`. Consume endpoints públicos o anónimos de la API (`Beneficio`, `Categoria`, `Proveedor`, imágenes, toques, rifa) definidos en `src/services/api.js`.
 
-- [Features](#features)
-- [Demo](#demo)
-- [Technologies](#technologies)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
+## 2. Responsabilidad
 
-## Features
+- Presentar listados y detalle de beneficios aprobados y metadatos de filtrado.
+- Registrar interacciones que el cliente invoque contra `api/ToqueBeneficio` y `api/RifaParticipacion` según el módulo `Api` exportado.
 
-- Dynamic user interface
-- Responsive design, mobile-friendly
-- Seamless navigation using React-DOM
+## 3. Tecnologías utilizadas
 
-## Demo
+- React 18
+- Vite 6 (`@vitejs/plugin-react`)
+- Tailwind CSS 3, PostCSS, Autoprefixer
+- ESLint
 
-Check out the live demo [here](http://spotify-codewithbalaji.vercel.app).
+Nombre del paquete en `package.json`: `beneficios-user`. No declara `react-router-dom`; la UI principal se monta desde `App.jsx` → `Display`.
 
-## Technologies
+## 4. Estructura interna
 
-- React JS
-- Tailwind CSS
-- React-DOM
+| Ruta | Rol |
+|------|-----|
+| `src/App.jsx` | Contenedor raíz y layout principal. |
+| `src/components/Display/` | Cuadrícula, modales, hooks de datos y mapeo desde la API. |
+| `src/services/api.js` | Constantes `EP` y funciones HTTP hacia `/api/Beneficio`, `/api/Categoria`, `/api/Proveedor`, etc. |
+| `vite.config.js` | Salida `build/`, proxy `/api` → `http://localhost:7141`. |
+| `.env` | Variables `VITE_API_BASE`, `VITE_API_BASE_CLOUD`, `VITE_API_TARGET` (ejemplo en repositorio). |
 
-## Installation
+## 5. Flujo de funcionamiento
 
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/codewithbalaji/spotify-clone.git
-    ```
-2. Navigate to the project directory:
-    ```sh
-    cd spotify-clone
-    ```
-3. Install dependencies:
-    ```sh
-    npm install
-    ```
+1. `useDisplayData` solicita en paralelo beneficios, categorías y proveedores vía `Api.*.listar`.
+2. El estado se transforma con `mappers` y alimenta la UI de filtros y tarjetas.
+3. Acciones del usuario disparan otros métodos de `Api` según componentes (detalle, modal, rifa).
 
-## Usage
+## 6. Configuración
 
-1. Start the development server:
-    ```sh
-    npm start
-    ```
-2. Open your browser and navigate to `http://localhost:3000`.
+| Variable | Rol |
+|----------|-----|
+| `VITE_API_BASE` | Origen del API en modo local (típicamente HTTPS del Kestrel del backend). |
+| `VITE_API_BASE_CLOUD` | Origen del API desplegado. |
+| `VITE_API_TARGET` | `local` o `cloud` para elegir la base en `api.js`. |
 
-## Contributing
+El cliente usa `fetch` con `mode: "cors"`; el servidor API debe permitir el origen del front.
 
-Contributions are welcome! Please fork the repository and create a pull request with your changes.
+## 7. Ejecución
 
-## License
+```powershell
+cd C:\Users\joel\Documents\HR\HR-Beneficios\clon\BeneficiosFinalPublicado
+npm install
+npm run dev
+```
 
-This project is licensed under the MIT License.
+Build:
 
-## Acknowledgements
+```powershell
+npm run build
+```
 
-Special thanks to the GreatStack YouTube Channel for their invaluable tutorials and guidance.
+Artefactos en `build/`.
 
+## 8. Dependencias externas
+
+- **API** HR-Beneficios accesible desde el navegador en la URL configurada.
+- **Node.js** / **npm**.
+
+## 9. Relación con otros módulos
+
+- Consumo directo de **`api/`**.
+- Contenido de `build/` puede publicarse en **`webClient/HR-Beneficios-WEB/wwwroot`** u host estático equivalente.
+- Independiente de `AdminBeneficiosFinalPublicado` salvo datos compartidos en la misma base.
+
+## 10. Consideraciones
+
+- Desajuste posible entre puerto del proxy Vite (`7141`) y puertos del API (`5000`/`5001` en `launchSettings.json`); unificar en configuración.
+- Sin `.env.example` en el árbol analizado; documentar localmente las variables requeridas para nuevos desarrolladores.

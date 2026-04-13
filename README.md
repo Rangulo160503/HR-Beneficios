@@ -1,193 +1,211 @@
-# 📚 Modelo de Datos – Beneficios-PR
+# HR-Beneficios
 
-Este proyecto contiene la base de datos y módulos para la gestión de beneficios.
+## Arquitectura del sistema
 
-**Frontends (`clon/`):** Se mantiene el código de los clones Vite/React sin `console.log` de depuración, comentarios temporales tipo placeholder ni bloques comentados obsoletos; los comentarios útiles (reglas de negocio, formas del API) se conservan.
+<p align="center">
+  <img src="HR.drawio.svg" width="100%" />
+</p>
 
-A continuación se muestra el diagrama entidad–relación (ERD) en **Mermaid**:
+## Documentación por módulos
 
-## Admin local
+El proyecto está documentado de forma modular. Cada componente contiene su propio README con detalles técnicos y de ejecución.
 
-- El password real del usuario `admin` lo define cada desarrollador en su entorno local y se reemplaza en `BD/core/seed_admin_local.sql` con un hash bcrypt.
-- El hash bcrypt es unidireccional y no puede revertirse a texto plano; conservar el secreto del password original queda a cargo del desarrollador.
-- Para resetear el admin local se puede eliminar la fila con `Usuario='admin'` en `core.tbAdminUsuario` y volver a ejecutar el seed.
+### Backend
+
+* `api/README.md` → API principal, lógica de negocio y acceso a datos
+
+### Base de datos
+
+* `BD/README.md` → scripts SQL, estructura y seeds iniciales
+
+### Herramientas
+
+* `tools/README.md` → utilidades del proyecto
+* `tools/HashGenerator/README.md` → generación de hashes BCrypt
+
+### Frontend (desarrollo - Vite)
+
+* `clon/AdminBeneficiosFinalPublicado/README.md` → portal de administración
+* `clon/BeneficiosFinalPublicado/README.md` → portal de colaboradores
+* `clon/ProveedorBeneficiosFinalPublicado/README.md` → portal de proveedores
+* `clon/InicioBeneficiosFinalPublicado/README.md` → landing principal
+
+### Frontend (despliegue / hosts ASP.NET)
+
+* `webAdmin/README.md` → host del portal admin
+* `webClient/README.md` → host del portal de colaboradores
+* `webProveedor/README.md` → host del portal de proveedores
+* `webInicio/README.md` → host del landing
+* `web/README.md` → artefacto no ejecutable directamente (ver detalles internos)
+
+### Configuración
+
+* `.github/README.md` → configuración de repositorio (actualmente sin workflows)
+
+## Flujo general del sistema
+
+1. El usuario accede a un frontend (Admin, Proveedor o Cliente)
+2. El frontend consume la API mediante endpoints `/api/...`
+3. La API procesa la solicitud (lógica de negocio)
+4. Se accede a la base de datos mediante procedimientos almacenados
+5. La respuesta se devuelve al frontend
+
+## Consideraciones importantes
+
+* La API y los frontends deben estar alineados en el mismo endpoint base (`API_BASE`)
+* Existen diferencias entre entorno de desarrollo (Vite proxy) y despliegue (ASP.NET host)
+* El módulo `web/` no es ejecutable directamente (solo artefactos generados)
+* El portal de proveedor utiliza configuración directa de API (no proxy)
+
+## Inicio rápido
+
+1. Ejecutar base de datos (`BD/README.md`)
+2. Levantar API (`api/README.md`)
+3. Ejecutar frontend desde `clon/` según módulo
+
+## Modelo de datos
 
 ```mermaid
 erDiagram
-    BENEFICIO {
-      int BeneficioId PK
-      string Titulo
-      string Descripcion
-      decimal PrecioCRC
-      int ProveedorId FK
-      int CategoriaId FK
-      string ImagenUrl
-      string Condiciones
-      date VigenciaInicio
-      date VigenciaFin
-      enum Estado  "Borrador|Publicado|Inactivo|Archivado"
-      bool Disponible
-      enum Origen  "manual|email"
-      datetime CreadoEn
-      datetime ModificadoEn
+    AreaDeCategoria {
+        guid AreaDeCategoriaId PK
+        string Nombre
     }
-
-    PROVEEDOR {
-      int ProveedorId PK
-      string Nombre
-      string Correo
-      string Telefono
-      bool Activo
-      datetime CreadoEn
-      datetime ModificadoEn
+    Categoria {
+        guid CategoriaId PK
+        string Nombre
+        guid AreaDeCategoriaId FK
     }
-
-    CATEGORIA {
-      int CategoriaId PK
-      string Nombre
-      bool Activa
-      datetime CreadoEn
-      datetime ModificadoEn
+    Proveedor {
+        guid ProveedorId PK
+        string Nombre
+        string Correo
+        string Telefono
+        string Direccion
+        string AccessToken
     }
-
-    USUARIO {
-      int UsuarioId PK
-      string Correo  "único"
-      string Nombre
-      string Telefono  "8 dígitos"
-      datetime FechaRegistro
+    Beneficio {
+        guid BeneficioId PK
+        string Titulo
+        decimal PrecioCRC
+        date VigenciaInicio
+        date VigenciaFin
+        bool Disponible
+        string Origen
+        datetime CreadoEn
+        datetime ModificadoEn
+        binary Imagen
+        guid CategoriaId FK
+        guid ProveedorId FK
+        int Estado
+        datetime FechaCreacion
+        datetime FechaAprobacion
+        guid AprobadoPorUsuarioId
+        bool PrecioDesde
     }
-
-    SELECCION_BENEFICIO {
-      int SeleccionId PK
-      int UsuarioId FK
-      int BeneficioId FK
-      datetime FechaSeleccion
-      enum Origen  "Web|App|Email"
+    BeneficioImagen {
+        guid ImagenId PK
+        guid BeneficioId FK
+        binary Imagen
+        int Orden
+        datetime CreadoEn
+        datetime ModificadoEn
     }
-
-    INTERACCION_BENEFICIO {
-      int InteraccionId PK
-      int BeneficioId FK
-      int UsuarioId FK "opcional"
-      datetime Fecha
-      enum TipoInteraccion "view|detail_open|click|select|attempt_use|attempt_use_inactive"
-      string Origen
-      string SesionId
-      json Contexto
+    Usuario {
+        guid UsuarioId PK
+        string Correo
+        string Nombre
+        string Telefono
+        datetime FechaRegistro
+        string PasswordHash
+        string Tipo
+        int Estado
     }
-
-    VOUCHER {
-      int VoucherId PK
-      int UsuarioId FK
-      int BeneficioId FK
-      int SeleccionId FK "opcional"
-      string Codigo  "único / QR"
-      enum Estado "Emitido|Canjeado|Expirado|Revocado"
-      datetime FechaEmision
-      datetime FechaExpira
-      datetime CanjeadoEn
-      int ProveedorPuntoId FK "opcional"
-      string Origen
-      json Metadata
+    tbAdminUsuario {
+        guid AdminUsuarioId PK
+        string Usuario
+        string Nombre
+        string Correo
+        string PasswordHash
+        bool Activo
+        datetime FechaCreacion
+        datetime UltimoLogin
     }
-
-    PROVEEDOR_PUNTO {
-      int ProveedorPuntoId PK
-      int ProveedorId FK
-      string NombrePunto
-      string Ubicacion
-      bool Activo
+    ProveedorUsuario {
+        guid ProveedorId PK_FK
+        guid UsuarioId PK_FK
+        string Rol
+        datetime FechaAsignacion
     }
-
-    DISPOSITIVO_SCANNER {
-      int DispositivoId PK
-      int ProveedorPuntoId FK
-      string Nombre
-      string ApiKey
-      bool Activo
+    SeleccionBeneficio {
+        int SeleccionId PK
+        int UsuarioId
+        guid BeneficioId FK
+        datetime FechaSeleccion
+        string Origen
     }
-
-    EVENTO_CANJE {
-      int EventoId PK
-      int VoucherId FK
-      int DispositivoId FK "opcional"
-      datetime Fecha
-      enum Resultado "Aprobado|Rechazado"
-      string Motivo
-      json Snapshot
+    ToqueBeneficio {
+        guid ToqueBeneficioId PK
+        guid BeneficioId
+        datetime Fecha
+        string Origen
     }
-
-    INBOX_BENEFICIOS {
-      int InboxId PK
-      string Remitente
-      string Asunto
-      string Cuerpo
-      datetime FechaRecepcion
-      string AdjuntosRef
-      enum EstadoProcesamiento "Pendiente|Procesado|Error"
-      string MotivoError
+    InfoBoardItem {
+        guid InfoBoardItemId PK
+        string Titulo
+        string Descripcion
+        string Url
+        string Tipo
+        int Prioridad
+        bool Activo
+        datetime FechaInicio
+        datetime FechaFin
+        datetime CreatedAt
+        datetime UpdatedAt
+        bool IsDeleted
     }
-
-    METRICA_BENEFICIO_DIARIA {
-      date Fecha PK
-      int BeneficioId FK
-      int views
-      int detail_opens
-      int clicks
-      int selects
-      int attempts_use
-      int attempts_use_inactive
+    RifaParticipacion {
+        guid Id PK
+        string Source
+        string Estado
+        datetime FechaCreacion
+        string Nombre
+        string Correo
+        string Telefono
+        string Mensaje
     }
-
-    METRICA_PROVEEDOR_DIARIA {
-      date Fecha PK
-      int ProveedorId FK
-      int views
-      int clicks
-      int selects
+    Producto {
+        guid ProductoId PK
+        string Nombre
+        string Descripcion
+        datetime CreadoEn
+        datetime ModificadoEn
     }
-
-    METRICA_CATEGORIA_DIARIA {
-      date Fecha PK
-      int CategoriaId FK
-      int views
-      int clicks
-      int selects
+    Servicio {
+        guid ServicioId PK
+        string Nombre
+        string Descripcion
+        datetime CreadoEn
+        datetime ModificadoEn
     }
-
-    METRICA_CANJE_DIARIA {
-      date Fecha PK
-      int BeneficioId FK
-      int emitidos
-      int canjeados
-      int rechazados
+    Ubicacion {
+        guid UbicacionId PK
+        string Provincia
+        string Canton
+        string Distrito
+        string DireccionExacta
+        datetime CreadoEn
+        datetime ModificadoEn
     }
-
-    %% Relaciones principales
-    PROVEEDOR ||--o{ BENEFICIO : "proporciona"
-    CATEGORIA ||--o{ BENEFICIO : "clasifica"
-
-    USUARIO  ||--o{ SELECCION_BENEFICIO : "realiza"
-    BENEFICIO||--o{ SELECCION_BENEFICIO : "es_seleccionado_en"
-
-    BENEFICIO||--o{ INTERACCION_BENEFICIO : "genera"
-    USUARIO  |o--o{ INTERACCION_BENEFICIO : "asocia"
-
-    USUARIO  ||--o{ VOUCHER : "recibe"
-    BENEFICIO||--o{ VOUCHER : "de"
-    PROVEEDOR_PUNTO |o--o{ VOUCHER : "canjea_en"
-
-    VOUCHER ||--o{ EVENTO_CANJE : "registra"
-    PROVEEDOR_PUNTO ||--o{ DISPOSITIVO_SCANNER : "tiene"
-    DISPOSITIVO_SCANNER |o--o{ EVENTO_CANJE : "captura"
-
-    INBOX_BENEFICIOS ||--o{ BENEFICIO : "origina_borrador"
-
-    PROVEEDOR ||--o{ PROVEEDOR_PUNTO : "opera"
-
-    %% Agregados (métricas)
-    BENEFICIO ||--o{ METRICA_BENEFICIO_DIARIA : "agrega"
-    PROVEEDOR ||--o{ METRICA_PROVEEDOR_DIARIA : "agrega"
-    CATEGORIA ||--o{ METRICA_CATEGORIA_DIARIA : "agrega"
-    BENEFICIO ||--o{ METRICA_CANJE_DIARIA : "agrega"
+    CategoriaIdMap {
+        int CategoriaIdInt PK
+        guid CategoriaIdGuid
+    }
+    AreaDeCategoria ||--o{ Categoria : "FK_Categoria_AreaDeCategoria"
+    Categoria ||--o{ Beneficio : "FK_Beneficio_Categoria"
+    Proveedor ||--o{ Beneficio : "FK_Beneficio_Proveedor"
+    Beneficio ||--o{ BeneficioImagen : "FK_BeneficioImagen_Beneficio"
+    Proveedor ||--o{ ProveedorUsuario : "FK_ProvUser_Proveedor"
+    Usuario ||--o{ ProveedorUsuario : "FK_ProvUser_Usuario"
+    Beneficio ||--o{ SeleccionBeneficio : "FK_SeleccionBeneficio_BeneficioId"
+```

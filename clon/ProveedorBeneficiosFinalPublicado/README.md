@@ -1,66 +1,80 @@
-# Spotify Clone 🎧
+# ProveedorBeneficiosFinalPublicado
 
-A Spotify clone built with React JS and Tailwind CSS, showcasing a dynamic and responsive user interface. This project is a demonstration of modern web development techniques using React JS hooks, React-DOM for navigation, and the Tailwind CSS framework for styling.
+## 1. Descripción del módulo
 
-## Table of Contents
+Aplicación web **SPA** para el portal de proveedores: rutas `/login` y área principal bajo `/*` (`ProveedorHome`). Permite autenticación basada en token y gestión de beneficios asociados al proveedor según la lógica en `src/`.
 
-- [Features](#features)
-- [Demo](#demo)
-- [Technologies](#technologies)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
+## 2. Responsabilidad
 
-## Features
+- Flujo de login del proveedor contra la API.
+- Navegación interna con React Router 6.
+- Llamadas HTTP directas a la URL base definida en código (`src/services/api.js` y servicios relacionados).
 
-- Dynamic user interface
-- Responsive design, mobile-friendly
-- Seamless navigation using React-DOM
+## 3. Tecnologías utilizadas
 
-## Demo
+- React 18
+- Vite 6
+- React Router 6
+- Tailwind CSS 3, PostCSS, Autoprefixer
+- ESLint
 
-Check out the live demo [here](http://spotify-codewithbalaji.vercel.app).
+Nombre del paquete en `package.json`: `beneficios-user`.
 
-## Technologies
+## 4. Estructura interna
 
-- React JS
-- Tailwind CSS
-- React-DOM
+| Ruta | Rol |
+|------|-----|
+| `src/App.jsx` | Definición de rutas `/login` y comodín `/*`. |
+| `src/proveedor/`, `src/views/` | Páginas y formularios del portal. |
+| `src/services/api.js` | Constantes `CLOUD`, `LOCAL`, `TARGET` y `API_BASE`; funciones `httpGet`/`httpPost` con `fetch` y CORS. |
+| `vite.config.js` | `build/` y proxy `/api` → `http://localhost:7141`. |
 
-## Installation
+No se encontró `.env` en el análisis del repositorio; la selección local/cloud está en constantes dentro de `api.js`.
 
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/codewithbalaji/spotify-clone.git
-    ```
-2. Navigate to the project directory:
-    ```sh
-    cd spotify-clone
-    ```
-3. Install dependencies:
-    ```sh
-    npm install
-    ```
+## 5. Flujo de funcionamiento
 
-## Usage
+1. El usuario abre `/login` y envía credenciales o token según `ProveedorLogin`.
+2. Tras validación, la aplicación navega al área autenticada.
+3. Las peticiones usan `API_BASE` derivado de `TARGET` (`local` usa `https://localhost:5001` en el código actual; `cloud` usa la URL Azure fijada en `CLOUD`).
 
-1. Start the development server:
-    ```sh
-    npm start
-    ```
-2. Open your browser and navigate to `http://localhost:3000`.
+## 6. Configuración
 
-## Contributing
+Para cambiar entorno sin editar código, sería necesario introducir variables `VITE_*` como en los otros clones; en el estado actual del repositorio la configuración activa está en:
 
-Contributions are welcome! Please fork the repository and create a pull request with your changes.
+```text
+src/services/api.js → CLOUD, LOCAL, TARGET
+```
 
-## License
+Ajustar `TARGET` a `"cloud"` o `"local"` según despliegue.
 
-This project is licensed under the MIT License.
+## 7. Ejecución
 
-## Acknowledgements
+```powershell
+cd C:\Users\joel\Documents\HR\HR-Beneficios\clon\ProveedorBeneficiosFinalPublicado
+npm install
+npm run dev
+```
 
-Special thanks to the GreatStack YouTube Channel for their invaluable tutorials and guidance.
+Build:
 
+```powershell
+npm run build
+```
+
+## 8. Dependencias externas
+
+- **API** en la URL efectiva (`LOCAL` o `CLOUD` en `api.js`).
+- Certificados válidos si se usa HTTPS local.
+- **Node.js** / **npm**.
+
+## 9. Relación con otros módulos
+
+- Depende del proyecto **`api/`** (endpoints de proveedor y beneficios).
+- El build puede desplegarse en **`webProveedor/HR-Beneficios-WEB/wwwroot`**.
+- Variables `VITE_PROV_PORTAL_*` en el admin referencian URLs de este portal en despliegues típicos.
+
+## 10. Consideraciones
+
+- CORS: las peticiones directas a `https://localhost:5001` requieren política CORS en el API acorde al origen del Vite (puerto variable, por defecto 5173).
+- El proxy `/api` en Vite solo aplica cuando las peticiones usan rutas relativas `/api/...`; `api.js` usa URL absoluta, por lo que el proxy no interviene salvo que se cambie el cliente a rutas relativas.
+- Revisar coherencia entre autorización en `api/ProveedorController` y el flujo del front (token, cabeceras).
